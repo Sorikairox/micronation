@@ -6,6 +6,7 @@ import { DatabaseClientService } from "library/database/client/service";
 import { PixelModule } from "../pixel/module";
 import { PixelRepository } from "../pixel/repository";
 import { UserAlreadyOwnAPixelError } from "../errors";
+import { DatabaseEvent } from "library/database/object/class";
 
 describe('AppController', () => {
   let flagService: FlagService;
@@ -35,18 +36,28 @@ describe('AppController', () => {
     await dbClientService.client.close();
   });
   describe('addPixel',  () => {
-    it('add pixel in db', async () => {
-      let pixel = new Pixel('ownerid', '#DDDDDD');
-      await flagService.addPixel(pixel);
-      let createdPixel = await dbClientService.getDb().collection(pixelRepository.getCollectionName()).findOne<Pixel>(pixel);
+    it('add creation event in db', async () => {
+      let addedPixelEvent = await flagService.addPixel('ownerid', '#DDDDDD');
+      let createdPixel = await dbClientService.getDb().collection(pixelRepository.getCollectionName()).findOne<DatabaseEvent<Pixel>>({_id: addedPixelEvent._id});
       expect(createdPixel).toBeDefined();
-      expect(createdPixel.hexColor).toEqual(pixel.hexColor);
+      expect(createdPixel.data.hexColor).toEqual('#DDDDDD');
+      expect(createdPixel.action).toEqual('creation');
     });
     it('throw error if owner already own a pixel', async () => {
-      let firstPixel = new Pixel('otherownerid', '#DDDDDD');
-      await flagService.addPixel(firstPixel);
-      let secondPixel = new Pixel('otherownerid', '#AAAAAA');
-      await expect(flagService.addPixel(secondPixel)).rejects.toThrow(UserAlreadyOwnAPixelError);
+      await flagService.addPixel('otherownerid', '#DDDDDD');
+      await expect(flagService.addPixel('otherownerid')).rejects.toThrow(UserAlreadyOwnAPixelError);
     })
+  });
+  describe('changePixelColor',  () => {
+    it('add pixel event in db', async () => {
+      let addedPixelEvent = await flagService.addPixel('ownerid', '#DDDDDD');
+      await new Promise((r) => setTimeout(r, 1));
+      await flagService.changePixelColor('ownerid', addedPixelEvent.entityId, '#FFFFFF');
+      let events = await dbClientService.getDb().collection(pixelRepository.getCollectionName()).find<DatabaseEvent<Pixel>>({entityId: addedPixelEvent.entityId}, { sort : { createdAt : -1 }}).toArray();
+      expect(events.length).toEqual(2);
+      expect(events[0].action).toEqual('update');
+      expect(events[0].data).toEqual({ hexColor: '#FFFFFF'});
+    });
+
   });
 });
