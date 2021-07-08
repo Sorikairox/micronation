@@ -13,6 +13,17 @@ export class DatabaseRepository<T extends DatabaseObject> {
             return insertOperation.ops[0];
     }
 
+    async findOne(filter: Partial<T>) {
+        return this.dbClient.getDb().collection(this.collectionName).findOne(filter);
+    }
+
+    async updateAndReturnOne(filter: Partial<T>, partialUpdateObject: Partial<T>) {
+        let updateOperation = await this.dbClient.getDb().collection(this.collectionName).findOneAndUpdate(filter, { $set : partialUpdateObject}, {
+            returnDocument: 'after'
+        });
+        return updateOperation.value
+    }
+
     getCollectionName() {
         return this.collectionName;
     }
