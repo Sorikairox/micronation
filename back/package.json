@@ -1,0 +1,4 @@
+{
+  "private": true,
+  "workspaces": ["library", "flag-service"]
+}
