@@ -1,22 +1,52 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { FlagController } from '../controller';
 import { FlagService } from '../service';
+import { Pixel } from "../pixel/class";
+import { DatabaseModule } from "library/database/module";
+import { DatabaseClientService } from "library/database/client/service";
+import { PixelModule } from "../pixel/module";
+import { PixelRepository } from "../pixel/repository";
+import { UserAlreadyOwnAPixelError } from "../errors";
 
 describe('AppController', () => {
-  let appController: FlagController;
+  let flagService: FlagService;
+  let dbClientService: DatabaseClientService;
+  let pixelRepository: PixelRepository;
 
   beforeEach(async () => {
     const app: TestingModule = await Test.createTestingModule({
-      controllers: [FlagController],
+      imports: [DatabaseModule.register(
+          {
+            uri: 'mongodb://127.0.0.1:27018',
+            dbName: 'testDb',
+          }
+      ), PixelModule],
+      controllers: [],
       providers: [FlagService],
     }).compile();
 
-    appController = app.get<FlagController>(FlagController);
+    flagService = app.get<FlagService>(FlagService);
+    dbClientService = app.get<DatabaseClientService>('DATABASE_CLIENT');
+    pixelRepository = app.get<PixelRepository>(PixelRepository);
+    await dbClientService.connectionPromise;
+    await dbClientService.getDb().collection(pixelRepository.getCollectionName()).deleteMany({});
   });
 
-  describe('root', () => {
-    it('should return "Hello World!"', () => {
-      expect(appController.getHello()).toBe('Hello World!');
+  afterAll(async () => {
+    await dbClientService.client.close();
+  });
+  describe('addPixel',  () => {
+    it('add pixel in db', async () => {
+      let pixel = new Pixel('ownerid', '#DDDDDD');
+      await flagService.addPixel(pixel);
+      let createdPixel = await dbClientService.getDb().collection(pixelRepository.getCollectionName()).findOne<Pixel>(pixel);
+      expect(createdPixel).toBeDefined();
+      expect(createdPixel.hexColor).toEqual(pixel.hexColor);
     });
+    it('throw error if owner already own a pixel', async () => {
+      let firstPixel = new Pixel('otherownerid', '#DDDDDD');
+      await flagService.addPixel(firstPixel);
+      let secondPixel = new Pixel('otherownerid', '#AAAAAA');
+      await expect(flagService.addPixel(secondPixel)).rejects.toThrow(UserAlreadyOwnAPixelError);
+    })
   });
 });
