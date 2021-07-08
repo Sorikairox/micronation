@@ -1,4 +1,3 @@
-import { Db } from 'mongodb';
 import { DatabaseClientService } from '../../client/service';
 import { DatabaseRepository } from "../service";
 
@@ -31,6 +30,9 @@ describe('Database Repository', () => {
           expect(dbObject).toBeDefined();
           expect(dbObject.randomId).toEqual('bestId');
       });
+       it ('set createdAt field to creation date', () => {
+          expect(dbObject.createdAt).toBeInstanceOf(Date);
+       });
        it ('returns created object', () => {
            expect(res).toEqual(dbObject);
        })

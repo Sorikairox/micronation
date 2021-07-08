@@ -5,6 +5,7 @@ import { DatabaseClientService } from "./client/service";
 export class DatabaseModule {
     static register(options): DynamicModule {
         return {
+            global: true,
             module: DatabaseModule,
             providers: [
                 {
@@ -16,7 +17,7 @@ export class DatabaseModule {
                     useClass: DatabaseClientService,
                 }
             ],
-            exports: [DatabaseClientService]
+            exports: ['DATABASE_CLIENT']
         }
     }
 }
