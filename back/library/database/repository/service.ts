@@ -1,5 +1,6 @@
 import { DatabaseClientService } from "../client/service";
 import { DatabaseObject } from "../object/class";
+import { FilterQuery } from "mongodb";
 
 export class DatabaseRepository<T extends DatabaseObject> {
 
@@ -13,8 +14,12 @@ export class DatabaseRepository<T extends DatabaseObject> {
             return insertOperation.ops[0];
     }
 
-    async findOne(filter: Partial<T>) {
+    async findOne(filter: FilterQuery<T>) {
         return this.dbClient.getDb().collection(this.collectionName).findOne(filter);
+    }
+
+    async findLast(filter: FilterQuery<T>) {
+        return this.dbClient.getDb().collection(this.collectionName).findOne(filter, { sort: { createdAt: -1 } });
     }
 
     async updateAndReturnOne(filter: Partial<T>, partialUpdateObject: Partial<T>) {
@@ -26,5 +31,9 @@ export class DatabaseRepository<T extends DatabaseObject> {
 
     getCollectionName() {
         return this.collectionName;
+    }
+
+    getCollection() {
+        return this.dbClient.getDb().collection(this.collectionName);
     }
 }
