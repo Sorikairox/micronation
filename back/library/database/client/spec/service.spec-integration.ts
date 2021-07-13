@@ -12,12 +12,8 @@ describe('Database Client Service', () => {
     afterAll(async () => {
        await databaseClientService.client.close();
     });
-    it('connect to db', async () => {
-        await databaseClientService.connectionPromise;
-    }, 5000);
     it('getDb returns db object', async () => {
-       await databaseClientService.connectionPromise;
-       let db = databaseClientService.getDb();
+       const db = databaseClientService.getDb();
        expect(db).toBeInstanceOf(Db);
        expect(db.databaseName).toEqual('testDb');
     });

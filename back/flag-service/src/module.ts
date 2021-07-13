@@ -3,11 +3,13 @@ import { FlagController } from './controller';
 import { FlagService } from './service';
 import { PixelModule } from './pixel/module';
 import { DatabaseModule } from 'library/database/module';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
+    ConfigModule.forRoot(),
     DatabaseModule.register({
-      uri: 'mongodb://127.0.0.1:27018',
+      uri: process.env.DATABASE_URI,
       dbName: 'micronation',
     }),
     PixelModule,

@@ -1,7 +1,7 @@
 import { FlagController } from '../controller';
 import { FlagService } from '../service';
-import { UserAlreadyOwnAPixelError } from '../errors';
-import { BadRequestException } from '@nestjs/common';
+import { CooldownTimerHasNotEndedYet, UserAlreadyOwnAPixelError } from '../errors';
+import { BadRequestException, InternalServerErrorException } from '@nestjs/common';
 
 describe('FlagController', () => {
   let flagController: FlagController;
@@ -49,6 +49,114 @@ describe('FlagController', () => {
       });
       it('throw BadRequestException when service throw an UserAlreadyOwnAPixel error', async () => {
         await expect(res).rejects.toThrow(BadRequestException);
+      });
+    });
+    describe('changePixelColor', () => {
+      describe('success', () => {
+        let changePixelColorSpy;
+        let res;
+        beforeAll(async () => {
+          changePixelColorSpy = jest
+            .spyOn(flagService, 'changePixelColor')
+            .mockReturnValue({ modified: true } as any);
+          res = await flagController.changePixelColor('ownerId', 'pixelId', '#DDDDDD');
+        });
+        it('call changePixelColor from service', () => {
+          expect(changePixelColorSpy).toBeCalledTimes(1);
+        })
+        it('returns changePixelColor return value', () => {
+          expect(res).toEqual({ modified: true });
+        })
+      });
+      describe('failure', () => {
+        let changePixelColorSpy;
+        let res;
+        beforeAll(async () => {
+          changePixelColorSpy = jest
+            .spyOn(flagService, 'changePixelColor')
+            .mockImplementation(() => {
+              throw new CooldownTimerHasNotEndedYet();
+            });
+          res = flagController.changePixelColor('ownerId', 'pixelId', '#ffffff');
+        });
+        it('call changePixelColor from service', () => {
+          expect(changePixelColorSpy).toBeCalledTimes(1);
+        });
+        it('throw BadRequestException when service throw an CooldownTimerHasNotEndedYet error', async () => {
+          await expect(res).rejects.toThrow(BadRequestException);
+        });
+      });
+    });
+    describe('getFlag', () => {
+      describe('success', () => {
+        let getFlagSpy;
+        let res;
+        beforeAll(async () => {
+          getFlagSpy = jest
+            .spyOn(flagService, 'getFlag')
+            .mockReturnValue([{ modified: true }] as any);
+          res = await flagController.getFlag();
+        });
+        it('call getFlag from service', () => {
+          expect(getFlagSpy).toBeCalledTimes(1);
+        })
+        it('returns getFlag return value', () => {
+          expect(res).toEqual([{ modified: true }] );
+        })
+      });
+      describe('failure', () => {
+        let getFlagSpy;
+        let res;
+        beforeAll(async () => {
+          getFlagSpy = jest
+            .spyOn(flagService, 'getFlag')
+            .mockImplementation(() => {
+              throw new Error();
+            });
+          res = flagController.getFlag();
+        });
+        it('call getFlag from service', () => {
+          expect(getFlagSpy).toBeCalledTimes(1);
+        });
+        it('throw InternalServerErrorException when service throw an error', async () => {
+          await expect(res).rejects.toThrow(InternalServerErrorException);
+        });
+      });
+    });
+    describe('getFlagAtDate', () => {
+      describe('success', () => {
+        let getFlagAtDateSpy;
+        let res;
+        beforeAll(async () => {
+          getFlagAtDateSpy = jest
+            .spyOn(flagService, 'getFlagAtDate')
+            .mockReturnValue([{ modified: true }] as any);
+          res = await flagController.getFlagAtDate(new Date());
+        });
+        it('call getFlagAtDate from service', () => {
+          expect(getFlagAtDateSpy).toBeCalledTimes(1);
+        })
+        it('returns getFlagAtDate return value', () => {
+          expect(res).toEqual([{ modified: true }] );
+        })
+      });
+      describe('failure', () => {
+        let getFlagAtDateSpy;
+        let res;
+        beforeAll(async () => {
+          getFlagAtDateSpy = jest
+            .spyOn(flagService, 'getFlagAtDate')
+            .mockImplementation(() => {
+              throw new Error();
+            });
+          res = flagController.getFlagAtDate(new Date());
+        });
+        it('call getFlag from service', () => {
+          expect(getFlagAtDateSpy).toBeCalledTimes(1);
+        });
+        it('throw InternalServerErrorException when service throw an error', async () => {
+          await expect(res).rejects.toThrow(InternalServerErrorException);
+        });
       });
     });
   });

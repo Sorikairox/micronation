@@ -1,11 +1,21 @@
-import { BadRequestException, Body, Controller } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Get,
+  InternalServerErrorException,
+  Param,
+  Post,
+  Put
+} from '@nestjs/common';
 import { FlagService } from './service';
-import { UserAlreadyOwnAPixelError } from './errors';
+import { CooldownTimerHasNotEndedYet, UserAlreadyOwnAPixelError } from './errors';
 
-@Controller()
+@Controller('')
 export class FlagController {
   constructor(private flagService: FlagService) {}
 
+  @Post('pixel')
   async addPixel(
     @Body('ownerId') ownerId: string,
     @Body('hexColor') hexColor: string,
@@ -20,6 +30,7 @@ export class FlagController {
     }
   }
 
+  @Put('pixel')
   async changePixelColor(
     @Body('ownerId') ownerId: string,
     @Body('pixelId') pixelId: string,
@@ -33,9 +44,29 @@ export class FlagController {
       );
       return event;
     } catch (e) {
-      if (e instanceof UserAlreadyOwnAPixelError) {
+      if (e instanceof CooldownTimerHasNotEndedYet) {
         throw new BadRequestException();
       }
+    }
+  }
+
+  @Get('flag')
+  async getFlag() {
+    try {
+      const flag = await this.flagService.getFlag();
+      return flag;
+    } catch (e) {
+      throw new InternalServerErrorException();
+    }
+  }
+
+  @Get('flag/:date')
+  async getFlagAtDate(@Param('date') requestedDate: Date) {
+    try {
+      const flag = await this.flagService.getFlagAtDate(requestedDate);
+      return flag;
+    } catch (e) {
+      throw new InternalServerErrorException();
     }
   }
 }
