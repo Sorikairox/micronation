@@ -17,6 +17,8 @@ First, clone the repository with :
 
 Install all dependencies by using `yarn install` in `back` and `front` folders.
 
+Copy `.env.example` content to a `.env` file with your own configuration
+
 ## Running the apps
 
 ### Back
