@@ -12,7 +12,7 @@ import {
 import { DatabaseEvent } from 'library/database/object/class';
 import { set } from 'date-fns';
 
-describe('AppController', () => {
+describe('FlagService', () => {
   let flagService: FlagService;
   let dbClientService: DatabaseClientService;
   let pixelRepository: PixelRepository;
