@@ -24,13 +24,12 @@ Copy `.env.example` content to a `.env` and `.env.e2e` file with your own config
 ### Back
 Microservices are built with NestJS framework and use their scripts.
 
-`yarn start:dev` to run and watch for changes
+Before running, `library` must be built **at least once** with `tsc --build library/tsconfig.json` (or `cd library && yarn tsc`).
 
-`yarn start` to run the app 
-
-`yarn test` to run integration tests
-
-`yarn test:e2e` to run end-to-end tests
+- `yarn start:dev` to run and watch for changes
+- `yarn start` to run the app 
+- `yarn test` to run integration tests
+- `yarn test:e2e` to run end-to-end tests
 
 ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
