@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { Pixel } from './pixel/class';
-import { PixelRepository } from './pixel/repository';
+import { Pixel } from './pixel/Pixel';
+import { PixelRepository } from './pixel/PixelRepository';
 import {
   CooldownTimerHasNotEndedYet,
   UserAlreadyOwnAPixelError,
-} from './errors';
+} from './flag-errors';
 import { differenceInMinutes } from 'date-fns';
 
 @Injectable()

@@ -1,4 +1,4 @@
-import { DatabaseClientService } from "../service";
+import { DatabaseClientService } from "../DatabaseClientService";
 import { Db } from "mongodb";
 
 describe('Database Client Service', () => {

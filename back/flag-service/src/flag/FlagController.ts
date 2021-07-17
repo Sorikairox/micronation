@@ -8,8 +8,8 @@ import {
   Post,
   Put
 } from '@nestjs/common';
-import { FlagService } from './service';
-import { CooldownTimerHasNotEndedYet, UserAlreadyOwnAPixelError } from './errors';
+import { FlagService } from './FlagService';
+import { CooldownTimerHasNotEndedYet, UserAlreadyOwnAPixelError } from './flag-errors';
 
 @Controller('')
 export class FlagController {

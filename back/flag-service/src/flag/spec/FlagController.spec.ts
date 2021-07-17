@@ -1,6 +1,6 @@
-import { FlagController } from '../controller';
-import { FlagService } from '../service';
-import { CooldownTimerHasNotEndedYet, UserAlreadyOwnAPixelError } from '../errors';
+import { FlagController } from '../FlagController';
+import { FlagService } from '../FlagService';
+import { CooldownTimerHasNotEndedYet, UserAlreadyOwnAPixelError } from '../flag-errors';
 import { BadRequestException, InternalServerErrorException } from '@nestjs/common';
 
 describe('FlagController', () => {

@@ -1,5 +1,5 @@
-import { DatabaseClientService } from "../client/service";
-import { DatabaseObject } from "../object/class";
+import { DatabaseClientService } from "../client/DatabaseClientService";
+import { DatabaseObject } from "../object/DatabaseObject";
 import { FilterQuery } from "mongodb";
 
 export class DatabaseRepository<T extends DatabaseObject> {

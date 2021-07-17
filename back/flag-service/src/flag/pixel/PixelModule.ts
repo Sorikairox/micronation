@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { PixelRepository } from './repository';
+import { PixelRepository } from './PixelRepository';
 
 @Module({
   imports: [],

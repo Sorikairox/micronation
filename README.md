@@ -36,5 +36,17 @@ Pull requests are welcome. For major changes, please open an issue first to disc
 
 Please make sure to update tests as appropriate.
 
+### Naming conventions
+
+We use [DDD (Domain Driven Design)](https://en.wikipedia.org/wiki/Domain-driven_design) principles.
+
+Files are sorted in folders that make a domain structure. Example: `flag/pixel/Pixel.ts` is located in the domain `pixel` which is a subdomain of the domain `flag`.
+Test files are located in a `spec` folder inside the domain folder they relate to. Example: all tests of stuff in the domain `flag` are located in `flag/spec/`.
+
+- Files defining a single class are named after the class (PascalCase). Example: `FlagRepository.ts` is expected to contain the definition of the `FlagRepository` class.
+- Other files are named after their content relative to their domain. Example: `flag-errors.ts` is expected to contain many error classes that are used in the `flag` domain.
+- The entrypoint is named `main.ts`.
+- Test files are named after the class (PascalCase) or domain (kebab-case) they test and end with `.spec.ts`. Example: `FlagController.spec.ts` is expected to contain all tests of the `FlagController` class.
+
 ## License
 [unlicense](https://choosealicense.com/licenses/unlicense/)

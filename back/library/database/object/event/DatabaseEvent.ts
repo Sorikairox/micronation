@@ -1,7 +1,4 @@
-export class DatabaseObject {
-    _id?: string;
-    createdAt?: Date;
-}
+import {DatabaseObject} from "../DatabaseObject";
 
 export class DatabaseEvent<T> extends DatabaseObject {
     action: "creation" | "update";

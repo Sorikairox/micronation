@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
-import { FlagController } from './controller';
-import { FlagService } from './service';
-import { PixelModule } from './pixel/module';
-import { DatabaseModule } from 'library/database/module';
+import { FlagController } from './FlagController';
+import { FlagService } from './FlagService';
+import { PixelModule } from './pixel/PixelModule';
+import { DatabaseModule } from 'library/database/DatabaseModule';
 import { ConfigModule } from '@nestjs/config';
 
 @Module({

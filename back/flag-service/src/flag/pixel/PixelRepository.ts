@@ -1,8 +1,8 @@
-import { DatabaseRepository } from 'library/database/repository/service';
-import { Pixel } from './class';
+import { DatabaseRepository } from 'library/database/repository/DatabaseRepository';
+import { Pixel } from './Pixel';
 import { Inject, Injectable } from '@nestjs/common';
-import { DatabaseClientService } from 'library/database/client/service';
-import { DatabaseEvent } from 'library/database/object/class';
+import { DatabaseClientService } from 'library/database/client/DatabaseClientService';
+import { DatabaseEvent } from 'library/database/object/event/DatabaseEvent';
 
 @Injectable()
 export class PixelRepository extends DatabaseRepository<DatabaseEvent<Pixel>> {

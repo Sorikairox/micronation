@@ -1,5 +1,5 @@
-import { DatabaseClientService } from '../../client/service';
-import { DatabaseRepository } from "../service";
+import { DatabaseClientService } from '../../client/DatabaseClientService';
+import { DatabaseRepository } from "../DatabaseRepository";
 import { Db } from "mongodb";
 
 let testCollectionName = 'testCollection';

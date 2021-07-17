@@ -1,15 +1,15 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { FlagService } from '../service';
-import { Pixel } from '../pixel/class';
-import { DatabaseModule } from 'library/database/module';
-import { DatabaseClientService } from 'library/database/client/service';
-import { PixelModule } from '../pixel/module';
-import { PixelRepository } from '../pixel/repository';
+import { FlagService } from '../FlagService';
+import { Pixel } from '../pixel/Pixel';
+import { DatabaseModule } from 'library/database/DatabaseModule';
+import { DatabaseClientService } from 'library/database/client/DatabaseClientService';
+import { PixelModule } from '../pixel/PixelModule';
+import { PixelRepository } from '../pixel/PixelRepository';
 import {
   CooldownTimerHasNotEndedYet,
   UserAlreadyOwnAPixelError,
-} from '../errors';
-import { DatabaseEvent } from 'library/database/object/class';
+} from '../flag-errors';
+import { DatabaseEvent } from 'library/database/object/event/DatabaseEvent';
 import { set } from 'date-fns';
 
 describe('FlagService', () => {
