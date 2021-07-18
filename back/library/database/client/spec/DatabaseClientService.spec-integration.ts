@@ -3,11 +3,12 @@ import { Db } from "mongodb";
 
 describe('Database Client Service', () => {
     let databaseClientService: DatabaseClientService;
-    beforeAll(() => {
+    beforeAll(async () => {
         databaseClientService = new DatabaseClientService({
             uri: process.env.DATABASE_URI,
             dbName: 'testDb'
         });
+        await databaseClientService.onModuleInit();
     });
     afterAll(async () => {
        await databaseClientService.client.close();

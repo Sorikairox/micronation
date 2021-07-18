@@ -9,12 +9,13 @@ describe('Database Repository', () => {
     let databaseRepository: DatabaseRepository<any>;
     let db: Db;
 
-    beforeAll(() => {
+    beforeAll(async () => {
         databaseClientService = new DatabaseClientService({
             uri: process.env.DATABASE_URI,
             dbName: 'testDb'
         });
         databaseRepository = new DatabaseRepository<any>(databaseClientService, testCollectionName);
+        await databaseClientService.onModuleInit();
         db = databaseClientService.getDb();
     });
     beforeEach(async () => {
