@@ -1,4 +1,4 @@
-import {DatabaseObject} from "../DatabaseObject";
+import { DatabaseObject } from "../DatabaseObject";
 
 export class DatabaseEvent<T> extends DatabaseObject {
     action: "creation" | "update";
