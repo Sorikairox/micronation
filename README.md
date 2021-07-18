@@ -40,6 +40,8 @@ Please make sure to update tests as appropriate.
 
 We use [DDD (Domain Driven Design)](https://en.wikipedia.org/wiki/Domain-driven_design) principles.
 
+Most classes should be defined in their own single class file, while in certain cases it is relevant to have many definitions in a single file (for example error classes).
+
 Files are sorted in folders that make a domain structure. Example: `flag/pixel/Pixel.ts` is located in the domain `pixel` which is a subdomain of the domain `flag`.
 Test files are located in a `spec` folder inside the domain folder they relate to. Example: all tests of stuff in the domain `flag` are located in `flag/spec/`.
 
