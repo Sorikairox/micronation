@@ -18,8 +18,8 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:integration": "jest --config ./jest-integration.json",
-    "test:e2e": "dotenv -e .env.e2e -- jest --config test/jest-e2e.json"
+    "test:integration": "dotenv -e .env.test.integration -- jest --config ./jest-integration.json",
+    "test:e2e": "dotenv -e .env.test.e2e -- jest --config test/jest-e2e.json"
   },
   "dependencies": {
     "@nestjs/common": "^8.0.0",

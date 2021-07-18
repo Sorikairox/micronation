@@ -5,7 +5,7 @@ describe('Database Client Service', () => {
     let databaseClientService: DatabaseClientService;
     beforeAll(() => {
         databaseClientService = new DatabaseClientService({
-            uri: 'mongodb://127.0.0.1:27018',
+            uri: process.env.DATABASE_URI,
             dbName: 'testDb'
         });
     });

@@ -17,7 +17,7 @@ First, clone the repository with :
 
 Install all dependencies by using `yarn install` in `back` and `front` folders.
 
-Copy `.env.example` content to a `.env` and `.env.e2e` file with your own configuration for normal and e2e-test runs.
+Copy `.env.example` content to a `.env`, `.env.test.integration` and `.env.test.e2e` file with your own configuration for each case.
 
 ## Running the apps
 
