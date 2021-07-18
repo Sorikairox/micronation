@@ -28,7 +28,8 @@ Before running, `library` must be built **at least once** with `tsc --build libr
 
 - `yarn start:dev` to run and watch for changes
 - `yarn start` to run the app 
-- `yarn test` to run integration tests
+- `yarn test` to run base tests
+- `yarn test:integration` to run integration tests
 - `yarn test:e2e` to run end-to-end tests
 
 ## Contributing
