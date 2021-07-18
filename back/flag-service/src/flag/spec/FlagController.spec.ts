@@ -1,7 +1,8 @@
-import { FlagController } from '../controller';
-import { FlagService } from '../service';
-import { CooldownTimerHasNotEndedYet, UserAlreadyOwnAPixelError } from '../errors';
+import { FlagController } from '../FlagController';
+import { FlagService } from '../FlagService';
 import { BadRequestException, InternalServerErrorException } from '@nestjs/common';
+import { UserAlreadyOwnAPixelError } from "../errors/UserAlreadyOwnAPixelError";
+import { CooldownTimerHasNotEndedYetError } from "../errors/CooldownTimerHasNotEndedYetError";
 
 describe('FlagController', () => {
   let flagController: FlagController;
@@ -75,7 +76,7 @@ describe('FlagController', () => {
           changePixelColorSpy = jest
             .spyOn(flagService, 'changePixelColor')
             .mockImplementation(() => {
-              throw new CooldownTimerHasNotEndedYet();
+              throw new CooldownTimerHasNotEndedYetError();
             });
           res = flagController.changePixelColor('ownerId', 'pixelId', '#ffffff');
         });

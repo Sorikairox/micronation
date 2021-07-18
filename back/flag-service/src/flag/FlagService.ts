@@ -1,11 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { Pixel } from './pixel/class';
-import { PixelRepository } from './pixel/repository';
-import {
-  CooldownTimerHasNotEndedYet,
-  UserAlreadyOwnAPixelError,
-} from './errors';
+import { Pixel } from './pixel/Pixel';
+import { PixelRepository } from './pixel/PixelRepository';
 import { differenceInMinutes } from 'date-fns';
+import { UserAlreadyOwnAPixelError } from "./errors/UserAlreadyOwnAPixelError";
+import { CooldownTimerHasNotEndedYetError } from "./errors/CooldownTimerHasNotEndedYetError";
 
 @Injectable()
 export class FlagService {
@@ -38,7 +36,7 @@ export class FlagService {
       differenceInMinutes(lastUserAction.createdAt, new Date()) <
         Number(process.env.CHANGE_COOLDOWN)
     ) {
-      throw new CooldownTimerHasNotEndedYet();
+      throw new CooldownTimerHasNotEndedYetError();
     }
     return this.pixelRepository.createAndReturn({
       action: 'update',

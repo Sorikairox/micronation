@@ -1,16 +1,14 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { FlagService } from '../service';
-import { Pixel } from '../pixel/class';
-import { DatabaseModule } from 'library/database/module';
-import { DatabaseClientService } from 'library/database/client/service';
-import { PixelModule } from '../pixel/module';
-import { PixelRepository } from '../pixel/repository';
-import {
-  CooldownTimerHasNotEndedYet,
-  UserAlreadyOwnAPixelError,
-} from '../errors';
-import { DatabaseEvent } from 'library/database/object/class';
+import { FlagService } from '../FlagService';
+import { Pixel } from '../pixel/Pixel';
+import { DatabaseModule } from 'library/database/DatabaseModule';
+import { DatabaseClientService } from 'library/database/client/DatabaseClientService';
+import { PixelModule } from '../pixel/PixelModule';
+import { PixelRepository } from '../pixel/PixelRepository';
+import { DatabaseEvent } from 'library/database/object/event/DatabaseEvent';
 import { set } from 'date-fns';
+import { UserAlreadyOwnAPixelError } from "../errors/UserAlreadyOwnAPixelError";
+import { CooldownTimerHasNotEndedYetError } from "../errors/CooldownTimerHasNotEndedYetError";
 
 describe('FlagService', () => {
   let flagService: FlagService;
@@ -21,7 +19,7 @@ describe('FlagService', () => {
     const app: TestingModule = await Test.createTestingModule({
       imports: [
         DatabaseModule.register({
-          uri: 'mongodb://127.0.0.1:27018',
+          uri: process.env.DATABASE_URI,
           dbName: 'testDb',
         }),
         PixelModule,
@@ -107,7 +105,7 @@ describe('FlagService', () => {
           addedPixelEvent.entityId,
           '#FFFFFF',
         ),
-      ).rejects.toThrow(CooldownTimerHasNotEndedYet);
+      ).rejects.toThrow(CooldownTimerHasNotEndedYetError);
     });
   });
 

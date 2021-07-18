@@ -1,8 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
-import { FlagModule } from '../src/module';
-import { DatabaseClientService } from 'library/database/client/service';
+import { FlagModule } from '../src/flag/FlagModule';
+import { DatabaseClientService } from 'library/database/client/DatabaseClientService';
 
 describe('Flag (e2e)', () => {
   let app: INestApplication;

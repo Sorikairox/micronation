@@ -1,5 +1,5 @@
 import { Module, DynamicModule } from "@nestjs/common";
-import { DatabaseClientService } from "./client/service";
+import { DatabaseClientService } from "./client/DatabaseClientService";
 
 @Module({})
 export class DatabaseModule {

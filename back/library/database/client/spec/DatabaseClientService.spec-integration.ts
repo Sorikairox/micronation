@@ -1,13 +1,14 @@
-import { DatabaseClientService } from "../service";
+import { DatabaseClientService } from "../DatabaseClientService";
 import { Db } from "mongodb";
 
 describe('Database Client Service', () => {
     let databaseClientService: DatabaseClientService;
-    beforeAll(() => {
+    beforeAll(async () => {
         databaseClientService = new DatabaseClientService({
-            uri: 'mongodb://127.0.0.1:27018',
+            uri: process.env.DATABASE_URI,
             dbName: 'testDb'
         });
+        await databaseClientService.onModuleInit();
     });
     afterAll(async () => {
        await databaseClientService.client.close();
