@@ -5,12 +5,10 @@ import { DatabaseModule } from 'library/database/DatabaseModule';
 import { DatabaseClientService } from 'library/database/client/DatabaseClientService';
 import { PixelModule } from '../pixel/PixelModule';
 import { PixelRepository } from '../pixel/PixelRepository';
-import {
-  CooldownTimerHasNotEndedYet,
-  UserAlreadyOwnAPixelError,
-} from '../flag-errors';
 import { DatabaseEvent } from 'library/database/object/event/DatabaseEvent';
 import { set } from 'date-fns';
+import { UserAlreadyOwnAPixelError } from "../errors/UserAlreadyOwnAPixelError";
+import { CooldownTimerHasNotEndedYetError } from "../errors/CooldownTimerHasNotEndedYetError";
 
 describe('FlagService', () => {
   let flagService: FlagService;
@@ -107,7 +105,7 @@ describe('FlagService', () => {
           addedPixelEvent.entityId,
           '#FFFFFF',
         ),
-      ).rejects.toThrow(CooldownTimerHasNotEndedYet);
+      ).rejects.toThrow(CooldownTimerHasNotEndedYetError);
     });
   });
 

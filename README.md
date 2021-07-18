@@ -41,15 +41,18 @@ Please make sure to update tests as appropriate.
 
 We use [DDD (Domain Driven Design)](https://en.wikipedia.org/wiki/Domain-driven_design) principles.
 
-Most classes should be defined in their own single class file, while in certain cases it is relevant to have many definitions in a single file (for example error classes).
+#### Ground rules
 
-Files are sorted in folders that make a domain structure. Example: `flag/pixel/Pixel.ts` is located in the domain `pixel` which is a subdomain of the domain `flag`.
-Test files are located in a `spec` folder inside the domain folder they relate to. Example: all tests of stuff in the domain `flag` are located in `flag/spec/`.
-
-- Files defining a single class are named after the class (PascalCase). Example: `FlagRepository.ts` is expected to contain the definition of the `FlagRepository` class.
-- Other files are named after their content relative to their domain. Example: `flag-errors.ts` is expected to contain many error classes that are used in the `flag` domain.
 - The entrypoint is named `main.ts`.
-- Test files are named after the class (PascalCase) or domain (kebab-case) they test and end with `.spec.ts`. Example: `FlagController.spec.ts` is expected to contain all tests of the `FlagController` class.
+- Every class must be defined in its own file.
+- Files are named after the class they define (PascalCase). Example: `FlagRepository.ts` is expected to contain the definition of the `FlagRepository` class.
+- Files are sorted in folders that make a domain structure. Example: `flag/pixel/Pixel.ts` is located in the domain `pixel` which is a subdomain of the domain `flag`.
+  
+#### Tests
+
+- Test files are named after the class (PascalCase) or domain (kebab-case) they test and end with `.spec.ts`, `.spec-integration.ts` or `.spec-e2e.ts`. Example: `FlagService.spec-integration.ts` is expected to contain all integration tests of the `FlagService` class.
+- Test files are located in a `spec` folder inside the domain folder they relate to. Example: all tests of stuff in the domain `flag` are located in `flag/spec/`. 
+- End to end tests are located in the `test` folder at the root of the module.
 
 ## License
 [unlicense](https://choosealicense.com/licenses/unlicense/)

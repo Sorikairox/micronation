@@ -9,7 +9,8 @@ import {
   Put
 } from '@nestjs/common';
 import { FlagService } from './FlagService';
-import { CooldownTimerHasNotEndedYet, UserAlreadyOwnAPixelError } from './flag-errors';
+import { UserAlreadyOwnAPixelError } from "./errors/UserAlreadyOwnAPixelError";
+import { CooldownTimerHasNotEndedYetError } from "./errors/CooldownTimerHasNotEndedYetError";
 
 @Controller('')
 export class FlagController {
@@ -44,7 +45,7 @@ export class FlagController {
       );
       return event;
     } catch (e) {
-      if (e instanceof CooldownTimerHasNotEndedYet) {
+      if (e instanceof CooldownTimerHasNotEndedYetError) {
         throw new BadRequestException();
       }
     }
