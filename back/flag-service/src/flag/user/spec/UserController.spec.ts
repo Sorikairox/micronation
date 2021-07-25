@@ -29,7 +29,7 @@ describe('UserController', () => {
         registerSpy = jest
           .spyOn(userService, 'register')
           .mockReturnValue({ fake: true } as any);
-        res = await userController.register('user@example.com', 'secret', 'secret', 'jane');
+        res = await userController.register('user@example.com', 'password', 'password', 'jane');
       });
       it('calls register from service', () => {
         expect(registerSpy).toBeCalledTimes(1);
@@ -52,7 +52,7 @@ describe('UserController', () => {
               .mockImplementation(() => {
                 throw error;
               });
-            res = userController.register('user@example.com', 'thisisasecret123', 'thisisasecret123', 'jane');
+            res = userController.register('user@example.com', 'password123', 'password123', 'jane');
           });
           it('calls register from service', () => {
             expect(registerSpy).toBeCalledTimes(1);
@@ -84,24 +84,24 @@ describe('UserController', () => {
         }
 
         describe('email', () => {
-          testBadValues('invalid email', 'not a valid email address', 'thisisasecret123', 'thisisasecret123', 'jane');
+          testBadValues('invalid email', 'not a valid email address', 'password123', 'password123', 'jane');
         });
 
         describe('password', () => {
           testBadValues('too short', 'user@example.com', 'abc12', 'abc12', 'jane');
-          testBadValues('no number', 'user@example.com', 'thisisasecret', 'thisisasecret', 'jane');
+          testBadValues('no number', 'user@example.com', 'password', 'password', 'jane');
           testBadValues('no letter', 'user@example.com', '1239009384657493', '1239009384657493', 'jane');
         });
 
         describe('passwordConfirmation', () => {
-          testBadValues('incorrect', 'user@example.com', 'thisisasecret123', 'thisisasecret123 incorrect', 'jane');
+          testBadValues('incorrect', 'user@example.com', 'password123', 'password123 incorrect', 'jane');
         });
 
         describe('nickname', () => {
-          testBadValues('too short', 'user@example.com', 'thisisasecret123', 'thisisasecret123', 'ab');
-          testBadValues('has spaces', 'user@example.com', 'thisisasecret123', 'thisisasecret123', ' has spaces ');
+          testBadValues('too short', 'user@example.com', 'password123', 'password123', 'ab');
+          testBadValues('has spaces', 'user@example.com', 'password123', 'password123', ' has spaces ');
           for (const invalidCharacter of ['!', '@', '+', '~', '$', '#', '%', '^', '&', '*']) {
-            testBadValues(`invalid character ${invalidCharacter}`, 'user@example.com', 'thisisasecret123', 'thisisasecret123', `nick${invalidCharacter}name`);
+            testBadValues(`invalid character ${invalidCharacter}`, 'user@example.com', 'password123', 'password123', `nick${invalidCharacter}name`);
           }
         });
       });
@@ -116,7 +116,7 @@ describe('UserController', () => {
         loginSpy = jest
           .spyOn(userService, 'login')
           .mockReturnValue({ fake: true } as any);
-        res = await userController.login('user@example.com', 'thisisasecret123');
+        res = await userController.login('user@example.com', 'password123');
       });
       it('calls login from service', () => {
         expect(loginSpy).toBeCalledTimes(1);
@@ -139,7 +139,7 @@ describe('UserController', () => {
               .mockImplementation(() => {
                 throw error;
               });
-            res = userController.login('user@example.com', 'thisisasecret123');
+            res = userController.login('user@example.com', 'password123');
           });
           it('calls login from service', () => {
             expect(loginSpy).toBeCalledTimes(1);
@@ -171,12 +171,12 @@ describe('UserController', () => {
         }
 
         describe('email', () => {
-          testBadValues('invalid email', 'not a valid email address', 'thisisasecret123');
+          testBadValues('invalid email', 'not a valid email address', 'password123');
         });
 
         describe('password', () => {
           testBadValues('too short', 'user@example.com', 'abc12');
-          testBadValues('no number', 'user@example.com', 'thisisasecret');
+          testBadValues('no number', 'user@example.com', 'password');
           testBadValues('no letter', 'user@example.com', '1239009384657493');
         });
       });
@@ -191,7 +191,7 @@ describe('UserController', () => {
         changePasswordSpy = jest
           .spyOn(userService, 'changePassword')
           .mockReturnValue({ fake: true } as any);
-        res = await userController.changePassword('anoldsecret135', 'thisisasecret123', 'thisisasecret123');
+        res = await userController.changePassword('oldpassword135', 'password123', 'password123');
       });
       it('calls changePassword from service', () => {
         expect(changePasswordSpy).toBeCalledTimes(1);
@@ -210,7 +210,7 @@ describe('UserController', () => {
             .mockImplementation(() => {
               throw new IncorrectPasswordError();
             });
-          res = userController.changePassword('anoldsecret135', 'thisisasecret123', 'thisisasecret123');
+          res = userController.changePassword('oldpassword135', 'password123', 'password123');
         });
         it('calls changePassword from service', () => {
           expect(changePasswordSpy).toBeCalledTimes(1);
@@ -241,19 +241,19 @@ describe('UserController', () => {
         }
 
         describe('currentPassword', () => {
-          testBadValues('too short', 'abc12', 'thisisasecret123', 'thisisasecret123');
-          testBadValues('no number', 'thisisasecret', 'thisisasecret123', 'thisisasecret123');
-          testBadValues('no letter', '1239009384657493', 'thisisasecret123', 'thisisasecret123');
+          testBadValues('too short', 'abc12', 'password123', 'password123');
+          testBadValues('no number', 'password', 'password123', 'password123');
+          testBadValues('no letter', '1239009384657493', 'password123', 'password123');
         });
 
         describe('newPassword', () => {
-          testBadValues('too short', 'thisisasecret123', 'abc12', 'abc12');
-          testBadValues('no number', 'thisisasecret123', 'thisisasecret', 'thisisasecret');
-          testBadValues('no letter', 'thisisasecret123', '1239009384657493', '1239009384657493');
+          testBadValues('too short', 'password123', 'abc12', 'abc12');
+          testBadValues('no number', 'password123', 'password', 'password');
+          testBadValues('no letter', 'password123', '1239009384657493', '1239009384657493');
         });
 
         describe('newPasswordConfirmation', () => {
-          testBadValues('incorrect', 'thisisasecret123', 'thisisasecret123', 'thisisasecret123 incorrect');
+          testBadValues('incorrect', 'password123', 'password123', 'password123 incorrect');
         });
       });
     });
@@ -267,7 +267,7 @@ describe('UserController', () => {
         changeNicknameSpy = jest
           .spyOn(userService, 'changeNickname')
           .mockReturnValue({ fake: true } as any);
-        res = await userController.changeNickname('thisisasecret123', 'jane2');
+        res = await userController.changeNickname('password123', 'jane2');
       });
       it('calls changeNickname from service', () => {
         expect(changeNicknameSpy).toBeCalledTimes(1);
@@ -290,7 +290,7 @@ describe('UserController', () => {
               .mockImplementation(() => {
                 throw error;
               });
-            res = userController.changeNickname('thisisasecret123', 'jane2');
+            res = userController.changeNickname('password123', 'jane2');
           });
           it('calls changeNickname from service', () => {
             expect(changeNicknameSpy).toBeCalledTimes(1);
@@ -322,16 +322,16 @@ describe('UserController', () => {
         }
 
         describe('password', () => {
-          testBadValues('too short', 'user@example.com', 'abc12');
-          testBadValues('no number', 'user@example.com', 'thisisasecret');
-          testBadValues('no letter', 'user@example.com', '1239009384657493');
+          testBadValues('too short', 'abc12', 'nickname');
+          testBadValues('no number', 'password', 'nickname');
+          testBadValues('no letter', '1239009384657493', 'nickname');
         });
 
         describe('newNickname', () => {
-          testBadValues('too short', 'thisisasecret123', 'ab');
-          testBadValues('has spaces', 'thisisasecret123', ' has spaces ');
+          testBadValues('too short', 'password123', 'ab');
+          testBadValues('has spaces', 'password123', ' has spaces ');
           for (const invalidCharacter of ['!', '@', '+', '~', '$', '#', '%', '^', '&', '*']) {
-            testBadValues(`invalid character ${invalidCharacter}`, 'thisisasecret123', `nick${invalidCharacter}name`);
+            testBadValues(`invalid character ${invalidCharacter}`, 'password123', `nick${invalidCharacter}name`);
           }
         });
       });

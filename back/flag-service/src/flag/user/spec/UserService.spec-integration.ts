@@ -51,8 +51,8 @@ describe('UserService', () => {
 
   describe('register', () => {
     it('creates a new user in db', async () => {
-      const user = await userService.register('user@example.com', 'thisisasecret123', 'jane');
-      expect(user.password).not.toBe('thisisasecret123'); // it doesn't return the password unhashed
+      const user = await userService.register('user@example.com', 'password123', 'jane');
+      expect(user.password).not.toBe('password123'); // it doesn't return the password unhashed
 
       const userInDb = await userCollection.findOne({ _id: user._id });
       expect(userInDb).toBeDefined();
@@ -60,13 +60,13 @@ describe('UserService', () => {
       expect(userInDb.password).toBe(user.password);
       expect(userInDb.nickname).toBe('jane');
 
-      expect(await argon2.verify(userInDb.password, 'thisisasecret123')).toBe(true); // it stores the password hashed in db
+      expect(await argon2.verify(userInDb.password, 'password123')).toBe(true); // it stores the password hashed in db
     });
     it('throws an EmailAlreadyTakenError when a user already exists with this email in db', async () => {
       expect(await userCollection.countDocuments({ email: 'john@example.com' })).toBe(0);
 
-      await userService.register('john@example.com', 'thisisasecret123', 'john');
-      await expect(userService.register('john@example.com', 'thisisasecret123', 'jack'))
+      await userService.register('john@example.com', 'password123', 'john');
+      await expect(userService.register('john@example.com', 'password123', 'jack'))
         .rejects.toThrow(EmailAlreadyTakenError);
 
       expect(await userCollection.countDocuments({ email: 'john@example.com' })).toBe(1);
@@ -74,8 +74,8 @@ describe('UserService', () => {
     it('throws a NicknameAlreadyTakenError when a user already exists with this nickname in db', async () => {
       expect(await userCollection.countDocuments({ nickname: 'anna' })).toBe(0);
 
-      await userService.register('anna@example.com', 'thisisasecret123', 'anna');
-      await expect(userService.register('anotheranna@example.com', 'thisisasecret123', 'anna'))
+      await userService.register('anna@example.com', 'password123', 'anna');
+      await expect(userService.register('anotheranna@example.com', 'password123', 'anna'))
         .rejects.toThrow(NicknameAlreadyTakenError);
 
       expect(await userCollection.countDocuments({ nickname: 'anna' })).toBe(1);
@@ -85,7 +85,7 @@ describe('UserService', () => {
   describe('login', () => {
     let signSpy;
     beforeAll(async () => {
-      await userService.register('user@example.com', 'thisisasecret123', 'jane');
+      await userService.register('user@example.com', 'password123', 'jane');
       signSpy = jest.spyOn(jwtService, 'sign');
     });
 
@@ -93,7 +93,7 @@ describe('UserService', () => {
       expect(signSpy).toBeCalledTimes(1);
     });
     it('logs in the user, makes a valid jwt', async () => {
-      const response = await userService.login('user@example.com', 'thisisasecret123');
+      const response = await userService.login('user@example.com', 'password123');
 
       expect(response).toBeDefined();
       expect(response.user).toBeDefined();
@@ -109,7 +109,7 @@ describe('UserService', () => {
       });
     });
     it('throws an EmailNotFoundError when no user exist with this email in db', () => {
-      expect(userService.login('doesnotexist@example.com', 'thisisasecret123'))
+      expect(userService.login('doesnotexist@example.com', 'password123'))
         .rejects.toThrow(EmailNotFoundError);
     });
     it('throws an IncorrectPasswordError when the password is incorrect', () => {
@@ -120,14 +120,14 @@ describe('UserService', () => {
 
   describe('changePassword', () => {
     it('changes user\'s password', async () => {
-      let user = await userService.register('user@example.com', 'thisisasecret123', 'jane');
-      user = await userService.changePassword(user._id, 'thisisasecret123', 'newpassword789');
+      let user = await userService.register('user@example.com', 'password123', 'jane');
+      user = await userService.changePassword(user._id, 'password123', 'newpassword789');
       const userInDb = await userCollection.findOne({ _id: user._id });
-      expect(await argon2.verify(userInDb.password, 'thisisasecret123')).toBe(false);
+      expect(await argon2.verify(userInDb.password, 'password123')).toBe(false);
       expect(await argon2.verify(userInDb.password, 'newpassword789')).toBe(true);
     });
     it('throws an IncorrectPasswordError when current password is incorrect', async () => {
-      const user = await userService.register('john@example.com', 'thisisasecret123', 'john');
+      const user = await userService.register('john@example.com', 'password123', 'john');
       expect(userService.changePassword(user._id, 'incorrectpassword456', 'newpassword789'))
         .rejects.toThrow(IncorrectPasswordError);
     });
@@ -135,20 +135,20 @@ describe('UserService', () => {
 
   describe('changeNickname', () => {
     it('changes user\'s nickname', async () => {
-      let user = await userService.register('user@example.com', 'thisisasecret123', 'jane');
-      user = await userService.changeNickname(user._id, 'thisisasecret123', 'jane42');
+      let user = await userService.register('user@example.com', 'password123', 'jane');
+      user = await userService.changeNickname(user._id, 'password123', 'jane42');
       const userInDb = await userCollection.findOne({ _id: user._id });
       expect(userInDb.nickname).toBe('jane42');
     });
     it('throws an IncorrectPasswordError when password is incorrect', async () => {
-      const user = await userService.register('john@example.com', 'thisisasecret123', 'john');
+      const user = await userService.register('john@example.com', 'password123', 'john');
       expect(userService.changeNickname(user._id, 'incorrectpassword456', 'john42'))
         .rejects.toThrow(IncorrectPasswordError);
     });
     it('throws a NicknameAlreadyTakenError when another user already has that nickname', async () => {
-      await userService.register('jack@example.com', 'thisisasecret123', 'jack');
-      const user = await userService.register('jack2@example.com', 'thisisasecret123', 'jack2');
-      expect(userService.changeNickname(user._id, 'thisisasecret123', 'jack'))
+      await userService.register('jack@example.com', 'password123', 'jack');
+      const user = await userService.register('jack2@example.com', 'password123', 'jack2');
+      expect(userService.changeNickname(user._id, 'password123', 'jack'))
         .rejects.toThrow(NicknameAlreadyTakenError);
     });
   });
