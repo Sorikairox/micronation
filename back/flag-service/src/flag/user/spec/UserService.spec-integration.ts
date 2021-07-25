@@ -2,7 +2,6 @@ import { DatabaseClientService } from "library/database/client/DatabaseClientSer
 import { UserService } from "../UserService";
 import { UserRepository } from "../UserRepository";
 import { Test, TestingModule } from "@nestjs/testing";
-import { PixelRepository } from "../../pixel/PixelRepository";
 import { DatabaseModule } from "library/database/DatabaseModule";
 import { UserModule } from "../UserModule";
 import { User } from "../User";
@@ -36,7 +35,7 @@ describe('UserService', () => {
     userService = app.get(UserService);
     jwtService = app.get(JwtService);
     dbClientService = app.get<DatabaseClientService>('DATABASE_CLIENT');
-    userRepository = app.get(PixelRepository);
+    userRepository = app.get(UserRepository);
     await dbClientService.onModuleInit();
     userCollection = dbClientService
       .getDb()
