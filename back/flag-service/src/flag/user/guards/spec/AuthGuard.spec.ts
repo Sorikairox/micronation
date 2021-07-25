@@ -101,7 +101,7 @@ describe('AuthGuard', () => {
   });
 
   describe('exclusive public (with redirection)', () => {
-    it('throws an UnauthorizedException when not authenticated', async () => {
+    it('allow access when not authenticated', async () => {
       await expect(authGuard.canActivate(mockContext(Test.publicRouteWithRedirection, false)))
         .resolves.toBe(true);
     });
