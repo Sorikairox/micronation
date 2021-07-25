@@ -121,12 +121,8 @@ describe('UserService', () => {
   describe('changePassword', () => {
     it('changes user\'s password', async () => {
       let user = await userService.register('user@example.com', 'thisisasecret123', 'jane');
-      let userInDb = await userCollection.findOne({ _id: user._id });
-      expect(await argon2.verify(userInDb.password, 'thisisasecret123')).toBe(true);
-      expect(await argon2.verify(userInDb.password, 'newpassword789')).toBe(false);
-
       user = await userService.changePassword(user._id, 'thisisasecret123', 'newpassword789');
-      userInDb = await userCollection.findOne({ _id: user._id });
+      const userInDb = await userCollection.findOne({ _id: user._id });
       expect(await argon2.verify(userInDb.password, 'thisisasecret123')).toBe(false);
       expect(await argon2.verify(userInDb.password, 'newpassword789')).toBe(true);
     });
@@ -140,11 +136,8 @@ describe('UserService', () => {
   describe('changeNickname', () => {
     it('changes user\'s nickname', async () => {
       let user = await userService.register('user@example.com', 'thisisasecret123', 'jane');
-      let userInDb = await userCollection.findOne({ _id: user._id });
-      expect(userInDb.nickname).toBe('jane');
-
       user = await userService.changeNickname(user._id, 'thisisasecret123', 'jane42');
-      userInDb = await userCollection.findOne({ _id: user._id });
+      const userInDb = await userCollection.findOne({ _id: user._id });
       expect(userInDb.nickname).toBe('jane42');
     });
     it('throws an IncorrectPasswordError when password is incorrect', async () => {
