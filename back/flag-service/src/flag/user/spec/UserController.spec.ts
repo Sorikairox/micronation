@@ -64,7 +64,7 @@ describe('UserController', () => {
       }
 
       describe('bad field values', () => {
-        function testValues(name: string, email: string, password: string, passwordConfirmation: string, nickname: string) {
+        function testBadValues(name: string, email: string, password: string, passwordConfirmation: string, nickname: string) {
           describe(name, () => {
             let registerSpy;
             let res;
@@ -84,24 +84,24 @@ describe('UserController', () => {
         }
 
         describe('email', () => {
-          testValues('invalid email', 'not a valid email address', 'thisisasecret123', 'thisisasecret123', 'jane');
+          testBadValues('invalid email', 'not a valid email address', 'thisisasecret123', 'thisisasecret123', 'jane');
         });
 
         describe('password', () => {
-          testValues('too short', 'user@example.com', 'abc12', 'abc12', 'jane');
-          testValues('no number', 'user@example.com', 'thisisasecret', 'thisisasecret', 'jane');
-          testValues('no letter', 'user@example.com', '1239009384657493', '1239009384657493', 'jane');
+          testBadValues('too short', 'user@example.com', 'abc12', 'abc12', 'jane');
+          testBadValues('no number', 'user@example.com', 'thisisasecret', 'thisisasecret', 'jane');
+          testBadValues('no letter', 'user@example.com', '1239009384657493', '1239009384657493', 'jane');
         });
 
         describe('passwordConfirmation', () => {
-          testValues('incorrect', 'user@example.com', 'thisisasecret123', 'thisisasecret123 incorrect', 'jane');
+          testBadValues('incorrect', 'user@example.com', 'thisisasecret123', 'thisisasecret123 incorrect', 'jane');
         });
 
         describe('nickname', () => {
-          testValues('too short', 'user@example.com', 'thisisasecret123', 'thisisasecret123', 'ab');
-          testValues('has spaces', 'user@example.com', 'thisisasecret123', 'thisisasecret123', ' has spaces ');
+          testBadValues('too short', 'user@example.com', 'thisisasecret123', 'thisisasecret123', 'ab');
+          testBadValues('has spaces', 'user@example.com', 'thisisasecret123', 'thisisasecret123', ' has spaces ');
           for (const invalidCharacter of ['!', '@', '+', '~', '$', '#', '%', '^', '&', '*']) {
-            testValues(`invalid character ${invalidCharacter}`, 'user@example.com', 'thisisasecret123', 'thisisasecret123', `nick${invalidCharacter}name`);
+            testBadValues(`invalid character ${invalidCharacter}`, 'user@example.com', 'thisisasecret123', 'thisisasecret123', `nick${invalidCharacter}name`);
           }
         });
       });
@@ -151,7 +151,7 @@ describe('UserController', () => {
       }
 
       describe('bad field values', () => {
-        function testValues(name: string, email: string, password: string) {
+        function testBadValues(name: string, email: string, password: string) {
           describe(name, () => {
             let loginSpy;
             let res;
@@ -171,13 +171,13 @@ describe('UserController', () => {
         }
 
         describe('email', () => {
-          testValues('invalid email', 'not a valid email address', 'thisisasecret123');
+          testBadValues('invalid email', 'not a valid email address', 'thisisasecret123');
         });
 
         describe('password', () => {
-          testValues('too short', 'user@example.com', 'abc12');
-          testValues('no number', 'user@example.com', 'thisisasecret');
-          testValues('no letter', 'user@example.com', '1239009384657493');
+          testBadValues('too short', 'user@example.com', 'abc12');
+          testBadValues('no number', 'user@example.com', 'thisisasecret');
+          testBadValues('no letter', 'user@example.com', '1239009384657493');
         });
       });
     });
@@ -221,7 +221,7 @@ describe('UserController', () => {
       });
 
       describe('bad field values', () => {
-        function testValues(name: string, currentPassword: string, newPassword: string, newPasswordConfirmation: string) {
+        function testBadValues(name: string, currentPassword: string, newPassword: string, newPasswordConfirmation: string) {
           describe(name, () => {
             let changePasswordSpy;
             let res;
@@ -241,19 +241,19 @@ describe('UserController', () => {
         }
 
         describe('currentPassword', () => {
-          testValues('too short', 'abc12', 'thisisasecret123', 'thisisasecret123');
-          testValues('no number', 'thisisasecret', 'thisisasecret123', 'thisisasecret123');
-          testValues('no letter', '1239009384657493', 'thisisasecret123', 'thisisasecret123');
+          testBadValues('too short', 'abc12', 'thisisasecret123', 'thisisasecret123');
+          testBadValues('no number', 'thisisasecret', 'thisisasecret123', 'thisisasecret123');
+          testBadValues('no letter', '1239009384657493', 'thisisasecret123', 'thisisasecret123');
         });
 
         describe('newPassword', () => {
-          testValues('too short', 'thisisasecret123', 'abc12', 'abc12');
-          testValues('no number', 'thisisasecret123', 'thisisasecret', 'thisisasecret');
-          testValues('no letter', 'thisisasecret123', '1239009384657493', '1239009384657493');
+          testBadValues('too short', 'thisisasecret123', 'abc12', 'abc12');
+          testBadValues('no number', 'thisisasecret123', 'thisisasecret', 'thisisasecret');
+          testBadValues('no letter', 'thisisasecret123', '1239009384657493', '1239009384657493');
         });
 
         describe('newPasswordConfirmation', () => {
-          testValues('incorrect', 'thisisasecret123', 'thisisasecret123', 'thisisasecret123 incorrect');
+          testBadValues('incorrect', 'thisisasecret123', 'thisisasecret123', 'thisisasecret123 incorrect');
         });
       });
     });
@@ -302,7 +302,7 @@ describe('UserController', () => {
       }
 
       describe('bad field values', () => {
-        function testValues(name: string, password: string, newNickname: string) {
+        function testBadValues(name: string, password: string, newNickname: string) {
           describe(name, () => {
             let changeNicknameSpy;
             let res;
@@ -322,16 +322,16 @@ describe('UserController', () => {
         }
 
         describe('password', () => {
-          testValues('too short', 'user@example.com', 'abc12');
-          testValues('no number', 'user@example.com', 'thisisasecret');
-          testValues('no letter', 'user@example.com', '1239009384657493');
+          testBadValues('too short', 'user@example.com', 'abc12');
+          testBadValues('no number', 'user@example.com', 'thisisasecret');
+          testBadValues('no letter', 'user@example.com', '1239009384657493');
         });
 
         describe('newNickname', () => {
-          testValues('too short', 'thisisasecret123', 'ab');
-          testValues('has spaces', 'thisisasecret123', ' has spaces ');
+          testBadValues('too short', 'thisisasecret123', 'ab');
+          testBadValues('has spaces', 'thisisasecret123', ' has spaces ');
           for (const invalidCharacter of ['!', '@', '+', '~', '$', '#', '%', '^', '&', '*']) {
-            testValues(`invalid character ${invalidCharacter}`, 'thisisasecret123', `nick${invalidCharacter}name`);
+            testBadValues(`invalid character ${invalidCharacter}`, 'thisisasecret123', `nick${invalidCharacter}name`);
           }
         });
       });
