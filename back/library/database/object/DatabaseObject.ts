@@ -1,4 +1,6 @@
+import { ObjectID } from "mongodb";
+
 export class DatabaseObject {
-    _id?: string;
-    createdAt?: Date;
+  _id?: ObjectID;
+  createdAt?: Date;
 }
