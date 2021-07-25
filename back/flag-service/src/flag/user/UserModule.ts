@@ -4,6 +4,7 @@ import { UserService } from "./UserService";
 import { UserController } from "./UserController";
 import { APP_GUARD } from "@nestjs/core";
 import { AuthGuard } from "./guards/AuthGuard";
+import { JwtService } from "./jwt/JwtService";
 
 @Module({
   imports: [],
@@ -11,6 +12,7 @@ import { AuthGuard } from "./guards/AuthGuard";
   providers: [
     UserRepository,
     UserService,
+    JwtService,
     {
       provide: APP_GUARD,
       useClass: AuthGuard,
@@ -19,10 +21,4 @@ import { AuthGuard } from "./guards/AuthGuard";
   exports: [],
 })
 export class UserModule {
-  constructor() {
-    const jwtSecret = process.env.JWT_SECRET;
-    if (!jwtSecret || jwtSecret.length === 0 || jwtSecret === 'changeme') {
-      throw new Error('JWT_SECRET environment variable is not configured!');
-    }
-  }
 }

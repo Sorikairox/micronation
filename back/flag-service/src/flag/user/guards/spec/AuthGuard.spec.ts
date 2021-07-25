@@ -4,13 +4,12 @@ import { Reflector } from "@nestjs/core";
 import { ExecutionContext, ForbiddenException, UnauthorizedException } from "@nestjs/common";
 import { HttpArgumentsHost } from "@nestjs/common/interfaces";
 import { v4 } from 'uuid';
-import jwt from "jsonwebtoken";
-import { InvalidJwtError } from "../../errors/InvalidJwtError";
-import { ExpiredJwtError } from "../../errors/ExpiredJwtError";
+import { JwtService } from "../../jwt/JwtService";
 
 describe('AuthGuard', () => {
   const reflector = new Reflector();
   const authGuard = new AuthGuard(reflector);
+  const jwtService = new JwtService();
 
   class Test {
     static defaultRoute() {
@@ -50,44 +49,30 @@ describe('AuthGuard', () => {
       switchToHttp(): HttpArgumentsHost {
         return {
           getRequest() {
-            let signedJwt = undefined;
-            if (authenticated) signedJwt = jwt.sign(jwtPayload, jwtSecret);
-            return { jwt: signedJwt };
+            return authenticated ?
+              { jwt: jwtService.sign(jwtPayload, jwtSecret) } :
+              {};
           }
         } as HttpArgumentsHost;
       }
     } as ExecutionContext;
   }
 
-  function testInvalidJwts(handler: Function) {
-    describe('invalid jwts', () => {
-      it('throws an InvalidJwtError on jwts signed with a different key', async () => {
-        await expect(authGuard.canActivate(mockContext(handler, true, defaultJwtPayload, 'bad key')))
-          .rejects.toThrow(InvalidJwtError);
+  function testJwtServiceUsage(handler: Function) {
+    describe('verifies jwt using JwtService.verify()', () => {
+      let verifySpy: any;
+      beforeAll(() => {
+        verifySpy = jest.spyOn(jwtService, 'verify')
+          .mockReturnValue(Promise.reject('Fake error'));
       });
-    });
 
-    describe('expired jwts', () => {
-      for (const field of Object.keys(defaultJwtPayload)) {
-        it('throws an ExpiredJwtError on missing ' + field + ' field', async () => {
-          const payload = { ...defaultJwtPayload };
-          delete payload[field];
-          await expect(authGuard.canActivate(mockContext(handler, true, payload)))
-            .rejects.toThrow(ExpiredJwtError);
-        });
-      }
-
-      // User data
-      for (const field of Object.keys(defaultJwtPayload.userData)) {
-        const payload = { ...defaultJwtPayload };
-        it('throws an ExpiredJwtError on missing userData.' + field + ' field', async () => {
-          const userData = { ...defaultJwtPayload.userData };
-          delete userData[field];
-          payload.userData = userData;
-          await expect(authGuard.canActivate(mockContext(handler, true, payload)))
-            .rejects.toThrow(ExpiredJwtError);
-        });
-      }
+      it('calls JwtService.verify()', async () => {
+        expect(verifySpy).toBeCalledTimes(1);
+      });
+      it('throws Fake error', async () => {
+        await expect(authGuard.canActivate(mockContext(handler, true)))
+          .rejects.toThrow('Fake error');
+      });
     });
   }
 
@@ -100,7 +85,7 @@ describe('AuthGuard', () => {
       await expect(authGuard.canActivate(mockContext(Test.defaultRoute, true)))
         .resolves.toBe(true);
     });
-    testInvalidJwts(Test.defaultRoute);
+    testJwtServiceUsage(Test.defaultRoute);
   });
 
   describe('non-exclusive public', () => {
@@ -112,7 +97,7 @@ describe('AuthGuard', () => {
       await expect(authGuard.canActivate(mockContext(Test.publicRoute, true)))
         .resolves.toBe(true);
     });
-    testInvalidJwts(Test.publicRoute);
+    testJwtServiceUsage(Test.publicRoute);
   });
 
   describe('exclusive public (with redirection)', () => {
@@ -124,6 +109,6 @@ describe('AuthGuard', () => {
       await expect(authGuard.canActivate(mockContext(Test.publicRouteWithRedirection, true)))
         .rejects.toThrow(UnauthorizedException);
     });
-    testInvalidJwts(Test.publicRouteWithRedirection);
+    testJwtServiceUsage(Test.publicRouteWithRedirection);
   });
 });

@@ -10,15 +10,15 @@ import { EmailAlreadyTakenError } from "../errors/EmailAlreadyTakenError";
 import { NicknameAlreadyTakenError } from "../errors/NicknameAlreadyTakenError";
 import { Collection } from "mongodb";
 import argon2 from "argon2";
-import jwt, { JwtPayload } from "jsonwebtoken";
 import { EmailNotFoundError } from "../errors/EmailNotFoundError";
 import { IncorrectPasswordError } from "../errors/IncorrectPasswordError";
+import { JwtService } from "../jwt/JwtService";
 
 describe('UserService', () => {
   let userService: UserService;
+  let jwtService: JwtService;
   let dbClientService: DatabaseClientService;
   let userRepository: UserRepository;
-
 
   let userCollection: Collection<User>;
   beforeAll(async () => {
@@ -34,6 +34,7 @@ describe('UserService', () => {
       providers: [UserService],
     }).compile();
     userService = app.get(UserService);
+    jwtService = app.get(JwtService);
     dbClientService = app.get<DatabaseClientService>('DATABASE_CLIENT');
     userRepository = app.get(PixelRepository);
     await dbClientService.onModuleInit();
@@ -83,8 +84,14 @@ describe('UserService', () => {
   });
 
   describe('login', () => {
+    let signSpy;
     beforeAll(async () => {
       await userService.register('user@example.com', 'thisisasecret123', 'jane');
+      signSpy = jest.spyOn(jwtService, 'sign');
+    });
+
+    it('calls JwtService.sign once', () => {
+      expect(signSpy).toBeCalledTimes(1);
     });
     it('logs in the user, makes a valid jwt', async () => {
       const response = await userService.login('user@example.com', 'thisisasecret123');
@@ -94,16 +101,9 @@ describe('UserService', () => {
       expect(response.user.email).toBe('user@example.com');
       expect(response.jwt).toBeDefined();
 
-      let payload = await new Promise<JwtPayload>((resolve, reject) => jwt.verify(response.jwt, process.env.JWT_SECRET, (err, decoded) => {
-        if (err) reject(err);
-        else resolve(decoded);
-      }));
-      expect(payload).toBeDefined();
-      expect(payload.jti).toBeDefined();
-      expect(payload.iat).toBeDefined();
-      expect(payload.exp).toBeDefined();
-      expect(payload.sub).toBe(response.user._id);
-      expect(payload.userData).toStrictEqual({
+      const payload = expect(jwtService.verify(response.jwt)).resolves;
+      await payload.toHaveProperty('sub', response.user._id);
+      await payload.toHaveProperty('userData', {
         id: response.user._id,
         email: response.user.email,
         nickname: response.user.nickname,
