@@ -80,7 +80,6 @@ describe('JwtService', () => {
         iat: Math.floor(Date.now() / 1000),
       };
       const token = jwt.sign(payload, process.env.JWT_SECRET);
-      console.log(token);
       await expect(jwtService.verify(token)).resolves.toStrictEqual(payload);
     });
 

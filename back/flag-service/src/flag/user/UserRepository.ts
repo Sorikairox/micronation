@@ -1,10 +1,10 @@
-import { Injectable, Inject } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { DatabaseRepository } from 'library/database/repository/DatabaseRepository';
-import { DatabaseObject } from 'library/database/object/DatabaseObject';
 import { DatabaseClientService } from 'library/database/client/DatabaseClientService';
+import { User } from "./User";
 
 @Injectable()
-export class UserRepository extends DatabaseRepository<DatabaseObject> {
+export class UserRepository extends DatabaseRepository<User> {
   constructor(@Inject('DATABASE_CLIENT') dbClient: DatabaseClientService) {
     super(dbClient, 'users');
   }

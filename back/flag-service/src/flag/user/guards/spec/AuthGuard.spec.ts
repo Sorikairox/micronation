@@ -3,13 +3,12 @@ import { Public } from "../../decorators/PublicDecorator";
 import { Reflector } from "@nestjs/core";
 import { ExecutionContext, ForbiddenException, UnauthorizedException } from "@nestjs/common";
 import { HttpArgumentsHost } from "@nestjs/common/interfaces";
-import { v4 } from 'uuid';
 import { JwtService } from "../../jwt/JwtService";
 
 describe('AuthGuard', () => {
   const reflector = new Reflector();
-  const authGuard = new AuthGuard(reflector);
   const jwtService = new JwtService();
+  const authGuard = new AuthGuard(reflector, jwtService);
 
   class Test {
     static defaultRoute() {
@@ -24,24 +23,22 @@ describe('AuthGuard', () => {
     }
   }
 
-  let defaultJwtPayload = {
-    jti: v4(),
-    iat: Date.now(),
-    exp: Date.now() + 10 * 24 * 3600 * 1000, // now + 10 days
-    sub: '999', // user id
-    userData: {
-      id: 999,
-      email: 'user@example.com',
-      nickname: 'jane',
-    },
-  };
-
-  function mockContext(
+  async function mockContext(
     handler: Function,
     authenticated: boolean,
-    jwtPayload = defaultJwtPayload,
-    jwtSecret = process.env.JWT_SECRET,
-  ): any {
+  ): Promise<ExecutionContext> {
+    const payload = {
+      sub: '999', // user id
+      userData: {
+        id: 999,
+        email: 'user@example.com',
+        nickname: 'jane',
+        createdAt: new Date(),
+      },
+    };
+    const request: any = { headers: {} };
+    if (!request.headers) request.headers = {};
+    if (authenticated) request.headers.authorization = await jwtService.sign(payload, '15 days');
     return {
       getHandler(): Function {
         return handler;
@@ -49,66 +46,145 @@ describe('AuthGuard', () => {
       switchToHttp(): HttpArgumentsHost {
         return {
           getRequest() {
-            return authenticated ?
-              { jwt: jwtService.sign(jwtPayload, jwtSecret) } :
-              {};
+            return request;
           }
         } as HttpArgumentsHost;
       }
     } as ExecutionContext;
   }
 
-  function testJwtServiceUsage(handler: Function) {
+  function testJwtServiceUsage(handler: Function, shouldUse: boolean) {
     describe('verifies jwt using JwtService.verify()', () => {
       let verifySpy: any;
-      beforeAll(() => {
-        verifySpy = jest.spyOn(jwtService, 'verify')
-          .mockReturnValue(Promise.reject('Fake error'));
+      beforeAll(async () => {
+        verifySpy = jest.spyOn(jwtService, 'verify');
+        if (shouldUse) {
+          verifySpy = verifySpy.mockReturnValue(Promise.reject(new Error('Fake error')));
+        } else {
+          try {
+            await authGuard.canActivate(await mockContext(handler, true));
+          } catch (_) {
+          }
+        }
       });
 
-      it('calls JwtService.verify()', async () => {
-        expect(verifySpy).toBeCalledTimes(1);
+      afterAll(() => {
+        verifySpy.mockRestore();
       });
-      it('throws Fake error', async () => {
-        await expect(authGuard.canActivate(mockContext(handler, true)))
-          .rejects.toThrow('Fake error');
+
+      if (shouldUse) {
+        it('throws Fake error', async () => {
+          await expect(authGuard.canActivate(await mockContext(handler, true)))
+            .rejects.toThrow('Fake error');
+        });
+        it('calls JwtService.verify()', async () => {
+          expect(verifySpy).toBeCalledTimes(1);
+        });
+      } else {
+        it('doesn\'t call JwtService.verify()', async () => {
+          expect(verifySpy).not.toBeCalled();
+        });
+      }
+    });
+  }
+
+  function testRequestFieldsArePopulated(handler: Function, shouldPopulateFieldsWhenAuthenticated: boolean) {
+    function doesNotPopulateFields(context: () => ExecutionContext) {
+      it('clears jwtPayload field from request', async () => {
+        const jwtPayload = context().switchToHttp().getRequest().jwtPayload;
+        expect(jwtPayload).not.toBeDefined();
+      });
+      it('clears user field from request', async () => {
+        const user = context().switchToHttp().getRequest().user;
+        expect(user).not.toBeDefined();
+      });
+    }
+
+    function populatesFields(context: () => ExecutionContext) {
+      it('adds jwtPayload field to request', async () => {
+        const jwtPayload = context().switchToHttp().getRequest().jwtPayload;
+        expect(jwtPayload).toBeDefined();
+        expect(jwtPayload).toHaveProperty('jti');
+      });
+      it('adds user field to request', async () => {
+        const user = context().switchToHttp().getRequest().user;
+        expect(user).toBeDefined();
+        expect(user).toHaveProperty('id');
+      });
+    }
+
+    describe('request fields population', () => {
+      describe('not authenticated', () => {
+        let context: ExecutionContext;
+
+        beforeAll(async () => {
+          context = await mockContext(handler, false);
+
+          try {
+            await authGuard.canActivate(context);
+          } catch (_) {
+          }
+        });
+
+        doesNotPopulateFields(() => context);
+      });
+      describe('authenticated', () => {
+        let context: ExecutionContext;
+
+        beforeAll(async () => {
+          context = await mockContext(handler, true);
+
+          try {
+            await authGuard.canActivate(context);
+          } catch (_) {
+          }
+        });
+
+        if (shouldPopulateFieldsWhenAuthenticated) {
+          populatesFields(() => context);
+        } else {
+          doesNotPopulateFields(() => context);
+        }
       });
     });
   }
 
   describe('default (auth only)', () => {
     it('throws ForbiddenException when not authenticated', async () => {
-      await expect(authGuard.canActivate(mockContext(Test.defaultRoute, false)))
+      await expect(authGuard.canActivate(await mockContext(Test.defaultRoute, false)))
         .rejects.toThrow(ForbiddenException);
     });
     it('allows access when authenticated', async () => {
-      await expect(authGuard.canActivate(mockContext(Test.defaultRoute, true)))
+      await expect(authGuard.canActivate(await mockContext(Test.defaultRoute, true)))
         .resolves.toBe(true);
     });
-    testJwtServiceUsage(Test.defaultRoute);
+    testJwtServiceUsage(Test.defaultRoute, true);
+    testRequestFieldsArePopulated(Test.defaultRoute, true);
   });
 
   describe('non-exclusive public', () => {
     it('allow access when not authenticated', async () => {
-      await expect(authGuard.canActivate(mockContext(Test.publicRoute, false)))
+      await expect(authGuard.canActivate(await mockContext(Test.publicRoute, false)))
         .resolves.toBe(true);
     });
     it('allows access when authenticated', async () => {
-      await expect(authGuard.canActivate(mockContext(Test.publicRoute, true)))
+      await expect(authGuard.canActivate(await mockContext(Test.publicRoute, true)))
         .resolves.toBe(true);
     });
-    testJwtServiceUsage(Test.publicRoute);
+    testJwtServiceUsage(Test.publicRoute, true);
+    testRequestFieldsArePopulated(Test.publicRoute, true);
   });
 
   describe('exclusive public (with redirection)', () => {
     it('allow access when not authenticated', async () => {
-      await expect(authGuard.canActivate(mockContext(Test.publicRouteWithRedirection, false)))
+      await expect(authGuard.canActivate(await mockContext(Test.publicRouteWithRedirection, false)))
         .resolves.toBe(true);
     });
     it('throws an UnauthorizedException when authenticated', async () => {
-      await expect(authGuard.canActivate(mockContext(Test.publicRouteWithRedirection, true)))
+      await expect(authGuard.canActivate(await mockContext(Test.publicRouteWithRedirection, true)))
         .rejects.toThrow(UnauthorizedException);
     });
-    testJwtServiceUsage(Test.publicRouteWithRedirection);
+    testJwtServiceUsage(Test.publicRouteWithRedirection, false);
+    testRequestFieldsArePopulated(Test.publicRouteWithRedirection, false);
   });
 });

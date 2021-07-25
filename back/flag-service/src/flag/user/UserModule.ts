@@ -10,15 +10,15 @@ import { JwtService } from "./jwt/JwtService";
   imports: [],
   controllers: [UserController],
   providers: [
-    UserRepository,
     UserService,
     JwtService,
     {
       provide: APP_GUARD,
       useClass: AuthGuard,
     },
+    UserRepository,
   ],
-  exports: [],
+  exports: [UserRepository],
 })
 export class UserModule {
 }
