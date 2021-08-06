@@ -4,7 +4,7 @@ import { FlagService } from './FlagService';
 import { PixelModule } from './pixel/PixelModule';
 import { DatabaseModule } from 'library/database/DatabaseModule';
 import { ConfigModule } from '@nestjs/config';
-import { UserModule } from "./user/UserModule";
+import { UserModule } from "../user/UserModule";
 
 @Module({
   imports: [

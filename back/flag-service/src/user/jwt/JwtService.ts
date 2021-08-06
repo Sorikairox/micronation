@@ -10,7 +10,7 @@ export class JwtService {
     }
   }
 
-  public async sign(payload: object, expiresIn: string): Promise<string> {
+  public async sign(payload: any, expiresIn: string): Promise<string> {
     return await new Promise<string>((resolve, reject) => {
       jwt.sign(payload, this.secret, {
         jwtid: v4(),

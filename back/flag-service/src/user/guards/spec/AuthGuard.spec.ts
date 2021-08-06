@@ -1,9 +1,12 @@
 import { AuthGuard } from '../AuthGuard';
 import { Public } from "../../decorators/PublicDecorator";
 import { Reflector } from "@nestjs/core";
-import { ExecutionContext, ForbiddenException, UnauthorizedException } from "@nestjs/common";
+import { ExecutionContext, ForbiddenException } from "@nestjs/common";
 import { HttpArgumentsHost } from "@nestjs/common/interfaces";
 import { JwtService } from "../../jwt/JwtService";
+import { config } from 'dotenv';
+
+config();
 
 describe('AuthGuard', () => {
   const reflector = new Reflector();
@@ -12,14 +15,12 @@ describe('AuthGuard', () => {
 
   class Test {
     static defaultRoute() {
+      //
     }
 
     @Public()
     static publicRoute() {
-    }
-
-    @Public('/target')
-    static publicRouteWithRedirection() {
+      //
     }
   }
 
@@ -162,8 +163,8 @@ describe('AuthGuard', () => {
     testRequestFieldsArePopulated(Test.defaultRoute, true);
   });
 
-  describe('non-exclusive public', () => {
-    it('allow access when not authenticated', async () => {
+  describe('public', () => {
+    it('allows access when not authenticated', async () => {
       await expect(authGuard.canActivate(await mockContext(Test.publicRoute, false)))
         .resolves.toBe(true);
     });
@@ -173,18 +174,5 @@ describe('AuthGuard', () => {
     });
     testJwtServiceUsage(Test.publicRoute, true);
     testRequestFieldsArePopulated(Test.publicRoute, true);
-  });
-
-  describe('exclusive public (with redirection)', () => {
-    it('allow access when not authenticated', async () => {
-      await expect(authGuard.canActivate(await mockContext(Test.publicRouteWithRedirection, false)))
-        .resolves.toBe(true);
-    });
-    it('throws an UnauthorizedException when authenticated', async () => {
-      await expect(authGuard.canActivate(await mockContext(Test.publicRouteWithRedirection, true)))
-        .rejects.toThrow(UnauthorizedException);
-    });
-    testJwtServiceUsage(Test.publicRouteWithRedirection, false);
-    testRequestFieldsArePopulated(Test.publicRouteWithRedirection, false);
   });
 });

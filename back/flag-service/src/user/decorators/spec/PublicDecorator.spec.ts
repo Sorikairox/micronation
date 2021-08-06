@@ -6,14 +6,12 @@ describe('PublicDecorator', () => {
 
   class Test {
     static defaultRoute() {
+      //
     }
 
     @Public()
     static publicRoute() {
-    }
-
-    @Public('/target')
-    static publicRouteWithRedirection() {
+      //
     }
   }
 
@@ -21,11 +19,7 @@ describe('PublicDecorator', () => {
     expect(reflector.get('public', Test.defaultRoute)).toStrictEqual(undefined);
   });
 
-  it('adds metadata without redirection', () => {
-    expect(reflector.get('public', Test.publicRoute)).toStrictEqual({ redirect: undefined });
-  });
-
-  it('adds metadata with redirection', () => {
-    expect(reflector.get('public', Test.publicRouteWithRedirection)).toStrictEqual({ redirect: '/target' });
+  it('adds metadata', () => {
+    expect(reflector.get('public', Test.publicRoute)).toStrictEqual(true);
   });
 });

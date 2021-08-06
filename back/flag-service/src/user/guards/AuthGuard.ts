@@ -1,6 +1,6 @@
-import { CanActivate, ExecutionContext, ForbiddenException, Injectable, UnauthorizedException } from '@nestjs/common';
+import { CanActivate, ExecutionContext, ForbiddenException, Injectable } from '@nestjs/common';
 import { Reflector } from "@nestjs/core";
-import { JsonWebTokenError, JwtPayload } from 'jsonwebtoken';
+import { JwtPayload } from 'jsonwebtoken';
 import { JwtService } from "../jwt/JwtService";
 import { User } from "../User";
 
@@ -21,20 +21,7 @@ export class AuthGuard implements CanActivate {
     const publicMetadata = this.reflector.get('public', context.getHandler());
 
     if (jwt) {
-      if (publicMetadata && publicMetadata.redirect) {
-        throw new UnauthorizedException();
-      }
-
-      let payload: JwtPayload;
-      try {
-        payload = await this.jwtService.verify(jwt);
-      } catch (e) {
-        if (e instanceof JsonWebTokenError) {
-          throw new ForbiddenException(e);
-        }
-
-        throw e;
-      }
+      const payload = await this.jwtService.verify(jwt);
 
       request.jwtPayload = payload;
       request.user = payload.userData;

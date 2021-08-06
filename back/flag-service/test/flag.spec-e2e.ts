@@ -1,11 +1,12 @@
-import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
+import { Test, TestingModule } from '@nestjs/testing';
 import request from 'supertest';
-import { FlagModule } from '../src/flag/FlagModule';
 import { DatabaseClientService } from 'library/database/client/DatabaseClientService';
-import { UserService } from "../src/flag/user/UserService";
-import { UserController } from "../src/flag/user/UserController";
 import { v4 } from 'uuid';
+import { JwtExceptionFilter } from '../src/authentication/filters/JwtExceptionFilter';
+import { FlagModule } from '../src/flag/FlagModule';
+import { UserService } from '../src/user/UserService';
+import { registerAndLogin } from './util/registerAndLogin';
 
 
 describe('Flag (e2e)', () => {
@@ -14,36 +15,18 @@ describe('Flag (e2e)', () => {
   let modifiedPixel;
   let jwt: string;
 
-  async function registerAndLogin(email: string, password: string, nickname: string): Promise<string> {
-    await request(app.getHttpServer())
-      .post('/user/register')
-      .send({
-        email: email,
-        password: password,
-        passwordConfirmation: password,
-        nickname: nickname,
-      });
-    const res = await request(app.getHttpServer())
-      .post('/user/login')
-      .send({
-        email: email,
-        password: password,
-      });
-    return res.body.jwt;
-  }
-
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [FlagModule],
     }).compile();
-
     app = moduleFixture.createNestApplication();
     app.useGlobalPipes(new ValidationPipe());
+    app.useGlobalFilters(new JwtExceptionFilter());
     await app.init();
     const dbService = app.get<DatabaseClientService>('DATABASE_CLIENT');
     await dbService.getDb().collection('users').deleteMany({});
     await dbService.getDb().collection('pixel-events').deleteMany({});
-    jwt = await registerAndLogin(v4() + '@example.com', 'password123', v4());
+    jwt = await registerAndLogin(app, v4() + '@example.com', 'password123', v4());
   });
 
   afterAll(async () => {
@@ -89,25 +72,24 @@ describe('Flag (e2e)', () => {
     expect(firstPixel.lastUpdate).toEqual(modifiedPixel.createdAt);
   });
 
+
   describe('User', () => {
     let userService: UserService;
-    let userController: UserController;
 
     beforeAll(() => {
-      userService = app.get(UserService);
-      userController = app.get(UserController);
+        userService = app.get(UserService);
     });
 
     describe('POST /user/register', () => {
       it('success', async () => {
         const res = await request(app.getHttpServer())
-          .post('/user/register')
-          .send({
-            email: 'user@example.com',
-            password: 'password123',
-            passwordConfirmation: 'password123',
-            nickname: 'jane',
-          });
+            .post('/user/register')
+            .send({
+              email: 'user@example.com',
+              password: 'password123',
+              passwordConfirmation: 'password123',
+              nickname: 'jane',
+            });
 
         expect(res.status).toBe(201);
         expect(res.body).toStrictEqual({ success: true });
@@ -121,13 +103,13 @@ describe('Flag (e2e)', () => {
             beforeAll(async () => {
               registerSpy = jest.spyOn(userService, 'register');
               res = await request(app.getHttpServer())
-                .post('/user/register')
-                .send({
-                  email: email,
-                  password: password,
-                  passwordConfirmation: passwordConfirmation,
-                  nickname: nickname
-                });
+                  .post('/user/register')
+                  .send({
+                    email: email,
+                    password: password,
+                    passwordConfirmation: passwordConfirmation,
+                    nickname: nickname
+                  });
             });
             it('responds with a Bad Request HTTP Error', async () => {
               expect(res.status).toBe(400);
@@ -164,11 +146,11 @@ describe('Flag (e2e)', () => {
     describe('POST /user/login', () => {
       it('success', async () => {
         const res = await request(app.getHttpServer())
-          .post('/user/login')
-          .send({
-            email: 'user@example.com',
-            password: 'password123',
-          });
+            .post('/user/login')
+            .send({
+              email: 'user@example.com',
+              password: 'password123',
+            });
 
         expect(res.status).toBe(201);
       });
@@ -181,11 +163,11 @@ describe('Flag (e2e)', () => {
             beforeAll(async () => {
               loginSpy = jest.spyOn(userService, 'login');
               res = await request(app.getHttpServer())
-                .post('/user/login')
-                .send({
-                  email: email,
-                  password: password,
-                });
+                  .post('/user/login')
+                  .send({
+                    email: email,
+                    password: password,
+                  });
             });
             it('responds with a Bad Request HTTP Error', async () => {
               expect(res.status).toBe(400);
@@ -211,25 +193,25 @@ describe('Flag (e2e)', () => {
       let jwt: string;
 
       beforeAll(async () => {
-        jwt = await registerAndLogin(v4() + '@example.com', 'password123', v4());
+        jwt = await registerAndLogin(app, v4() + '@example.com', 'password123', v4());
       });
 
       it('success', async () => {
         const res = await request(app.getHttpServer())
-          .put('/user/change-password')
-          .set('authorization', jwt)
-          .send({
-            currentPassword: 'password123',
-            newPassword: 'newPassword999',
-            newPasswordConfirmation: 'newPassword999',
-          });
+            .put('/user/change-password')
+            .set('authorization', jwt)
+            .send({
+              currentPassword: 'password123',
+              newPassword: 'newPassword999',
+              newPasswordConfirmation: 'newPassword999',
+            });
 
         expect(res.status).toBe(200);
       });
 
       describe('failure', () => {
         beforeAll(async () => {
-          jwt = await registerAndLogin(v4() + '@example.com', 'password123', v4());
+          jwt = await registerAndLogin(app, v4() + '@example.com', 'password123', v4());
         });
 
         function testBadValues(name: string, currentPassword: string, newPassword: string, newPasswordConfirmation: string) {
@@ -239,13 +221,13 @@ describe('Flag (e2e)', () => {
             beforeAll(async () => {
               changePasswordSpy = jest.spyOn(userService, 'changePassword');
               res = await request(app.getHttpServer())
-                .put('/user/change-password')
-                .set('authorization', jwt)
-                .send({
-                  currentPassword: currentPassword,
-                  newPassword: newPassword,
-                  newPasswordConfirmation: newPasswordConfirmation,
-                });
+                  .put('/user/change-password')
+                  .set('authorization', jwt)
+                  .send({
+                    currentPassword: currentPassword,
+                    newPassword: newPassword,
+                    newPasswordConfirmation: newPasswordConfirmation,
+                  });
             });
             it('responds with a Bad Request HTTP Error', async () => {
               expect(res.status).toBe(400);
@@ -276,25 +258,25 @@ describe('Flag (e2e)', () => {
     describe('PUT /user/change-nickname', () => {
       let jwt: string;
       beforeAll(async () => {
-        jwt = await registerAndLogin(v4() + '@example.com', 'password123', v4());
+        jwt = await registerAndLogin(app, v4() + '@example.com', 'password123', v4());
       });
 
       it('success', async () => {
         const res = await request(app.getHttpServer())
-          .put('/user/change-nickname')
-          .set('authorization', jwt)
-          .send({
-            jwt: jwt,
-            password: 'password123',
-            newNickname: 'jack76',
-          });
+            .put('/user/change-nickname')
+            .set('authorization', jwt)
+            .send({
+              jwt: jwt,
+              password: 'password123',
+              newNickname: 'jack76',
+            });
 
         expect(res.status).toBe(200);
       });
 
       describe('failure', function () {
         beforeAll(async () => {
-          jwt = await registerAndLogin(v4() + '@example.com', 'password123', v4());
+          jwt = await registerAndLogin(app, v4() + '@example.com', 'password123', v4());
         });
 
         describe('bad field values', () => {
@@ -305,12 +287,12 @@ describe('Flag (e2e)', () => {
               beforeAll(async () => {
                 changeNicknameSpy = jest.spyOn(userService, 'changeNickname');
                 res = await request(app.getHttpServer())
-                  .put('/user/change-nickname')
-                  .set('authorization', jwt)
-                  .send({
-                    password: password,
-                    newNickname: newNickname,
-                  });
+                    .put('/user/change-nickname')
+                    .set('authorization', jwt)
+                    .send({
+                      password: password,
+                      newNickname: newNickname,
+                    });
               });
               it('responds with a Bad Request HTTP Error', async () => {
                 expect(res.status).toBe(400);
@@ -338,4 +320,6 @@ describe('Flag (e2e)', () => {
       });
     });
   });
+
+
 });
