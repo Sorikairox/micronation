@@ -34,7 +34,7 @@ const gravity = new THREE.Vector3( 0, - GRAVITY, 0 ).multiplyScalar( MASS );
 const TIMESTEP = 18 / 1000;
 const TIMESTEP_SQ = TIMESTEP * TIMESTEP;
 
-const poleHeight = ySegs*restDistance*(0.75+ratio)
+const poleHeight = ySegs*restDistance*(2.5)
 
 let pins = [];
 
@@ -201,6 +201,33 @@ class Cloth {
 
 }
 
+let container, stats;
+let camera, scene, renderer;
+
+let clothGeometry;
+let object
+let pole
+
+let windowHalfX = window.innerWidth / 2; //on resize
+let windowHalfY = window.innerHeight / 2;
+
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+
+const cloth = new Cloth( xSegs, ySegs );
+const pinsFormation = [];
+
+pins = [ 0, 11, 22, 33, 44, 55, 66, 77, 88, 99, 110 ]; //stable
+pinsFormation.push( pins );
+
+// pins = []; //Bye lel
+// pinsFormation.push( pins );
+
+pins = [ 0, cloth.h*11 ]; //2 Pins, more classical ?
+pinsFormation.push( pins );
+
+pins = pinsFormation[ 0 ];
+
 function plane( width, height ) {
 
   return function ( u, v, target ) {
@@ -314,40 +341,11 @@ function simulate( now ) {
 
 }
 
-const cloth = new Cloth( xSegs, ySegs );
-const pinsFormation = [];
-
-pins = [ 0, 11, 22, 33, 44, 55, 66, 77, 88, 99, 110 ]; //stable
-pinsFormation.push( pins );
-
-// pins = []; //Bye lel
-// pinsFormation.push( pins );
-
-pins = [ 0, cloth.h*11 ]; //2 Pins, more classical ?
-pinsFormation.push( pins );
-
-pins = pinsFormation[ 0 ];
-
 function togglePins() {
 
   pins = pinsFormation[ ~ ~ ( Math.random() * pinsFormation.length ) ];
 
 }
-
-let container, stats;
-let camera, scene, renderer;
-
-let clothGeometry;
-let object
-let pole
-
-let windowHalfX = window.innerWidth / 2; //on resize
-let windowHalfY = window.innerHeight / 2;
-
-const raycaster = new THREE.Raycaster();
-const mouse = new THREE.Vector2();
-
-
 
 function init() {
 
@@ -371,23 +369,27 @@ function init() {
   scene.add( new THREE.AmbientLight( 0x666666 ) );
 
   const light = new THREE.DirectionalLight( 0xdfebff, 1 );
-  light.position.set( 50, 200, 100 );
+  light.position.set( 0, 450, 500 );
   light.position.multiplyScalar( 1.3 );
   light.castShadow = true;
   light.shadow.mapSize.width = 1024;
   light.shadow.mapSize.height = 1024;
 
-  const d = 300;
+  const d = 500;
   light.shadow.camera.left = - d;
   light.shadow.camera.right = d;
   light.shadow.camera.top = d;
   light.shadow.camera.bottom = - d;
-  light.shadow.camera.far = 1000;
+  // light.shadow.camera.near = 0.5;
+
+  light.shadow.camera.far = 2000;
+  const helper = new THREE.CameraHelper( light.shadow.camera );
+  scene.add(helper)
   scene.add( light );
 
 // cloth material
   const loader = new THREE.TextureLoader();
-  const flag = require('@/assets/flagFR.png')
+  const flag = require('@/assets/flagITA.png')
   // const flag = require('@/assets/flagITA.png')
 
   ;
@@ -415,7 +417,7 @@ function init() {
 
   object.customDepthMaterial = new THREE.MeshDepthMaterial( {
     depthPacking: THREE.RGBADepthPacking,
-    // map: clothTexture,
+    map: clothTexture,
     alphaTest: 0.5
   } );
 
@@ -507,8 +509,6 @@ scene.add( axesHelper );
   gui.add( params, 'togglePins' ).name( 'Toggle pins' );
 }
 
-//
-
 function onWindowResize() {
 
   camera.aspect = window.innerWidth / window.innerHeight;
@@ -527,8 +527,6 @@ function onMouseMove( event ) {
 	mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
 
 }
-
-//
 
 function animate( now ) {
 
