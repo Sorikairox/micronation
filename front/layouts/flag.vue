@@ -9,7 +9,6 @@
 import * as THREE from 'three';
 import Stats from 'stats-js';
 import { GUI } from 'dat-gui';
-
 import { OrbitControls } from '@/components/OrbitControl.js';
 
 const params = {
@@ -348,8 +347,7 @@ let windowHalfY = window.innerHeight / 2;
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
 
-window.addEventListener( 'mousemove', onMouseMove, false );
-window.requestAnimationFrame(render);
+
 
 function init() {
 
@@ -500,6 +498,8 @@ scene.add( axesHelper );
 
 //
   window.addEventListener( 'resize', onWindowResize );
+  window.addEventListener( 'mousemove', onMouseMove, false );
+  window.requestAnimationFrame(render);
 
 //GUI for some controls
   const gui = new GUI();
