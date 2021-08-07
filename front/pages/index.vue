@@ -1,16 +1,14 @@
 <template>
   <div class="container">
     <div>
-      <Logo />
-      <h1 class="title">
-        Micronation
-      </h1>
     </div>
   </div>
 </template>
 
 <script>
-export default {}
+export default {
+  layout: 'flag',
+}
 </script>
 
 <style>
