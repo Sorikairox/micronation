@@ -1,8 +1,8 @@
 {
     "configurations": [
-        // Adding Edge console debug
+        // Adding Edge console debug for an immersive workflow
         {
-            "name": "Launch Edge",
+            "name": "Launch Edge Console Debug Mode",
             "request": "launch",
             "type": "pwa-msedge",
             "url": "http://localhost:3000",
