@@ -1,14 +1,15 @@
 <template>
-  <AppButton variant="contained" size="medium"
-    >Button<template v-slot:icon><AppHomeIcon /></template
-  ></AppButton>
+  <AppInputFrame
+    :select="true"
+    :border="false"
+    :options="[{ name: 'test', value: 5 }]"
+  />
 </template>
 
 <script>
-import AppButton from "~/components/atoms/AppButton.vue";
-import AppHomeIcon from "~/components/atoms/icons/AppHomeIcon.vue";
+import AppInputFrame from "~/components/atoms/AppInputFrame.vue";
 export default {
-  components: { AppButton, AppHomeIcon },
+  components: { AppInputFrame },
 };
 </script>
 

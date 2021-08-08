@@ -1,5 +1,13 @@
 <template>
-  <button :class="classButton" class="prose-roboto" :to="to">
+  <button
+    :class="classButton"
+    class="prose-roboto"
+    :to="to"
+    :href="href"
+    :target="href ? '_blank' : undefined"
+    :rel="href ? 'noreferrer noopener' : undefined"
+    @click="to ? '' : $emit('click', $event)"
+  >
     <span v-if="icon === 'left'" :class="typoIcon">
       <slot name="icon"></slot>
     </span>
@@ -30,6 +38,10 @@ export default {
     },
     to: {
       type: Object,
+      default: undefined,
+    },
+    href: {
+      type: String,
       default: undefined,
     },
     icon: {
