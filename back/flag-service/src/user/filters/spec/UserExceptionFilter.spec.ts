@@ -14,14 +14,14 @@ describe('UserExceptionFilter', () => {
         EmailNotFoundError,
         IncorrectPasswordError,
     ]) {
-        it(`Should transform a ${exception} to a BadRequestException`, () => {
+        it(`transforms a ${exception} to a BadRequestException`, () => {
             expect(() => {
                 userExceptionFilter.catch(new exception);
             }).toThrow(BadRequestException);
         });
     }
 
-    it(`Should not transform any other error`, () => {
+    it(`doesn't transform any other error`, () => {
         const error = new UserIdNotFoundError();
         expect(() => {
             userExceptionFilter.catch(error);
