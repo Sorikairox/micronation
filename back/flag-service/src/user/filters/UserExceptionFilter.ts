@@ -6,12 +6,12 @@ import { NicknameAlreadyTakenError } from '../errors/NicknameAlreadyTakenError';
 
 @Catch(EmailAlreadyTakenError, NicknameAlreadyTakenError, EmailNotFoundError, IncorrectPasswordError)
 export class UserExceptionFilter implements ExceptionFilter {
-    catch(e: Error) {
-        if (e instanceof EmailAlreadyTakenError || e instanceof NicknameAlreadyTakenError ||
-            e instanceof EmailNotFoundError || e instanceof IncorrectPasswordError) {
-            throw new BadRequestException(e);
-        } else {
-            throw e;
-        }
+  catch(e: Error) {
+    if (e instanceof EmailAlreadyTakenError || e instanceof NicknameAlreadyTakenError ||
+      e instanceof EmailNotFoundError || e instanceof IncorrectPasswordError) {
+      throw new BadRequestException(e);
+    } else {
+      throw e;
     }
+  }
 }

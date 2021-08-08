@@ -77,19 +77,19 @@ describe('Flag (e2e)', () => {
     let userService: UserService;
 
     beforeAll(() => {
-        userService = app.get(UserService);
+      userService = app.get(UserService);
     });
 
     describe('POST /user/register', () => {
       it('success', async () => {
         const res = await request(app.getHttpServer())
-            .post('/user/register')
-            .send({
-              email: 'user@example.com',
-              password: 'password123',
-              passwordConfirmation: 'password123',
-              nickname: 'jane',
-            });
+          .post('/user/register')
+          .send({
+            email: 'user@example.com',
+            password: 'password123',
+            passwordConfirmation: 'password123',
+            nickname: 'jane',
+          });
 
         expect(res.status).toBe(201);
         expect(res.body).toStrictEqual({ success: true });
@@ -103,13 +103,13 @@ describe('Flag (e2e)', () => {
             beforeAll(async () => {
               registerSpy = jest.spyOn(userService, 'register');
               res = await request(app.getHttpServer())
-                  .post('/user/register')
-                  .send({
-                    email: email,
-                    password: password,
-                    passwordConfirmation: passwordConfirmation,
-                    nickname: nickname
-                  });
+                .post('/user/register')
+                .send({
+                  email: email,
+                  password: password,
+                  passwordConfirmation: passwordConfirmation,
+                  nickname: nickname
+                });
             });
             it('responds with a Bad Request HTTP Error', async () => {
               expect(res.status).toBe(400);
@@ -146,11 +146,11 @@ describe('Flag (e2e)', () => {
     describe('POST /user/login', () => {
       it('success', async () => {
         const res = await request(app.getHttpServer())
-            .post('/user/login')
-            .send({
-              email: 'user@example.com',
-              password: 'password123',
-            });
+          .post('/user/login')
+          .send({
+            email: 'user@example.com',
+            password: 'password123',
+          });
 
         expect(res.status).toBe(201);
       });
@@ -163,11 +163,11 @@ describe('Flag (e2e)', () => {
             beforeAll(async () => {
               loginSpy = jest.spyOn(userService, 'login');
               res = await request(app.getHttpServer())
-                  .post('/user/login')
-                  .send({
-                    email: email,
-                    password: password,
-                  });
+                .post('/user/login')
+                .send({
+                  email: email,
+                  password: password,
+                });
             });
             it('responds with a Bad Request HTTP Error', async () => {
               expect(res.status).toBe(400);
@@ -198,13 +198,13 @@ describe('Flag (e2e)', () => {
 
       it('success', async () => {
         const res = await request(app.getHttpServer())
-            .put('/user/change-password')
-            .set('authorization', jwt)
-            .send({
-              currentPassword: 'password123',
-              newPassword: 'newPassword999',
-              newPasswordConfirmation: 'newPassword999',
-            });
+          .put('/user/change-password')
+          .set('authorization', jwt)
+          .send({
+            currentPassword: 'password123',
+            newPassword: 'newPassword999',
+            newPasswordConfirmation: 'newPassword999',
+          });
 
         expect(res.status).toBe(200);
       });
@@ -221,13 +221,13 @@ describe('Flag (e2e)', () => {
             beforeAll(async () => {
               changePasswordSpy = jest.spyOn(userService, 'changePassword');
               res = await request(app.getHttpServer())
-                  .put('/user/change-password')
-                  .set('authorization', jwt)
-                  .send({
-                    currentPassword: currentPassword,
-                    newPassword: newPassword,
-                    newPasswordConfirmation: newPasswordConfirmation,
-                  });
+                .put('/user/change-password')
+                .set('authorization', jwt)
+                .send({
+                  currentPassword: currentPassword,
+                  newPassword: newPassword,
+                  newPasswordConfirmation: newPasswordConfirmation,
+                });
             });
             it('responds with a Bad Request HTTP Error', async () => {
               expect(res.status).toBe(400);
@@ -263,13 +263,13 @@ describe('Flag (e2e)', () => {
 
       it('success', async () => {
         const res = await request(app.getHttpServer())
-            .put('/user/change-nickname')
-            .set('authorization', jwt)
-            .send({
-              jwt: jwt,
-              password: 'password123',
-              newNickname: 'jack76',
-            });
+          .put('/user/change-nickname')
+          .set('authorization', jwt)
+          .send({
+            jwt: jwt,
+            password: 'password123',
+            newNickname: 'jack76',
+          });
 
         expect(res.status).toBe(200);
       });
@@ -287,12 +287,12 @@ describe('Flag (e2e)', () => {
               beforeAll(async () => {
                 changeNicknameSpy = jest.spyOn(userService, 'changeNickname');
                 res = await request(app.getHttpServer())
-                    .put('/user/change-nickname')
-                    .set('authorization', jwt)
-                    .send({
-                      password: password,
-                      newNickname: newNickname,
-                    });
+                  .put('/user/change-nickname')
+                  .set('authorization', jwt)
+                  .send({
+                    password: password,
+                    newNickname: newNickname,
+                  });
               });
               it('responds with a Bad Request HTTP Error', async () => {
                 expect(res.status).toBe(400);

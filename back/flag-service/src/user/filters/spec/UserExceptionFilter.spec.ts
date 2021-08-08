@@ -7,24 +7,24 @@ import { UserIdNotFoundError } from '../../errors/UserIdNotFoundError';
 import { UserExceptionFilter } from '../UserExceptionFilter';
 
 describe('UserExceptionFilter', () => {
-    const userExceptionFilter = new UserExceptionFilter();
-    for (const exception of [
-        EmailAlreadyTakenError,
-        NicknameAlreadyTakenError,
-        EmailNotFoundError,
-        IncorrectPasswordError,
-    ]) {
-        it(`transforms a ${exception} to a BadRequestException`, () => {
-            expect(() => {
-                userExceptionFilter.catch(new exception);
-            }).toThrow(BadRequestException);
-        });
-    }
-
-    it(`doesn't transform any other error`, () => {
-        const error = new UserIdNotFoundError();
-        expect(() => {
-            userExceptionFilter.catch(error);
-        }).toThrow(error);
+  const userExceptionFilter = new UserExceptionFilter();
+  for (const exception of [
+    EmailAlreadyTakenError,
+    NicknameAlreadyTakenError,
+    EmailNotFoundError,
+    IncorrectPasswordError,
+  ]) {
+    it(`transforms a ${exception} to a BadRequestException`, () => {
+      expect(() => {
+        userExceptionFilter.catch(new exception);
+      }).toThrow(BadRequestException);
     });
+  }
+
+  it(`doesn't transform any other error`, () => {
+    const error = new UserIdNotFoundError();
+    expect(() => {
+      userExceptionFilter.catch(error);
+    }).toThrow(error);
+  });
 });

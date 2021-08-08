@@ -34,14 +34,14 @@ export class UserController {
   async login(
     @Body() { email, password }: LoginDto,
   ): Promise<any> {
-      const jwtPayload = await this.userService.login(email, password);
-      return jwtPayload;
+    const jwtPayload = await this.userService.login(email, password);
+    return jwtPayload;
   }
 
   @Put('/change-password')
   async changePassword(
     @Req() request: Request,
-    @Body() {currentPassword, newPassword, newPasswordConfirmation}: ChangePasswordDto,
+    @Body() { currentPassword, newPassword, newPasswordConfirmation }: ChangePasswordDto,
   ): Promise<{ success: true }> {
     if (newPasswordConfirmation !== newPassword) {
       throw new BadRequestException('newPasswordConfirmation', 'New password confirmation doesn\'t match.');
@@ -53,9 +53,9 @@ export class UserController {
   @Put('/change-nickname')
   async changeNickname(
     @Req() request: Request,
-    @Body() {password, newNickname}: ChangeNicknameDto,
+    @Body() { password, newNickname }: ChangeNicknameDto,
   ): Promise<{ nickname: string }> {
-      const updatedUser = await this.userService.changeNickname(request.user._id, password, newNickname);
-      return { nickname: updatedUser.nickname };
+    const updatedUser = await this.userService.changeNickname(request.user._id, password, newNickname);
+    return { nickname: updatedUser.nickname };
   }
 }
