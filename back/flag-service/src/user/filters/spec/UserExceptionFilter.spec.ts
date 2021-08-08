@@ -4,7 +4,7 @@ import { EmailNotFoundError } from '../../errors/EmailNotFoundError';
 import { IncorrectPasswordError } from '../../errors/IncorrectPasswordError';
 import { NicknameAlreadyTakenError } from '../../errors/NicknameAlreadyTakenError';
 import { UserIdNotFoundError } from '../../errors/UserIdNotFoundError';
-import { UserExceptionFilter } from '../UserExceptionFilters';
+import { UserExceptionFilter } from '../UserExceptionFilter';
 
 describe('UserExceptionFilter', () => {
     const userExceptionFilter = new UserExceptionFilter();

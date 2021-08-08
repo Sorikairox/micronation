@@ -3,7 +3,7 @@ import { ChangeNicknameDto } from './dto/ChangeNicknameDto';
 import { ChangePasswordDto } from './dto/ChangePasswordDto';
 import { LoginDto } from './dto/LoginDto';
 import { RegisterDto } from './dto/RegisterDto';
-import { UserExceptionFilter } from './filters/UserExceptionFilters';
+import { UserExceptionFilter } from './filters/UserExceptionFilter';
 import { UserService } from "./UserService";
 import { Public } from "./decorators/PublicDecorator";
 
