@@ -1,11 +1,15 @@
 <template>
-  <div class="prose-montserrat">
-    <div class="button">button</div>
-  </div>
+  <AppButton variant="contained" size="medium"
+    >Button <template v-slot:icon><AppHomeIcon /></template
+  ></AppButton>
 </template>
 
 <script>
-export default {};
+import AppButton from "~/components/atoms/AppButton.vue";
+import AppHomeIcon from "~/components/atoms/icons/AppHomeIcon.vue";
+export default {
+  components: { AppButton, AppHomeIcon },
+};
 </script>
 
 <style scoped></style>
