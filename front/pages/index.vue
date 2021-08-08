@@ -1,7 +1,11 @@
-<template><div>Micronation</div></template>
+<template>
+  <div class="prose-montserrat">
+    <div class="button">button</div>
+  </div>
+</template>
 
 <script>
 export default {};
 </script>
 
-<style></style>
+<style scoped></style>
