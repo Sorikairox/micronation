@@ -13,6 +13,8 @@ export class JwtExceptionFilter implements ExceptionFilter {
             throw new UnauthorizedException(e);
         } else if (e instanceof JsonWebTokenError) {
             throw new ForbiddenException(e);
+        } else {
+            throw e;
         }
     }
 }
