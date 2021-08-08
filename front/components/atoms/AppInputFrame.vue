@@ -1,21 +1,19 @@
 <template>
-  <div>
-    <component
-      :is="select ? 'select' : 'input'"
-      :class="classInputFrame"
-      :placeholder="!select && placeholder"
-      @input="$emit('input', $event.target.value)"
+  <component
+    :is="select ? 'select' : 'input'"
+    :class="classInputFrame"
+    :placeholder="!select && placeholder"
+    @input="$emit('input', $event.target.value)"
+  >
+    <option
+      :v-if="select"
+      v-for="(opt, ind) in options"
+      :key="ind"
+      :value="opt.value"
     >
-      <option
-        :v-if="select"
-        v-for="(opt, ind) in options"
-        :key="ind"
-        :value="opt.value"
-      >
-        {{ opt.name }}
-      </option>
-    </component>
-  </div>
+      {{ opt.name }}
+    </option>
+  </component>
 </template>
 
 <script>
@@ -51,7 +49,7 @@ export default {
   computed: {
     classInputFrame() {
       const inputFrameClasses = [
-        "rounded-lg px-2 py-1 focus:outline-none flex flex-rows justify-around",
+        "rounded-lg px-3 py-3 focus:outline-none flex flex-rows justify-around",
       ];
 
       if (!this.select) inputFrameClasses.push("placeholder-grey-base");

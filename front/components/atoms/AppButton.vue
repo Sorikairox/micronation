@@ -69,8 +69,8 @@ export default {
       const classNames = ["prose-roboto px-4 align-middle"];
 
       // Handling sizes
-      if (this.size == "medium") classNames.push("rounded-lg py-1");
-      else classNames.push("rounded-md");
+      if (this.size == "medium") classNames.push("rounded-lg py-2");
+      else classNames.push("rounded-md py-1");
 
       // Handling variants
       if (this.isText) classNames.push("text-black bg-white");

@@ -2,9 +2,9 @@
   <div class="flex flex-col items-center p-4 m-4 space-y-4 border">
     <AppButton variant="contained" size="medium">Master</AppButton>
     <AppInputFrame
-      :select="true"
+      :select="false"
       :border="false"
-      :options="[{ name: 'test', value: 5 }]"
+      :options="[{ name: 'Placeholder', value: 5 }]"
     />
     <AppLink link="https://www.youtube.com/user/dirtybiology"
       >This is a link</AppLink
