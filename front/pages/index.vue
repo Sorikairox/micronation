@@ -1,6 +1,6 @@
 <template>
   <AppButton variant="contained" size="medium"
-    >Button <template v-slot:icon><AppHomeIcon /></template
+    >Button<template v-slot:icon><AppHomeIcon /></template
   ></AppButton>
 </template>
 

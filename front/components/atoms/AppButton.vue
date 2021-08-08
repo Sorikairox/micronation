@@ -1,6 +1,8 @@
 <template>
   <button :class="classButton" class="prose-roboto" :to="to">
-    <slot name="icon" v-if="icon === 'left'"></slot>
+    <span v-if="icon === 'left'" :class="typoIcon">
+      <slot name="icon"></slot>
+    </span>
     <span :class="typoButton">
       <slot></slot>
     </span>
@@ -82,6 +84,9 @@ export default {
     },
     typoButton() {
       return this.size == "medium" ? "body-1" : "body-2";
+    },
+    typoIcon() {
+      return this.isContained ? "text-grey-light" : "text-grey-dark";
     },
   },
 };
