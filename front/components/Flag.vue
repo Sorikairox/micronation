@@ -1,8 +1,5 @@
 <template>
-  <div class="h-screen w-screen overflow-hidden mx-0">
-    <Nuxt />
-    <div id="flag" />
-  </div>
+    <div id="flag"/>
 </template>
 
 <script>
@@ -16,6 +13,7 @@ const params = {
   showBall: false,
   togglePins: togglePins
 };
+
 
 const DAMPING = 0.03;
 const DRAG = 1 - DAMPING;
@@ -203,6 +201,7 @@ class Cloth {
 
 let container, stats;
 let camera, scene, renderer;
+let WIDTH, HEIGHT
 
 let clothGeometry;
 let object
@@ -210,6 +209,7 @@ let pole
 
 let windowHalfX = window.innerWidth / 2; //on resize
 let windowHalfY = window.innerHeight / 2;
+let hover = false;
 
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
@@ -350,7 +350,9 @@ function togglePins() {
 function init() {
 
   container = document.getElementById("flag")
-  document.body.appendChild( container );
+  WIDTH = container.clientWidth
+  HEIGHT = container.clientHeight
+  console.log(WIDTH, HEIGHT)
 
   // scene
 
@@ -361,7 +363,7 @@ function init() {
   scene.fog = new THREE.Fog( 0xcce0ff, 500, 10000 );
 
   // camera
-  camera = new THREE.PerspectiveCamera( 30, window.innerWidth / window.innerHeight, 1, 10000 );
+  camera = new THREE.PerspectiveCamera( 30, WIDTH / HEIGHT, 1, 10000 );
   camera.position.set(xSegs*ratio*restDistance/2, poleHeight/2, 2000 );
 
   // lights
@@ -477,7 +479,7 @@ function init() {
 // renderer
   renderer = new THREE.WebGLRenderer( { antialias: true } );
   renderer.setPixelRatio( window.devicePixelRatio );
-  renderer.setSize( window.innerWidth, window.innerHeight );
+  renderer.setSize( WIDTH, HEIGHT );
   container.appendChild( renderer.domElement );
   renderer.outputEncoding = THREE.sRGBEncoding;
   renderer.shadowMap.enabled = true;
@@ -495,37 +497,47 @@ const axesHelper = new THREE.AxesHelper( 100 );
 scene.add( axesHelper );
 
 // performance monitor
-  stats = new Stats();
-  container.appendChild( stats.dom );
+  // stats = new Stats();
+  // container.appendChild( stats.dom );
 
 //
   window.addEventListener( 'resize', onWindowResize );
-  window.addEventListener( 'mousemove', onMouseMove, false );
+  container.addEventListener( 'pointermove', onPointerMove, false );
+  container.addEventListener( 'pointerdown', onPointerDown, false );
+
   window.requestAnimationFrame(render);
 
 //GUI for some controls
-  const gui = new GUI();
-  gui.add( params, 'enableWind' ).name( 'Enable wind' );
-  gui.add( params, 'togglePins' ).name( 'Toggle pins' );
+  // const gui = new GUI();
+  // gui.add( params, 'enableWind' ).name( 'Enable wind' );
+  // gui.add( params, 'togglePins' ).name( 'Toggle pins' );
 }
 
 function onWindowResize() {
+  WIDTH = container.clientWidth
+  HEIGHT = container.clientHeight
 
-  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.aspect = WIDTH / HEIGHT;
   camera.updateProjectionMatrix();
 
-  renderer.setSize( window.innerWidth, window.innerHeight );
+  renderer.setSize( WIDTH, HEIGHT );
 
 }
 
-function onMouseMove( event ) {
+function onPointerMove( event ) {
 
 	// calculate mouse position in normalized device coordinates
 	// (-1 to +1) for both components
 
-	mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
-	mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+	mouse.x = ( event.clientX / WIDTH ) * 2 - 1;
+	mouse.y = - ( event.clientY / HEIGHT ) * 2 + 1;
 
+}
+
+function onPointerDown( event ) {
+  if(hover) {
+    $nuxt.$emit('FlagClick')
+  }
 }
 
 function animate( now ) {
@@ -533,7 +545,7 @@ function animate( now ) {
   requestAnimationFrame( animate );
   simulate( now );
   render();
-  stats.update();
+  // stats.update();
 }
 
 function windSimulation( p ) {
@@ -557,32 +569,55 @@ function render() {
 
   if(intersects[0]?.object == object)
   {
-    pole.material.color.set( 0xff0000 )    
+    pole.material.color.set( 0xff0000 )
+    hover = true;    
   }
   else {
      pole.material.color.set( 0xafafff )
+     hover = false;
   }
   
   renderer.render( scene, camera );
+}
 
+function changeTexture(newMap) {
+    const flag = require('@/assets/flagFR.png')
+
+    const clothTexture = new THREE.TextureLoader().load(flag)
+    clothTexture.anisotropy = 16;
+
+    const clothMaterial = new THREE.MeshLambertMaterial( {
+      map: flag,
+      side: THREE.DoubleSide,
+      alphaTest: 0.5
+    } );    
+
+    // cloth mesh
+    object.material = clothMaterial
+
+    object.customDepthMaterial = new THREE.MeshDepthMaterial( {
+      depthPacking: THREE.RGBADepthPacking,
+      map: flag,
+      alphaTest: 0.5
+    } );
+    console.log("NEW FLAG"+newMap)
 }
 
 export default {
-  mounted() {
-    init();
-    animate( 0 );
-  }
+    name: 'Flag',
+    mounted() {
+        init();
+        animate( 0 );
+        this.$nuxt.$on('FlagClick', () => {
+        // this.$router.push({ name: 'edit' })
+        })
+        this.$nuxt.$on('NewImage', () => {
+          console.log("Newimage")
+        })
+    }
+
 }
 </script>
 
-
 <style>
-.Back, #flag{
-  position:absolute;
-  left:0;
-  top:0;
-}
-canvas{
-    position: initial;
-}
 </style>
