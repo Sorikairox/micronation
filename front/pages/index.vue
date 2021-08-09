@@ -35,9 +35,25 @@ import Flag from '@/components/Flag.vue'
 import APropos from '@/components/APropos.vue'
 import Edit from '@/components/Edit.vue'
 
+import AppLink from "~/components/atoms/AppLink";
+import AppError from "~/components/atoms/AppError";
+import AppButton from "~/components/atoms/AppButton.vue";
+import LabeledInputFrame from "~/components/molecules/LabeledInputFrame.vue";
+import AppHomeIcon from "~/components/atoms/icons/AppHomeIcon.vue";
+import TheHeader from "~/components/organisms/TheHeader.vue";
+
 export default {
   layout: "default",
-  components: { Flag, APropos, Edit },
+  components: { 
+    Flag, 
+    APropos, 
+    Edit,    
+    LabeledInputFrame,
+    AppLink,
+    AppError,
+    AppButton,
+    AppHomeIcon,
+    TheHeader, },
   mounted() {
   },
   data() {
@@ -69,5 +85,4 @@ export default {
 }
 </script>
 
-<style>
-</style>
+<style scoped></style>

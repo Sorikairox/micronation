@@ -1,0 +1,18 @@
+{
+    "configurations": [
+        // Adding Edge console debug for an immersive workflow
+        {
+            "name": "Launch Edge Console Debug Mode",
+            "request": "launch",
+            "type": "pwa-msedge",
+            "url": "http://localhost:3000",
+            "webRoot": "${workspaceFolder}"
+        },
+        {
+            "name": "Launch Microsoft Edge and open the Edge DevTools",
+            "request": "launch",
+            "type": "vscode-edge-devtools.debug",
+            "url": "http://localhost:3000"
+        }
+    ]
+}
