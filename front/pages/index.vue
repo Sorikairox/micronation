@@ -30,7 +30,6 @@ import AppButton from "~/components/atoms/AppButton.vue";
 import LabeledInputFrame from "~/components/molecules/LabeledInputFrame.vue";
 import AppHomeIcon from "~/components/atoms/icons/AppHomeIcon.vue";
 import TheHeader from "~/components/organisms/TheHeader.vue";
-
 export default {
   components: {
     LabeledInputFrame,
