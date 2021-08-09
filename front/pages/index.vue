@@ -1,60 +1,45 @@
 <template>
-  <div class="container">
-    <div>
-      <Logo />
-      <h1 class="title">
-        Micronation
-      </h1>
-    </div>
+  <div
+    class="flex flex-col items-center p-4 m-4 space-y-4 border prose-montserrat"
+  >
+    <h3>Atoms examples</h3>
+
+    <AppButton variant="contained" size="medium" icon="left"
+      ><template #icon><AppHomeIcon /></template>Master</AppButton
+    >
+    <LabeledInputFrame
+      label="Oui."
+      :select="false"
+      :border="true"
+      :options="[{ name: 'Placeholder', value: 5 }]"
+      errorMessage="P'tite erreur des familles"
+      ><template #add-on><AppHomeIcon /></template
+    ></LabeledInputFrame>
+    <AppLink link="https://www.youtube.com/user/dirtybiology"
+      >This is a link</AppLink
+    >
+    <AppError>This is an error</AppError>
+    <theHeader />
   </div>
 </template>
 
 <script>
-export default {}
+import AppLink from "~/components/atoms/AppLink";
+import AppError from "~/components/atoms/AppError";
+import AppButton from "~/components/atoms/AppButton.vue";
+import LabeledInputFrame from "~/components/molecules/LabeledInputFrame.vue";
+import AppHomeIcon from "~/components/atoms/icons/AppHomeIcon.vue";
+import TheHeader from "~/components/organisms/TheHeader.vue";
+
+export default {
+  components: {
+    LabeledInputFrame,
+    AppLink,
+    AppError,
+    AppButton,
+    AppHomeIcon,
+    TheHeader,
+  },
+};
 </script>
-
-<style>
-/* Sample `apply` at-rules with Tailwind CSS
-.container {
-@apply min-h-screen flex justify-center items-center text-center mx-auto;
-}
-*/
-.container {
-  margin: 0 auto;
-  min-height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-}
-
-.title {
-  font-family:
-    'Quicksand',
-    'Source Sans Pro',
-    -apple-system,
-    BlinkMacSystemFont,
-    'Segoe UI',
-    Roboto,
-    'Helvetica Neue',
-    Arial,
-    sans-serif;
-  display: block;
-  font-weight: 300;
-  font-size: 100px;
-  color: #35495e;
-  letter-spacing: 1px;
-}
-
-.subtitle {
-  font-weight: 300;
-  font-size: 42px;
-  color: #526488;
-  word-spacing: 5px;
-  padding-bottom: 15px;
-}
-
-.links {
-  padding-top: 15px;
-}
-</style>
+<style scoped></style>
