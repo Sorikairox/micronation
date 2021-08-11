@@ -1,10 +1,10 @@
 <template>
   <div class="w-screen h-screen">
-    <header class="w-full absolute flex justify-between items-center py-4 px-8 bg-gray-100 z-20 shadow-lg">
-      <div class="flex justify-center items-center">
+    <header class="absolute z-20 flex items-center justify-between w-full px-8 py-4 bg-gray-100 shadow-lg">
+      <div class="flex items-center justify-center">
         <p class="mr-8">DBY</p>
-        <div class="flex justify-center items-center">
-          <button v-on:click="GotoEdit()" class="rounded-lg bg-blue-600 text-gray-100 px-4 py-2">
+        <div class="flex items-center justify-center">
+          <button v-on:click="GotoEdit()" class="px-4 py-2 text-gray-100 bg-blue-600 rounded-lg">
             Editer le drapeau
           </button>
           <button v-on:click="GotoAccueil()" :class="'rounded-lg hover:bg-gray-300 mx-8 px-4 py-2 '+((this.ShowAccueil) ? this.focus : '')">
@@ -16,17 +16,17 @@
         </div>
       </div>
       <div>
-        <button v-on:click="GotoAPropos()" class="rounded-lg border-2 border-gray-400 hover:bg-gray-300 mx-8 px-4 py-2">
+        <button v-on:click="GotoAPropos()" class="px-4 py-2 mx-8 border-2 border-gray-400 rounded-lg hover:bg-gray-300">
           S'inscrire
         </button>
-        <button v-on:click="GotoAPropos()" class="rounded-lg bg-blue-600 text-gray-100 px-4 py-2">
+        <button v-on:click="GotoAPropos()" class="px-4 py-2 text-gray-100 bg-blue-600 rounded-lg">
           Se connecter
         </button>
       </div>
     </header>
-    <Flag v-show="this.ShowAccueil" class="w-full h-full inset-0 absolute z-10"/>
-    <APropos v-if="this.ShowAPropos" class="w-full h-full inset-0 absolute z-10"/>
-    <Edit v-if="this.ShowEdit" class="w-full h-full inset-0 absolute z-10"/>
+    <Flag v-show="this.ShowAccueil" class="absolute inset-0 z-10 w-full h-full"/>
+    <APropos v-if="this.ShowAPropos" class="absolute inset-0 z-10 w-full h-full"/>
+    <Edit v-if="this.ShowEdit" class="absolute inset-0 z-10 w-full h-full"/>
   </div>
 </template>
 
@@ -55,6 +55,9 @@ export default {
     AppHomeIcon,
     TheHeader, },
   mounted() {
+    this.$nuxt.$on('FlagClick', () => {
+        this.GotoEdit()
+        })
   },
   data() {
     return {
