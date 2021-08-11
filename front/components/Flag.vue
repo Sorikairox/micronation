@@ -85,9 +85,7 @@ class Particle {
     this.position = newPos;
 
     this.a.set( 0, 0, 0 );
-
   }
-
 }
 
 class Cloth {
@@ -209,7 +207,7 @@ let pole
 
 let windowHalfX = window.innerWidth / 2; //on resize
 let windowHalfY = window.innerHeight / 2;
-let hover = false;
+let hover = false, clicked = false;
 
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
@@ -504,6 +502,8 @@ scene.add( axesHelper );
   window.addEventListener( 'resize', onWindowResize );
   container.addEventListener( 'pointermove', onPointerMove, false );
   container.addEventListener( 'pointerdown', onPointerDown, false );
+  container.addEventListener( 'pointerup', onPointerUp, false );
+
 
   window.requestAnimationFrame(render);
 
@@ -536,8 +536,15 @@ function onPointerMove( event ) {
 
 function onPointerDown( event ) {
   if(hover) {
+    clicked = true
+  }
+}
+
+function onPointerUp( event ) {
+  if(clicked && hover) {
     $nuxt.$emit('FlagClick')
   }
+  clicked = false
 }
 
 function animate( now ) {
@@ -580,27 +587,10 @@ function render() {
   renderer.render( scene, camera );
 }
 
-function changeTexture(newMap) {
-    const flag = require('@/assets/flagFR.png')
-
-    const clothTexture = new THREE.TextureLoader().load(flag)
-    clothTexture.anisotropy = 16;
-
-    const clothMaterial = new THREE.MeshLambertMaterial( {
-      map: flag,
-      side: THREE.DoubleSide,
-      alphaTest: 0.5
-    } );    
-
-    // cloth mesh
-    object.material = clothMaterial
-
-    object.customDepthMaterial = new THREE.MeshDepthMaterial( {
-      depthPacking: THREE.RGBADepthPacking,
-      map: flag,
-      alphaTest: 0.5
-    } );
-    console.log("NEW FLAG"+newMap)
+function changeTexture(canva) {
+    const texture = new THREE.CanvasTexture(canva);
+    texture.anisotropy = 16;
+    object.material.map = texture
 }
 
 export default {
@@ -608,11 +598,8 @@ export default {
     mounted() {
         init();
         animate( 0 );
-        this.$nuxt.$on('FlagClick', () => {
-        // this.$router.push({ name: 'edit' })
-        })
-        this.$nuxt.$on('NewImage', () => {
-          console.log("Newimage")
+        this.$nuxt.$on('newTexture', (canva) => {
+          changeTexture(canva)
         })
     }
 
