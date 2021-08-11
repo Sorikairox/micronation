@@ -14,7 +14,6 @@
     "@tailwindcss/typography": "^0.4.1",
     "core-js": "^3.9.1",
     "dat-gui": "^0.5.0",
-    "file-saver": "^2.0.5",
     "nuxt": "^2.15.3",
     "one-colorpicker": "^1.0.12",
     "stats-js": "^1.0.1",
