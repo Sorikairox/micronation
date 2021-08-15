@@ -3,23 +3,21 @@
         <div class="w-screen h-screen bg-grey-light">
             <div class="flex flex-row justify-between h-full pt-24">
                 <div id="flagContainer" class="flex flex-col justify-center w-4/6 mx-4 bg-white rounded-lg h-5/6">
-                    <canvas id="flagCanva" class="mx-auto border-2 border-black rounded-md"/>
+                    <canvas id="flagCanva" class="mx-auto border-2 rounded-md border-grey-dark"/>
                 </div>
                 <div class="flex flex-col items-center w-2/6 px-4 py-1 mx-4 mb-auto bg-white rounded-lg h-5/6">
-                    <div class="flex flex-row justify-between w-full border-b-2 border-grey-base h-4/6 mb-9">
-                        <div class="flex flex-col items-center justify-around w-1/2">
-                            <p>Votre pixel {{x}}:{{y}}</p>
-                            <button v-on:click="Finish()" class="px-4 py-2 text-gray-100 bg-blue-600 rounded-lg">
-                                Editer le drapeau
-                            </button>
-                            <button v-on:click="Overlay()" class="px-4 py-2 text-gray-100 bg-blue-600 rounded-lg">
-                                Voir mon pixel
-                            </button>
+                    <div class="flex flex-col items-center w-full border-b-2 justify-evenly border-grey-base h-4/6 mb-9">
+                        <div class="flex flex-row items-center justify-around w-4/6">
+                            <AppButton v-on:click="Overlay()" variant="contained" class="bg-primary-dark">
+                                Votre pixel: {{x}}:{{y}}
+                            </AppButton>
+                            <AppButton v-on:click="Finish()" variant="contained" class="bg-primary-dark">
+                                Valider
+                            </AppButton>
                         </div>
-                        <div class="w-1/2">
+                        <div class="flex flex-col items-center justify-center w-1/2">
                             <v-color-picker
                                 v-model="color"
-                                class="ma-2"
                                 :swatches="swatches"
                                 show-swatches
                                 :elevation="5"
@@ -28,7 +26,7 @@
                         </div>
                     </div>
                     <div id="zoomContainer" class="w-full h-2/6">
-                        <canvas id="zoomCanva" class="m-auto border-2 border-black rounded-md"/>
+                        <canvas id="zoomCanva" class="m-auto border-2 rounded-md border-grey-dark"/>
                     </div>
                 </div>
             </div>
@@ -119,6 +117,7 @@ function drawOverlay() {
             }
         }
     }    
+    drawZoom()
 }
 
 //Draw a pixel on a coord given (x,y,clr), if changetexture is set to true, change the value on the map
@@ -253,6 +252,7 @@ export default {
             drawOverlay()
             setTimeout(() => {
                 drawFlag(MAP_BASE)
+                drawZoom()
             }, 3000);
         }
     },
