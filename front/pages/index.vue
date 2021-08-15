@@ -350,7 +350,6 @@ function init() {
   container = document.getElementById("flag")
   WIDTH = container.clientWidth
   HEIGHT = container.clientHeight
-  console.log(WIDTH, HEIGHT)
 
   // scene
 

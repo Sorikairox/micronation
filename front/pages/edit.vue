@@ -214,7 +214,6 @@ export default {
         }
     },
     mounted() {
-        console.log("Mouting Edit")
         setUserPixel(this.x,this.y)
         init()
     }
