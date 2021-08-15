@@ -1,6 +1,6 @@
 <template>
   <div class="w-screen h-screen">
-    <header class="absolute z-20 flex items-center justify-between w-full px-8 py-4 bg-gray-100 shadow-lg">
+    <!-- <header class="absolute z-20 flex items-center justify-between w-full px-8 py-4 bg-gray-100 shadow-lg">
       <div class="flex items-center justify-center">
         <p class="mr-8">DBY</p>
         <div class="flex items-center justify-center">
@@ -23,7 +23,8 @@
           Se connecter
         </button>
       </div>
-    </header>
+    </header> -->
+    <the-header class="absolute z-20"/>
     <Flag v-show="this.ShowAccueil" class="absolute inset-0 z-10 w-full h-full"/>
     <APropos v-if="this.ShowAPropos" class="absolute inset-0 z-10 w-full h-full"/>
     <Edit v-if="this.ShowEdit" class="absolute inset-0 z-10 w-full h-full"/>
@@ -35,29 +36,22 @@ import Flag from '@/components/Flag.vue'
 import APropos from '@/components/APropos.vue'
 import Edit from '@/components/Edit.vue'
 
-import AppLink from "~/components/atoms/AppLink";
-import AppError from "~/components/atoms/AppError";
-import AppButton from "~/components/atoms/AppButton.vue";
-import LabeledInputFrame from "~/components/molecules/LabeledInputFrame.vue";
-import AppHomeIcon from "~/components/atoms/icons/AppHomeIcon.vue";
-import TheHeader from "~/components/organisms/TheHeader.vue";
-
 export default {
   layout: "default",
+  name: 'index',
   components: { 
     Flag, 
     APropos, 
-    Edit,    
-    LabeledInputFrame,
-    AppLink,
-    AppError,
-    AppButton,
-    AppHomeIcon,
-    TheHeader, },
+    Edit
+    },
   mounted() {
     this.$nuxt.$on('FlagClick', () => {
         this.GotoEdit()
+        this.$router.push({name: 'edit'})
         })
+    this.$nuxt.$on('click', (e)=> {
+      console.log(e)
+    })
   },
   data() {
     return {
