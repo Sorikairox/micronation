@@ -1,23 +1,25 @@
 <template>
-    <div class="flex flex-row justify-between">
-    <div id="PixelChoice" class="w-4/6 mx-4 my-32 border-2 border-blue-400">
-    <canvas id="flagCanva" class="border-2 border-blue-400"/>
-    </div>
-    <div class="flex flex-col items-center justify-between w-2/6 p-8 mx-4 my-32 border-2 border-blue-400">
-        <div class="flex flex-row justify-between w-full border-2 border-red-400 h-1/2 mb-9">
-            <color-panel v-model="color" @change="change"/>
-            <div class="flex flex-col items-center justify-around w-1/2 border-2">
-            <p>Votre pixel {{x}}:{{y}}</p>
-            <button v-on:click="Finish()" class="px-4 py-2 text-gray-100 bg-blue-600 rounded-lg">
-                Editer le drapeau
-            </button>
-            <button v-on:click="Overlay()" class="px-4 py-2 text-gray-100 bg-blue-600 rounded-lg">
-                Voir mon pixel
-            </button>
-            </div>
+<div class="w-screen h-screen bg-grey-light">
+    <div class="flex flex-row justify-between h-full pt-24">
+        <div id="PixelChoice" class="w-4/6 mx-4">
+            <canvas id="flagCanva" class="border-2"/>
         </div>
-        <div class="w-full h-full border-2 border-red-400">
-            <canvas id="zoomCanva" class="w-full h-full border-2 border-blue-400"/>
+        <div class="flex flex-col items-center w-2/6 px-4 mx-4">
+            <div class="flex flex-row justify-between w-full h-3/6 mb-9">
+                <div class="flex flex-col items-center justify-around w-1/2">
+                    <p>Votre pixel {{x}}:{{y}}</p>
+                    <button v-on:click="Finish()" class="px-4 py-2 text-gray-100 bg-blue-600 rounded-lg">
+                        Editer le drapeau
+                    </button>
+                    <button v-on:click="Overlay()" class="px-4 py-2 text-gray-100 bg-blue-600 rounded-lg">
+                        Voir mon pixel
+                    </button>
+                </div>
+                <color-panel v-model="color" @change="change"/>
+            </div>
+            <div class="w-full h-2/6">
+                <canvas id="zoomCanva" class="m-auto"/>
+            </div>
         </div>
     </div>
 </div>
@@ -119,10 +121,25 @@ function drawPixel(x,y,clr, changeTexture = false, size=1, ctx = context) {
     }
 }
 
+//Initalising the flag canvas
+function initCanvas() {
+    WIDTH  = container.clientWidth
+    HEIGHT = ~~(WIDTH/2)
+    canvas.height = HEIGHT
+    canvas.width = WIDTH
+    BoundingBox = canvas.getBoundingClientRect();
+    context = canvas.getContext('2d');
+
+    drawGrid()
+    drawFlag(MAP_BASE)
+}
+
 //Initalising the zoom canvas
 function initZoom() {
     zoomCanvas = document.getElementById('zoomCanva'),
     zoomContext = zoomCanvas.getContext('2d');
+    zoomCanvas.width = ~~(WIDTH/3)
+    zoomCanvas.height = ~~(WIDTH/6)
     Xoffset = zoomCanvas.width/(2*zoom)
     Yoffset = zoomCanvas.height/(2*zoom)
 
@@ -136,19 +153,13 @@ function drawZoom(x = userXPixel*WIDTH/xPixel, y = userYPixel*HEIGHT/yPixel) {
     zoomContext.drawImage(canvas, x, y, zoomCanvas.width/zoom, zoomCanvas.height/zoom, 0, 0, zoomCanvas.width, zoomCanvas.height);
 }
 
+
 //Initalising the variables to their value
 function init() {
     container = document.getElementById("PixelChoice")
-    WIDTH = 1200
-    HEIGHT = 600
     canvas = document.getElementById('flagCanva'),
-    BoundingBox = canvas.getBoundingClientRect();
-    canvas.height = HEIGHT
-    canvas.width = WIDTH
-    context = canvas.getContext('2d');
-
-    // drawGrid()
-    drawFlag(MAP_BASE)
+    
+    initCanvas()
     initZoom()
 
     window.addEventListener( 'resize', onWindowResize );
@@ -173,9 +184,8 @@ function setUserPixel(x,y) {
 }
 
 function onWindowResize() {
-  WIDTH = container.clientWidth
-  HEIGHT = container.clientHeight
-  BoundingBox = container.getBoundingClientRect();
+    initCanvas()
+    initZoom()
 }
 
 //Draw a pixel on the pointer's coords
