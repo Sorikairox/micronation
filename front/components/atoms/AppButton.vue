@@ -1,5 +1,6 @@
 <template>
-  <button
+  <component
+    :is="getComponentType"
     :class="classButton"
     class="prose-roboto"
     :to="to"
@@ -15,7 +16,7 @@
       <slot></slot>
     </span>
     <slot name="icon" v-if="icon === 'right'"></slot>
-  </button>
+  </component>
 </template>
 
 <script>
@@ -37,7 +38,7 @@ export default {
       },
     },
     to: {
-      type: Object,
+      type: String,
       default: undefined,
     },
     href: {
@@ -100,6 +101,11 @@ export default {
     typoIcon() {
       return this.isContained ? "text-grey-light" : "text-grey-dark";
     },
+    getComponentType() {
+      if (this.to) return 'NuxtLink'
+      if (this.href) return 'a'
+      return 'button'
+    }
   },
 };
 </script>
