@@ -1,11 +1,11 @@
 <template>
 <div class="w-screen h-screen bg-grey-light">
     <div class="flex flex-row justify-between h-full pt-24">
-        <div id="PixelChoice" class="w-4/6 mx-4">
-            <canvas id="flagCanva" class="border-2"/>
+        <div id="PixelChoice" class="flex flex-col justify-center w-4/6 mx-4 bg-white rounded-lg h-5/6">
+            <canvas id="flagCanva" class="mx-auto border-2 border-black rounded-md"/>
         </div>
-        <div class="flex flex-col items-center w-2/6 px-4 mx-4">
-            <div class="flex flex-row justify-between w-full h-3/6 mb-9">
+        <div class="flex flex-col items-center w-2/6 px-4 py-1 mx-4 mb-auto bg-white rounded-lg h-5/6">
+            <div class="flex flex-row justify-between w-full border-b-2 border-grey-base h-4/6 mb-9">
                 <div class="flex flex-col items-center justify-around w-1/2">
                     <p>Votre pixel {{x}}:{{y}}</p>
                     <button v-on:click="Finish()" class="px-4 py-2 text-gray-100 bg-blue-600 rounded-lg">
@@ -15,10 +15,12 @@
                         Voir mon pixel
                     </button>
                 </div>
-                <color-panel v-model="color" @change="change"/>
+                <div class="w-1/2 h-full">
+                    <color-panel v-model="color" :position="{left: '40px', top: '40px'}" @change="change" class="inset-0"/>
+                </div>
             </div>
             <div class="w-full h-2/6">
-                <canvas id="zoomCanva" class="m-auto"/>
+                <canvas id="zoomCanva" class="m-auto border-2 border-black rounded-md"/>
             </div>
         </div>
     </div>
@@ -104,16 +106,16 @@ function drawOverlay() {
     for (let i = 0; i<MAP_BASE.length; i++) {
         for (let j = 0; j<MAP_BASE[0].length; j++) {
             if(!(i==userXPixel && j== userYPixel)){
-                drawPixel(i,j,"#0a0a0a")
+                drawPixel(i,j,"#090909e0")
             }
         }
     }    
 }
 
 //Draw a pixel on a coord given (x,y,clr), if changetexture is set to true, change the value on the map
-//You can change the size and the context to draw, default is flag's context
+//You can change the size and the context to draw, default is flag context
 function drawPixel(x,y,clr, changeTexture = false, size=1, ctx = context) {
-    let drawSize = (WIDTH/xPixel)*size
+    let drawSize = ~~(WIDTH/xPixel)*size
     ctx.fillStyle = clr;
     ctx.fillRect(x*drawSize,y*drawSize,drawSize,drawSize) 
     if (changeTexture) {
@@ -123,7 +125,7 @@ function drawPixel(x,y,clr, changeTexture = false, size=1, ctx = context) {
 
 //Initalising the flag canvas
 function initCanvas() {
-    WIDTH  = container.clientWidth
+    WIDTH  = ~~(~~(container.clientWidth/xPixel)*xPixel)
     HEIGHT = ~~(WIDTH/2)
     canvas.height = HEIGHT
     canvas.width = WIDTH
@@ -204,7 +206,7 @@ export default {
     components: {ColorPicker, ColorPanel},
     data() {
         return {
-            color: 'ffffff',
+            color: '3f51b5',
             x: ~~(Math.random()*200),
             y: ~~(Math.random()*100)
         }
