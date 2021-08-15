@@ -15,12 +15,12 @@
     "core-js": "^3.9.1",
     "dat-gui": "^0.5.0",
     "nuxt": "^2.15.3",
-    "one-colorpicker": "^1.0.12",
     "stats-js": "^1.0.1",
     "three": "^0.131.3"
   },
   "devDependencies": {
     "@nuxtjs/tailwindcss": "^4.0.1",
+    "@nuxtjs/vuetify": "^1.12.1",
     "@vue/cli-plugin-eslint": "~4.5.0",
     "@vue/eslint-config-prettier": "^6.0.0",
     "eslint": "^6.7.2",

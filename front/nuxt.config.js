@@ -33,6 +33,7 @@ export default {
   // Modules for dev and build (recommended): https://go.nuxtjs.dev/config-modules
   buildModules: [
     // https://go.nuxtjs.dev/tailwindcss
+    "@nuxtjs/vuetify",
     "@nuxtjs/tailwindcss",
   ],
 
@@ -47,4 +48,10 @@ export default {
 
   // Build Configuration: https://go.nuxtjs.dev/config-build
   build: {},
+
+  // Other Configs
+
+  vuetify: {
+    treeShake: true
+  }
 };

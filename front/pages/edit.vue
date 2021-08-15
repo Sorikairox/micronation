@@ -1,34 +1,42 @@
 <template>
-<div class="w-screen h-screen bg-grey-light">
-    <div class="flex flex-row justify-between h-full pt-24">
-        <div id="PixelChoice" class="flex flex-col justify-center w-4/6 mx-4 bg-white rounded-lg h-5/6">
-            <canvas id="flagCanva" class="mx-auto border-2 border-black rounded-md"/>
-        </div>
-        <div class="flex flex-col items-center w-2/6 px-4 py-1 mx-4 mb-auto bg-white rounded-lg h-5/6">
-            <div class="flex flex-row justify-between w-full border-b-2 border-grey-base h-4/6 mb-9">
-                <div class="flex flex-col items-center justify-around w-1/2">
-                    <p>Votre pixel {{x}}:{{y}}</p>
-                    <button v-on:click="Finish()" class="px-4 py-2 text-gray-100 bg-blue-600 rounded-lg">
-                        Editer le drapeau
-                    </button>
-                    <button v-on:click="Overlay()" class="px-4 py-2 text-gray-100 bg-blue-600 rounded-lg">
-                        Voir mon pixel
-                    </button>
+    <v-app>
+        <div class="w-screen h-screen bg-grey-light">
+            <div class="flex flex-row justify-between h-full pt-24">
+                <div id="flagContainer" class="flex flex-col justify-center w-4/6 mx-4 bg-white rounded-lg h-5/6">
+                    <canvas id="flagCanva" class="mx-auto border-2 border-black rounded-md"/>
                 </div>
-                <div class="w-1/2 h-full">
-                    <color-panel v-model="color" :position="{left: '40px', top: '40px'}" @change="change" class="inset-0"/>
+                <div class="flex flex-col items-center w-2/6 px-4 py-1 mx-4 mb-auto bg-white rounded-lg h-5/6">
+                    <div class="flex flex-row justify-between w-full border-b-2 border-grey-base h-4/6 mb-9">
+                        <div class="flex flex-col items-center justify-around w-1/2">
+                            <p>Votre pixel {{x}}:{{y}}</p>
+                            <button v-on:click="Finish()" class="px-4 py-2 text-gray-100 bg-blue-600 rounded-lg">
+                                Editer le drapeau
+                            </button>
+                            <button v-on:click="Overlay()" class="px-4 py-2 text-gray-100 bg-blue-600 rounded-lg">
+                                Voir mon pixel
+                            </button>
+                        </div>
+                        <div class="w-1/2">
+                            <v-color-picker
+                                v-model="color"
+                                class="ma-2"
+                                :swatches="swatches"
+                                show-swatches
+                                :elevation="5"
+                                @update:color="change()"
+                            ></v-color-picker>
+                        </div>
+                    </div>
+                    <div id="zoomContainer" class="w-full h-2/6">
+                        <canvas id="zoomCanva" class="m-auto border-2 border-black rounded-md"/>
+                    </div>
                 </div>
             </div>
-            <div class="w-full h-2/6">
-                <canvas id="zoomCanva" class="m-auto border-2 border-black rounded-md"/>
-            </div>
         </div>
-    </div>
-</div>
+    </v-app>
 </template>
 
 <script>
-import {ColorPicker, ColorPanel} from 'one-colorpicker'
 import * as THREE from 'three';
 
 //Initialising all the var
@@ -41,12 +49,13 @@ const mouse = new THREE.Vector2();
 const MAP_BASE = new Array(xPixel);
 
 //element var
-let container, WIDTH, HEIGHT
-let BoundingBox
 
 //Canvas var
+let container, WIDTH, HEIGHT
 let canvas, context
+let zoomContainer
 let zoomCanvas, zoomContext
+let BoundingBox
 
 //Color from the colorPicker
 let color = '#ff0000'
@@ -125,23 +134,37 @@ function drawPixel(x,y,clr, changeTexture = false, size=1, ctx = context) {
 
 //Initalising the flag canvas
 function initCanvas() {
-    WIDTH  = ~~(~~(container.clientWidth/xPixel)*xPixel)
-    HEIGHT = ~~(WIDTH/2)
+    container = document.getElementById("flagContainer")
+    canvas = document.getElementById('flagCanva')
+    
+    if(container.clientHeight < container.clientWidth/2) {
+        HEIGHT = ~~(~~(container.clientHeight/yPixel)*yPixel)
+        WIDTH = HEIGHT*2
+    } else {
+        WIDTH  = ~~(~~(container.clientWidth/xPixel)*xPixel)
+        HEIGHT = ~~(WIDTH/2)    
+    }
     canvas.height = HEIGHT
     canvas.width = WIDTH
     BoundingBox = canvas.getBoundingClientRect();
     context = canvas.getContext('2d');
 
-    drawGrid()
+    // drawGrid()
     drawFlag(MAP_BASE)
 }
 
 //Initalising the zoom canvas
 function initZoom() {
-    zoomCanvas = document.getElementById('zoomCanva'),
+    zoomContainer = document.getElementById('zoomContainer')
+    zoomCanvas = document.getElementById('zoomCanva')
+    if(zoomContainer.clientHeight < zoomContainer.clientWidth/2) {
+        zoomCanvas.width = 0.9*zoomContainer.clientHeight*2
+        zoomCanvas.height = 0.9*zoomContainer.clientHeight
+    } else {
+        zoomCanvas.width = 0.9*zoomContainer.clientWidth
+        zoomCanvas.height = ~~(0.9*zoomContainer.clientWidth/2)
+    }
     zoomContext = zoomCanvas.getContext('2d');
-    zoomCanvas.width = ~~(WIDTH/3)
-    zoomCanvas.height = ~~(WIDTH/6)
     Xoffset = zoomCanvas.width/(2*zoom)
     Yoffset = zoomCanvas.height/(2*zoom)
 
@@ -158,9 +181,6 @@ function drawZoom(x = userXPixel*WIDTH/xPixel, y = userYPixel*HEIGHT/yPixel) {
 
 //Initalising the variables to their value
 function init() {
-    container = document.getElementById("PixelChoice")
-    canvas = document.getElementById('flagCanva'),
-    
     initCanvas()
     initZoom()
 
@@ -193,6 +213,8 @@ function onWindowResize() {
 //Draw a pixel on the pointer's coords
 function onPointerDown( event ) {
     drawPixel(~~((mouse.x+1)*xPixel/2),~~((-mouse.y+1)*yPixel/2), color, true)
+    drawZoom(~~((mouse.x+1)*WIDTH/2),~~((-mouse.y+1)*HEIGHT/2))
+
 }
 
 function onPointerMove(e) {
@@ -203,17 +225,26 @@ function onPointerMove(e) {
 
 export default {
     name: "edit",
-    components: {ColorPicker, ColorPanel},
     data() {
         return {
-            color: '3f51b5',
+            color: '0000ff',
             x: ~~(Math.random()*200),
-            y: ~~(Math.random()*100)
+            y: ~~(Math.random()*100),
+            isMounted: false,
+            swatches: [
+                ['#FF0000', '#AA0000', '#550000'],
+                ['#FFFF00', '#AAAA00', '#555500'],
+                ['#00FF00', '#00AA00', '#005500'],
+                ['#00FFFF', '#00AAAA', '#005555'],
+                ['#0000FF', '#0000AA', '#000055'],
+            ]
         }
     },
     methods: {
         change() {
-            changeColor(this.color)
+            if (this.isMounted) {
+                changeColor(this.color)
+            }
         },
         Finish() {
             $nuxt.$emit('newTexture', getCanvas())
@@ -226,6 +257,7 @@ export default {
         }
     },
     mounted() {
+        this.isMounted = true
         setUserPixel(this.x,this.y)
         init()
     }
