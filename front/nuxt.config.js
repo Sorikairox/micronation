@@ -26,8 +26,7 @@ export default {
   components: [
     "~/components/atoms",
     "~/components/molecules",
-    // "~/components/atoms/icons/AppHomeIcon.vue",
-    "~/components/organisms"
+    "~/components/organisms",
   ],
 
   // Modules for dev and build (recommended): https://go.nuxtjs.dev/config-modules
@@ -47,11 +46,26 @@ export default {
   axios: {},
 
   // Build Configuration: https://go.nuxtjs.dev/config-build
-  build: {},
+  build: {
+    postcss: {
+      // Add plugin names as key and arguments as value
+      // Install them before as dependencies with npm or yarn
+      plugins: {
+        // Disable a plugin by passing false as value
+        "postcss-import": {},
+      },
+      preset: {
+        // Change the postcss-preset-env settings
+        autoprefixer: {
+          grid: true,
+        },
+      },
+    },
+  },
 
   // Other Configs
 
   vuetify: {
-    treeShake: true
-  }
+    treeShake: true,
+  },
 };
