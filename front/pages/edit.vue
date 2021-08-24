@@ -15,9 +15,9 @@
           class="flex flex-col items-center px-4 py-1 mx-4 mb-auto bg-white rounded-lg"
         >
           <div
-            class="flex items-center w-full border-b-2 justify-evenly border-grey-base h-4/6 mb-9"
+            class="flex items-center w-full h-full pb-4 mb-4 border-b-2 justify-evenly border-grey-base"
           >
-            <div class="flex flex-row items-center justify-around w-full">
+            <div class="flex flex-col justify-around h-96">
               <AppButton
               size="medium"
                 v-on:click="Overlay()"
@@ -25,6 +25,22 @@
                 class="bg-primary-dark"
               >
                 Votre pixel: {{ x }}:{{ y }}
+              </AppButton>
+              <AppButton
+              size="medium"
+                v-on:click="Refresh()"
+                variant="contained"
+                class="bg-primary-dark"
+              >
+                Actualiser map
+              </AppButton>
+              <AppButton
+              size="medium"
+                v-on:click="Refresh(true)"
+                variant="contained"
+                class="bg-primary-dark"
+              >
+                Actualiser size
               </AppButton>
               <AppButton
               size="medium"
@@ -60,16 +76,26 @@
 <script>
 import * as THREE from "three";
 
+class Pixel {
+    constructor(x,y,color) {
+        this.x = x
+        this.y = y
+        this.color = color
+    }
+
+    draw() {
+        drawPixel(this.x, this.y, this.color, true)
+    }
+}
+
 //Initialising all the var
 const ratio = 2 / 1;
-const xPixel = 200;
-const yPixel = ~~(xPixel / ratio);
+const TEST = 200
+let xPixel = TEST;
+let yPixel = ~~(xPixel / ratio);
+let MAP_BASE = new Array(xPixel);
+
 const mouse = new THREE.Vector2();
-
-//The initial map
-const MAP_BASE = new Array(xPixel);
-
-//element var
 
 //Canvas var
 let container, WIDTH, HEIGHT;
@@ -91,22 +117,22 @@ let Xoffset,
   zoom = 2;
 
 //Initalising the MAP
-for (let i = 0; i < MAP_BASE.length; i++) {
-  MAP_BASE[i] = new Array(yPixel);
-}
+// for (let i = 0; i < MAP_BASE.length; i++) {
+//   MAP_BASE[i] = new Array(yPixel);
+// }
 
-//Seting the color (here is a french flag)
-for (let i = 0; i < MAP_BASE.length; i++) {
-  for (let j = 0; j < MAP_BASE[0].length; j++) {
-    if (i < MAP_BASE.length / 3) {
-      MAP_BASE[i][j] = "#0000ff";
-    } else if (i < MAP_BASE.length / 1.5) {
-      MAP_BASE[i][j] = "#00ff00";
-    } else {
-      MAP_BASE[i][j] = "#ff0000";
-    }
-  }
-}
+// //Seting the color (here is a french flag)
+// for (let i = 0; i < MAP_BASE.length; i++) {
+//   for (let j = 0; j < MAP_BASE[0].length; j++) {
+//     if (i < MAP_BASE.length / 3) {
+//       MAP_BASE[i][j] = "#0000ff";
+//     } else if (i < MAP_BASE.length / 1.5) {
+//       MAP_BASE[i][j] = "#00ff00";
+//     } else {
+//       MAP_BASE[i][j] = "#ff0000";
+//     }
+//   }
+// }
 
 //Draw EVERY PIXEL of the map given
 function drawFlag(MAP) {
@@ -146,9 +172,9 @@ function drawOverlay() {
 //Draw a pixel on a coord given (x,y,clr), if changetexture is set to true, change the value on the map
 //You can change the size and the context to draw, default is flag context
 function drawPixel(x, y, clr, changeTexture = false, size = 1, ctx = context) {
-  let drawSize = ~~(WIDTH / xPixel) * size;
+  let drawSize = (WIDTH / xPixel) * size;
   ctx.fillStyle = clr;
-  ctx.fillRect(x * drawSize, y * drawSize, drawSize, drawSize);
+  ctx.fillRect(x * drawSize, y * drawSize, drawSize+1, drawSize+1);
   if (changeTexture) {
     MAP_BASE[x][y] = clr;
   }
@@ -159,13 +185,13 @@ function initCanvas() {
   container = document.getElementById("flagContainer");
   canvas = document.getElementById("flagCanva");
 
-  if (container.clientHeight < container.clientWidth / 2) {
-    HEIGHT = ~~(~~(container.clientHeight / yPixel) * yPixel);
-    WIDTH = HEIGHT * 2;
-  } else {
-    WIDTH = ~~(~~(container.clientWidth / xPixel) * xPixel);
+    WIDTH = container.clientWidth * 0.95;
     HEIGHT = ~~(WIDTH / 2);
-  }
+    if(HEIGHT+8 > container.clientHeight) {
+        HEIGHT = container.clientHeight*0.95
+        WIDTH = HEIGHT*2
+    }
+    
   canvas.height = HEIGHT;
   canvas.width = WIDTH;
   BoundingBox = canvas.getBoundingClientRect();
@@ -177,20 +203,17 @@ function initCanvas() {
 
 //Initalising the zoom canvas
 function initZoom() {
-  zoomContainer = document.getElementById("zoomContainer");
-  zoomCanvas = document.getElementById("zoomCanva");
-  if (zoomContainer.clientHeight < zoomContainer.clientWidth / 2) {
-    zoomCanvas.width = 0.9 * zoomContainer.clientHeight * 2;
-    zoomCanvas.height = 0.9 * zoomContainer.clientHeight;
-  } else {
-    zoomCanvas.width = 0.9 * zoomContainer.clientWidth;
-    zoomCanvas.height = ~~((0.9 * zoomContainer.clientWidth) / 2);
-  }
-  zoomContext = zoomCanvas.getContext("2d");
-  Xoffset = zoomCanvas.width / (2 * zoom);
-  Yoffset = zoomCanvas.height / (2 * zoom);
+    zoomContainer = document.getElementById("zoomContainer");
+    zoomCanvas = document.getElementById("zoomCanva");
+    zoomCanvas.width = zoomContainer.clientWidth/2
+    zoomCanvas.height = zoomCanvas.width/2;
 
-  drawZoom();
+
+    zoomContext = zoomCanvas.getContext("2d");
+    Xoffset = zoomCanvas.width / (2 * zoom);
+    Yoffset = zoomCanvas.height / (2 * zoom);
+    
+    drawZoom();
 }
 
 //Draw the zoom canvas (use the flag canvas and zoom it)
@@ -225,6 +248,7 @@ function drawZoom(
 function init() {
   initCanvas();
   initZoom();
+
 
   window.addEventListener("resize", onWindowResize);
   canvas.addEventListener("pointermove", onPointerMove, false);
@@ -274,8 +298,8 @@ export default {
   data() {
     return {
       color: "0000ff",
-      x: ~~(Math.random() * 200),
-      y: ~~(Math.random() * 100),
+      x: ~~(Math.random() * xPixel),
+      y: ~~(Math.random() * yPixel),
       isMounted: false,
       swatches: [
         ["#FF0000", "#AA0000", "#550000"],
@@ -294,6 +318,7 @@ export default {
     },
     Finish() {
       $nuxt.$emit("newTexture", getCanvas());
+      this.sendPixel(this.x, this.y)
     },
     Overlay() {
       drawOverlay();
@@ -302,9 +327,85 @@ export default {
         drawZoom();
       }, 3000);
     },
+    Refresh(ack = false) {
+        console.log("REFRESH", ack)
+        console.log("Fetching the flag size")
+        
+        let newX = xPixel, newY = yPixel
+        //for test, remove thx to back end
+        if(ack) {
+            newX = ~~(TEST+Math.random()*TEST)
+            newY = ~~(newX/2)
+            console.log("New size", newX, newY)
+        }
+        
+        if(xPixel != newX || yPixel != newY) {
+            console.log("Many users, new flag, drawing...")
+            xPixel = newX
+            yPixel = newY
+            MAP_BASE = this.FetchMap()
+            initCanvas()
+            initZoom()
+        } else {
+            //Fetch only new pixels
+            this.FetchPixels().forEach(pixel => {
+                pixel.draw()
+            });     
+        }
+
+        drawZoom();
+    },
+    FetchPixels() {   
+        console.log("Fetching the new pixel")
+        const NEW_PIXEL = []
+        for (let i = 0; i < Math.random()*xPixel*yPixel/2; i++)
+        {
+            NEW_PIXEL.push(
+                new Pixel(~~(Math.random()*xPixel),~~(Math.random()*yPixel),'#ff00ff'),
+            )
+        }
+        return(NEW_PIXEL)
+    },
+    FetchMap() {
+        console.log("Fetching the whole map")
+
+        const NEW_MAP = new Array(xPixel)
+        for (let i = 0; i < NEW_MAP.length; i++) {
+            NEW_MAP[i] = new Array(yPixel);
+        }
+
+        //Seting the color (here is a french flag)
+        for (let i = 0; i < NEW_MAP.length; i++) {
+            for (let j = 0; j < NEW_MAP[0].length; j++) {
+                if(j<100) {
+                    if (i < 200/3) {
+                        NEW_MAP[i][j] = "#0000ff";
+                    } else if (i < 400/3) {
+                        NEW_MAP[i][j] = "#00ff00";
+                    } else if (i < 200) {
+                        NEW_MAP[i][j] = "#ff0000";
+                    }
+                } else {
+                    NEW_MAP[i][j] = "#ffff00";
+                }
+            }
+        }
+        return(NEW_MAP)    
+    },
+    sendPixel(x,y) {
+        //Sending the user pixel with coords, color, timestamp?, userID?
+        const UserPixel = new Pixel(x,y,MAP_BASE[x][y])
+
+        console.log("Sending: ", UserPixel)
+    },
+    FetchUserPixel() {
+        console.log("Fetching user pixel")
+    }
   },
   mounted() {
     this.isMounted = true;
+    MAP_BASE = this.FetchMap()
+    this.FetchUserPixel()
     setUserPixel(this.x, this.y);
     init();
   },
