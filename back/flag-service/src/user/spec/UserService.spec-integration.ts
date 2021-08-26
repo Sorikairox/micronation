@@ -13,6 +13,7 @@ import { EmailNotFoundError } from "../errors/EmailNotFoundError";
 import { IncorrectPasswordError } from "../errors/IncorrectPasswordError";
 import { JwtService } from "../jwt/JwtService";
 import { UserIdNotFoundError } from "../errors/UserIdNotFoundError";
+import { AuthBackend } from "../AuthBackend";
 
 describe('UserService', () => {
   let userService: UserService;
@@ -28,7 +29,7 @@ describe('UserService', () => {
           uri: process.env.DATABASE_URI,
           dbName: 'testDb',
         }),
-        UserModule,
+        UserModule.register(AuthBackend.INTERNAL),
       ],
     }).compile();
     userService = app.get(UserService);

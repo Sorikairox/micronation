@@ -38,7 +38,6 @@ describe('AuthGuard', () => {
       },
     };
     const request: any = { headers: {} };
-    if (!request.headers) request.headers = {};
     if (authenticated) request.headers.authorization = await jwtService.sign(payload, '15 days');
     return {
       getHandler(): Function {
