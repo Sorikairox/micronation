@@ -5,6 +5,7 @@ import { IncorrectPasswordError } from '../../errors/IncorrectPasswordError';
 import { NicknameAlreadyTakenError } from '../../errors/NicknameAlreadyTakenError';
 import { UserIdNotFoundError } from '../../errors/UserIdNotFoundError';
 import { UserExceptionFilter } from '../UserExceptionFilter';
+import { InvalidDirectusTokenError } from "../../errors/InvalidDirectusTokenError";
 
 describe('UserExceptionFilter', () => {
   const userExceptionFilter = new UserExceptionFilter();
@@ -13,6 +14,7 @@ describe('UserExceptionFilter', () => {
     NicknameAlreadyTakenError,
     EmailNotFoundError,
     IncorrectPasswordError,
+    InvalidDirectusTokenError,
   ]) {
     it(`transforms a ${exception} to a BadRequestException`, () => {
       expect(() => {

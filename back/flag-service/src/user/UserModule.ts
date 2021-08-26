@@ -3,8 +3,8 @@ import { UserRepository } from "./UserRepository";
 import { UserService } from "./UserService";
 import { UserController } from "./UserController";
 import { APP_GUARD } from "@nestjs/core";
-import { AuthGuard } from "./guards/AuthGuard";
 import { JwtService } from "./jwt/JwtService";
+import { FouloscopieAuthGuard } from "./guards/FouloscopieAuthGuard";
 
 @Module({
   imports: [],
@@ -14,7 +14,7 @@ import { JwtService } from "./jwt/JwtService";
     JwtService,
     {
       provide: APP_GUARD,
-      useClass: AuthGuard,
+      useClass: FouloscopieAuthGuard,
     },
     UserRepository,
   ],

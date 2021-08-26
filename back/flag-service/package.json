@@ -22,6 +22,7 @@
     "test:e2e": "dotenv -e .env.test.e2e -- jest --config test/jest-e2e.json"
   },
   "dependencies": {
+    "@directus/sdk": "^9.0.0-rc.91",
     "@nestjs/common": "^8.0.0",
     "@nestjs/config": "^1.0.0",
     "@nestjs/core": "^8.0.0",
