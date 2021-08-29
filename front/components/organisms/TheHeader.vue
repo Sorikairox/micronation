@@ -1,6 +1,6 @@
 <template>
   <div
-    class="grid items-center w-full grid-cols-2 py-2 bg-white shadow-md px-7"
+    class="flex items-center justify-between w-full py-2 bg-white shadow-md sm:grid sm:grid-cols-2 px-7"
   >
     <div class="flex flex-row items-center justify-start space-x-8">
       <AppIconHome />

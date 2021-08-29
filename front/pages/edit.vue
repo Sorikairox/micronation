@@ -1,10 +1,12 @@
 <template>
   <v-app>
     <div class="w-screen h-screen bg-grey-light">
-      <div class="grid h-full grid-rows-2 pt-24 space-y-8 lg:grid-cols-2 lg:space-x-8">
+      <div
+        class="grid h-full grid-rows-2 pt-24 space-y-8 lg:grid-cols-2 lg:space-x-8"
+      >
         <div
           id="flagContainer"
-          class="flex flex-col justify-center mx-4 bg-white rounded-lg"
+          class="flex flex-col justify-center w-3/4 mx-auto bg-white rounded-lg sm:mx-4 sm:w-full"
         >
           <canvas
             id="flagCanva"
@@ -12,14 +14,14 @@
           />
         </div>
         <div
-          class="flex flex-col items-center px-4 py-1 mx-4 mb-auto bg-white rounded-lg"
+          class="flex flex-col items-center px-4 py-1 mx-4 mb-auto bg-white rounded-lg "
         >
           <div
-            class="flex items-center w-full h-full pb-4 mb-4 border-b-2 justify-evenly border-grey-base"
+            class="flex flex-col items-center w-full h-full pb-4 mb-4 border-b-2 sm:flex-row justify-evenly border-grey-base"
           >
             <div class="flex flex-col justify-around h-96">
               <AppButton
-              size="medium"
+                size="medium"
                 v-on:click="Overlay()"
                 variant="contained"
                 class="bg-primary-dark"
@@ -27,7 +29,7 @@
                 Votre pixel: {{ x }}:{{ y }}
               </AppButton>
               <AppButton
-              size="medium"
+                size="medium"
                 v-on:click="Refresh()"
                 variant="contained"
                 class="bg-primary-dark"
@@ -35,7 +37,7 @@
                 Actualiser map
               </AppButton>
               <AppButton
-              size="medium"
+                size="medium"
                 v-on:click="Refresh(true)"
                 variant="contained"
                 class="bg-primary-dark"
@@ -43,7 +45,7 @@
                 Actualiser size
               </AppButton>
               <AppButton
-              size="medium"
+                size="medium"
                 v-on:click="Finish()"
                 variant="contained"
                 class="bg-primary-dark"
@@ -51,7 +53,7 @@
                 Valider
               </AppButton>
             </div>
-            <div class="flex flex-col items-center justify-center w-1/2">
+            <div class="flex flex-col items-center justify-center w-auto mx-auto sm:w-1/2 sm:mx-0">
               <v-color-picker
                 v-model="color"
                 :swatches="swatches"
@@ -77,20 +79,20 @@
 import * as THREE from "three";
 
 class Pixel {
-    constructor(x,y,color) {
-        this.x = x
-        this.y = y
-        this.color = color
-    }
+  constructor(x, y, color) {
+    this.x = x;
+    this.y = y;
+    this.color = color;
+  }
 
-    draw() {
-        drawPixel(this.x, this.y, this.color, true)
-    }
+  draw() {
+    drawPixel(this.x, this.y, this.color, true);
+  }
 }
 
 //Initialising all the var
 const ratio = 2 / 1;
-const TEST = 200
+const TEST = 200;
 let xPixel = TEST;
 let yPixel = ~~(xPixel / ratio);
 let MAP_BASE = new Array(xPixel);
@@ -174,7 +176,7 @@ function drawOverlay() {
 function drawPixel(x, y, clr, changeTexture = false, size = 1, ctx = context) {
   let drawSize = (WIDTH / xPixel) * size;
   ctx.fillStyle = clr;
-  ctx.fillRect(x * drawSize, y * drawSize, drawSize+1, drawSize+1);
+  ctx.fillRect(x * drawSize, y * drawSize, drawSize + 1, drawSize + 1);
   if (changeTexture) {
     MAP_BASE[x][y] = clr;
   }
@@ -185,13 +187,13 @@ function initCanvas() {
   container = document.getElementById("flagContainer");
   canvas = document.getElementById("flagCanva");
 
-    WIDTH = container.clientWidth * 0.95;
-    HEIGHT = ~~(WIDTH / 2);
-    if(HEIGHT+8 > container.clientHeight) {
-        HEIGHT = container.clientHeight*0.95
-        WIDTH = HEIGHT*2
-    }
-    
+  WIDTH = container.clientWidth * 0.95;
+  HEIGHT = ~~(WIDTH / 2);
+  if (HEIGHT + 8 > container.clientHeight) {
+    HEIGHT = container.clientHeight * 0.95;
+    WIDTH = HEIGHT * 2;
+  }
+
   canvas.height = HEIGHT;
   canvas.width = WIDTH;
   BoundingBox = canvas.getBoundingClientRect();
@@ -203,17 +205,16 @@ function initCanvas() {
 
 //Initalising the zoom canvas
 function initZoom() {
-    zoomContainer = document.getElementById("zoomContainer");
-    zoomCanvas = document.getElementById("zoomCanva");
-    zoomCanvas.width = zoomContainer.clientWidth/2
-    zoomCanvas.height = zoomCanvas.width/2;
+  zoomContainer = document.getElementById("zoomContainer");
+  zoomCanvas = document.getElementById("zoomCanva");
+  zoomCanvas.width = zoomContainer.clientWidth / 2;
+  zoomCanvas.height = zoomCanvas.width / 2;
 
+  zoomContext = zoomCanvas.getContext("2d");
+  Xoffset = zoomCanvas.width / (2 * zoom);
+  Yoffset = zoomCanvas.height / (2 * zoom);
 
-    zoomContext = zoomCanvas.getContext("2d");
-    Xoffset = zoomCanvas.width / (2 * zoom);
-    Yoffset = zoomCanvas.height / (2 * zoom);
-    
-    drawZoom();
+  drawZoom();
 }
 
 //Draw the zoom canvas (use the flag canvas and zoom it)
@@ -248,7 +249,6 @@ function drawZoom(
 function init() {
   initCanvas();
   initZoom();
-
 
   window.addEventListener("resize", onWindowResize);
   canvas.addEventListener("pointermove", onPointerMove, false);
@@ -318,7 +318,7 @@ export default {
     },
     Finish() {
       $nuxt.$emit("newTexture", getCanvas());
-      this.sendPixel(this.x, this.y)
+      this.sendPixel(this.x, this.y);
     },
     Overlay() {
       drawOverlay();
@@ -328,84 +328,88 @@ export default {
       }, 3000);
     },
     Refresh(ack = false) {
-        console.log("REFRESH", ack)
-        console.log("Fetching the flag size")
-        
-        let newX = xPixel, newY = yPixel
-        //for test, remove thx to back end
-        if(ack) {
-            newX = ~~(TEST+Math.random()*TEST)
-            newY = ~~(newX/2)
-            console.log("New size", newX, newY)
-        }
-        
-        if(xPixel != newX || yPixel != newY) {
-            console.log("Many users, new flag, drawing...")
-            xPixel = newX
-            yPixel = newY
-            MAP_BASE = this.FetchMap()
-            initCanvas()
-            initZoom()
-        } else {
-            //Fetch only new pixels
-            this.FetchPixels().forEach(pixel => {
-                pixel.draw()
-            });     
-        }
+      console.log("REFRESH", ack);
+      console.log("Fetching the flag size");
 
-        drawZoom();
+      let newX = xPixel,
+        newY = yPixel;
+      //for test, remove thx to back end
+      if (ack) {
+        newX = ~~(TEST + Math.random() * TEST);
+        newY = ~~(newX / 2);
+        console.log("New size", newX, newY);
+      }
+
+      if (xPixel != newX || yPixel != newY) {
+        console.log("Many users, new flag, drawing...");
+        xPixel = newX;
+        yPixel = newY;
+        MAP_BASE = this.FetchMap();
+        initCanvas();
+        initZoom();
+      } else {
+        //Fetch only new pixels
+        this.FetchPixels().forEach((pixel) => {
+          pixel.draw();
+        });
+      }
+
+      drawZoom();
     },
-    FetchPixels() {   
-        console.log("Fetching the new pixel")
-        const NEW_PIXEL = []
-        for (let i = 0; i < Math.random()*xPixel*yPixel/2; i++)
-        {
-            NEW_PIXEL.push(
-                new Pixel(~~(Math.random()*xPixel),~~(Math.random()*yPixel),'#ff00ff'),
-            )
-        }
-        return(NEW_PIXEL)
+    FetchPixels() {
+      console.log("Fetching the new pixel");
+      const NEW_PIXEL = [];
+      for (let i = 0; i < (Math.random() * xPixel * yPixel) / 2; i++) {
+        NEW_PIXEL.push(
+          new Pixel(
+            ~~(Math.random() * xPixel),
+            ~~(Math.random() * yPixel),
+            "#ff00ff"
+          )
+        );
+      }
+      return NEW_PIXEL;
     },
     FetchMap() {
-        console.log("Fetching the whole map")
+      console.log("Fetching the whole map");
 
-        const NEW_MAP = new Array(xPixel)
-        for (let i = 0; i < NEW_MAP.length; i++) {
-            NEW_MAP[i] = new Array(yPixel);
-        }
+      const NEW_MAP = new Array(xPixel);
+      for (let i = 0; i < NEW_MAP.length; i++) {
+        NEW_MAP[i] = new Array(yPixel);
+      }
 
-        //Seting the color (here is a french flag)
-        for (let i = 0; i < NEW_MAP.length; i++) {
-            for (let j = 0; j < NEW_MAP[0].length; j++) {
-                if(j<100) {
-                    if (i < 200/3) {
-                        NEW_MAP[i][j] = "#0000ff";
-                    } else if (i < 400/3) {
-                        NEW_MAP[i][j] = "#00ff00";
-                    } else if (i < 200) {
-                        NEW_MAP[i][j] = "#ff0000";
-                    }
-                } else {
-                    NEW_MAP[i][j] = "#ffff00";
-                }
+      //Seting the color (here is a french flag)
+      for (let i = 0; i < NEW_MAP.length; i++) {
+        for (let j = 0; j < NEW_MAP[0].length; j++) {
+          if (j < 100) {
+            if (i < 200 / 3) {
+              NEW_MAP[i][j] = "#0000ff";
+            } else if (i < 400 / 3) {
+              NEW_MAP[i][j] = "#00ff00";
+            } else if (i < 200) {
+              NEW_MAP[i][j] = "#ff0000";
             }
+          } else {
+            NEW_MAP[i][j] = "#ffff00";
+          }
         }
-        return(NEW_MAP)    
+      }
+      return NEW_MAP;
     },
-    sendPixel(x,y) {
-        //Sending the user pixel with coords, color, timestamp?, userID?
-        const UserPixel = new Pixel(x,y,MAP_BASE[x][y])
+    sendPixel(x, y) {
+      //Sending the user pixel with coords, color, timestamp?, userID?
+      const UserPixel = new Pixel(x, y, MAP_BASE[x][y]);
 
-        console.log("Sending: ", UserPixel)
+      console.log("Sending: ", UserPixel);
     },
     FetchUserPixel() {
-        console.log("Fetching user pixel")
-    }
+      console.log("Fetching user pixel");
+    },
   },
   mounted() {
     this.isMounted = true;
-    MAP_BASE = this.FetchMap()
-    this.FetchUserPixel()
+    MAP_BASE = this.FetchMap();
+    this.FetchUserPixel();
     setUserPixel(this.x, this.y);
     init();
   },

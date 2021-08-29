@@ -1,11 +1,6 @@
 <template>
   <div class="w-screen h-screen">
-    <zoid-iframe class="grid w-full h-full place-items-center bg-grey-light" />
-    <div
-      id="flag"
-      v-show="loggedIn"
-      class="absolute inset-0 z-10 w-full h-full"
-    />
+    <div id="flag" class="absolute inset-0 z-10 w-full h-full" />
   </div>
 </template>
 
@@ -24,7 +19,6 @@ let ZoidIframe = zoid.create({
   onUserToken: (userToken) => console.log("Token acquired : ", userToken),
 });
 
-// 3D Scene part
 import * as THREE from "three";
 import { OrbitControls } from "@/components/OrbitControl.js";
 
