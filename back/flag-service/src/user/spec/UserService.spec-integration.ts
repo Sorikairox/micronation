@@ -1,5 +1,5 @@
 import { DatabaseClientService } from "library/database/client/DatabaseClientService";
-import { UserService } from "../UserService";
+import { UserDataJwtPayload, UserService } from "../UserService";
 import { UserRepository } from "../UserRepository";
 import { Test, TestingModule } from "@nestjs/testing";
 import { DatabaseModule } from "library/database/DatabaseModule";
@@ -102,7 +102,7 @@ describe('UserService', () => {
       expect(response.user.email).toBe('user@example.com');
       expect(response.jwt).toBeDefined();
 
-      const payload = await jwtService.verify(response.jwt);
+      const payload = await jwtService.verify<UserDataJwtPayload>(response.jwt);
       expect(payload).toBeDefined();
       expect(payload.sub).toBe(response.user._id.toString());
       expect(payload.userData).toStrictEqual({

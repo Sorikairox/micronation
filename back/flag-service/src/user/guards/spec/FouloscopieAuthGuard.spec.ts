@@ -2,7 +2,7 @@ import { FouloscopieAuthGuard } from "../FouloscopieAuthGuard";
 import { ExecutionContext } from "@nestjs/common";
 import { InvalidDirectusTokenError } from "../../errors/InvalidDirectusTokenError";
 import * as DirectusModule from "@directus/sdk";
-import { AuthToken, Directus } from "@directus/sdk";
+import { AuthToken, Directus, PartialItem, QueryOne, TypeOf, UserItem } from "@directus/sdk";
 import { Reflector } from "@nestjs/core";
 import { HttpArgumentsHost } from "@nestjs/common/interfaces";
 import { Public } from "../../decorators/PublicDecorator";
@@ -12,6 +12,7 @@ jest.mock('@directus/sdk')
 
 const VALID_DIRECTUS_TOKEN = 'valid token';
 const INVALID_DIRECTUS_TOKEN = 'invalid token';
+const USER_ID_SAMPLE = 'a user id';
 
 describe('FouloscopieAuthGuard', () => {
   const reflector = new Reflector();
@@ -48,15 +49,40 @@ describe('FouloscopieAuthGuard', () => {
     } as ExecutionContext;
   }
 
-  function testDirectusStaticAuth(handler: Function, token: string | undefined, allows: boolean, shouldCallDirectusApi: boolean) {
+  function testDirectusStaticAuth(handler: Function, token: string | undefined, allows: boolean, shouldCallDirectusApi: boolean, shouldPopulateRequestFields: boolean) {
+    function doesNotPopulateFields(context: ExecutionContext) {
+      it('does not add userId field to request', async () => {
+        const userId = context.switchToHttp().getRequest().userId;
+        expect(userId).not.toBeDefined();
+      });
+    }
+
+    function populatesFields(context: ExecutionContext) {
+      it('adds userId field to request', async () => {
+        const userId = context.switchToHttp().getRequest().userId;
+        expect(userId).toBeDefined();
+        expect(userId).toBe(USER_ID_SAMPLE);
+      });
+    }
+
+    const mockedContext = mockContext(handler, token);
+
     const directusConstructorSpy = jest.spyOn(DirectusModule, 'Directus');
     beforeAll(() => {
       directusConstructorSpy.mockImplementation(() => ({
         auth: {
           async static(token: AuthToken) {
             return token === VALID_DIRECTUS_TOKEN;
-          }
-        }
+          },
+        },
+        users: {
+          me: {
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            async read(query?: QueryOne<UserItem<TypeOf<any, "directus_users">>>): Promise<PartialItem<UserItem<TypeOf<any, "directus_users">>>> {
+              return { id: USER_ID_SAMPLE };
+            },
+          },
+        },
       } as Directus<any>));
     });
 
@@ -66,17 +92,17 @@ describe('FouloscopieAuthGuard', () => {
 
     if (allows) {
       test('returns true', async () => {
-        await expect(fouloscopieAuthGuard.canActivate(mockContext(handler, token)))
+        await expect(fouloscopieAuthGuard.canActivate(mockedContext))
           .resolves.toBe(true);
       });
     } else if (token === undefined) {
       test('throws a MissingDirectusTokenError', async () => {
-        await expect(fouloscopieAuthGuard.canActivate(mockContext(handler, token)))
+        await expect(fouloscopieAuthGuard.canActivate(mockedContext))
           .rejects.toThrow(MissingDirectusTokenError);
       });
     } else {
       test('throws an InvalidDirectusTokenError', async () => {
-        await expect(fouloscopieAuthGuard.canActivate(mockContext(handler, token)))
+        await expect(fouloscopieAuthGuard.canActivate(mockedContext))
           .rejects.toThrow(InvalidDirectusTokenError);
       });
     }
@@ -91,29 +117,35 @@ describe('FouloscopieAuthGuard', () => {
         expect(directusConstructorSpy).not.toBeCalled();
       });
     }
+
+    if (shouldPopulateRequestFields) {
+      populatesFields(mockedContext);
+    } else {
+      doesNotPopulateFields(mockedContext);
+    }
   }
 
   describe('Default route (protected)', () => {
     describe('Allows access for valid Directus static token', () => {
-      testDirectusStaticAuth(Test.defaultRoute, VALID_DIRECTUS_TOKEN, true, true);
+      testDirectusStaticAuth(Test.defaultRoute, VALID_DIRECTUS_TOKEN, true, true, true);
     });
     describe('Denies access for invalid Directus static token', () => {
-      testDirectusStaticAuth(Test.defaultRoute, INVALID_DIRECTUS_TOKEN, false, true);
+      testDirectusStaticAuth(Test.defaultRoute, INVALID_DIRECTUS_TOKEN, false, true, false);
     });
     describe('Denies access without Directus static token', () => {
-      testDirectusStaticAuth(Test.defaultRoute, undefined, false, false);
+      testDirectusStaticAuth(Test.defaultRoute, undefined, false, false, false);
     });
   });
 
   describe('Public route (unprotected)', () => {
     describe('Allows access for valid Directus static token', () => {
-      testDirectusStaticAuth(Test.publicRoute, VALID_DIRECTUS_TOKEN, true, false);
+      testDirectusStaticAuth(Test.publicRoute, VALID_DIRECTUS_TOKEN, true, false, false);
     });
     describe('Allows access for invalid Directus static token', () => {
-      testDirectusStaticAuth(Test.publicRoute, INVALID_DIRECTUS_TOKEN, true, false);
+      testDirectusStaticAuth(Test.publicRoute, INVALID_DIRECTUS_TOKEN, true, false, false);
     });
     describe('Allows access without a Directus static token', () => {
-      testDirectusStaticAuth(Test.publicRoute, undefined, true, false);
+      testDirectusStaticAuth(Test.publicRoute, undefined, true, false, false);
     });
   });
 });

@@ -46,7 +46,7 @@ export class UserController {
     if (newPasswordConfirmation !== newPassword) {
       throw new BadRequestException('newPasswordConfirmation', 'New password confirmation doesn\'t match.');
     }
-    await this.userService.changePassword(request.user._id, currentPassword, newPassword);
+    await this.userService.changePassword(request.userId, currentPassword, newPassword);
     return { success: true };
   }
 
@@ -55,7 +55,7 @@ export class UserController {
     @Req() request: Request,
     @Body() { password, newNickname }: ChangeNicknameDto,
   ): Promise<{ nickname: string }> {
-    const updatedUser = await this.userService.changeNickname(request.user._id, password, newNickname);
+    const updatedUser = await this.userService.changeNickname(request.userId, password, newNickname);
     return { nickname: updatedUser.nickname };
   }
 }

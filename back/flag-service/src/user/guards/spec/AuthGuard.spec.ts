@@ -5,6 +5,8 @@ import { ExecutionContext, ForbiddenException } from "@nestjs/common";
 import { HttpArgumentsHost } from "@nestjs/common/interfaces";
 import { JwtService } from "../../jwt/JwtService";
 import { config } from 'dotenv';
+import { UserDataJwtPayload } from "../../UserService";
+import { JwtPayload } from "jsonwebtoken";
 
 config();
 
@@ -28,13 +30,13 @@ describe('AuthGuard', () => {
     handler: Function,
     authenticated: boolean,
   ): Promise<ExecutionContext> {
-    const payload = {
+    const payload: JwtPayload | UserDataJwtPayload = {
       sub: '999', // user id
       userData: {
-        id: 999,
+        _id: '999',
         email: 'user@example.com',
         nickname: 'jane',
-        createdAt: new Date(),
+        createdAt: new Date().toString(),
       },
     };
     const request: any = { headers: {} };
@@ -90,13 +92,13 @@ describe('AuthGuard', () => {
 
   function testRequestFieldsArePopulated(handler: Function, shouldPopulateFieldsWhenAuthenticated: boolean) {
     function doesNotPopulateFields(context: () => ExecutionContext) {
-      it('clears jwtPayload field from request', async () => {
+      it('does not add jwtPayload field to request', async () => {
         const jwtPayload = context().switchToHttp().getRequest().jwtPayload;
         expect(jwtPayload).not.toBeDefined();
       });
-      it('clears user field from request', async () => {
-        const user = context().switchToHttp().getRequest().user;
-        expect(user).not.toBeDefined();
+      it('does not add userId field to request', async () => {
+        const userId = context().switchToHttp().getRequest().userId;
+        expect(userId).not.toBeDefined();
       });
     }
 
@@ -106,10 +108,9 @@ describe('AuthGuard', () => {
         expect(jwtPayload).toBeDefined();
         expect(jwtPayload).toHaveProperty('jti');
       });
-      it('adds user field to request', async () => {
-        const user = context().switchToHttp().getRequest().user;
-        expect(user).toBeDefined();
-        expect(user).toHaveProperty('id');
+      it('adds userId field to request', async () => {
+        const userId = context().switchToHttp().getRequest().userId;
+        expect(userId).toBeDefined();
       });
     }
 

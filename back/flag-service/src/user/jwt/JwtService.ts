@@ -10,7 +10,7 @@ export class JwtService {
     }
   }
 
-  public async sign(payload: any, expiresIn: string): Promise<string> {
+  public async sign<PayloadFormat extends PayloadFormatBaseType>(payload: ExtendedJwtPayload<PayloadFormat>, expiresIn: string): Promise<string> {
     return await new Promise<string>((resolve, reject) => {
       jwt.sign(payload, this.secret, {
         jwtid: v4(),
@@ -23,12 +23,12 @@ export class JwtService {
     });
   }
 
-  public async verify(token: string): Promise<JwtPayload> {
-    return await new Promise<JwtPayload>((resolve, reject) => {
+  public async verify<PayloadFormat extends PayloadFormatBaseType>(token: string): Promise<ExtendedJwtPayload<PayloadFormat>> {
+    return await new Promise<ExtendedJwtPayload<PayloadFormat>>((resolve, reject) => {
       jwt.verify(token, this.secret, (err, decodedPayload) => {
         if (err) return reject(err);
 
-        resolve(decodedPayload);
+        resolve(decodedPayload as ExtendedJwtPayload<PayloadFormat>);
       });
     });
   }
@@ -38,3 +38,7 @@ export class JwtService {
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/ban-types
+export type PayloadFormatBaseType = string | object | Buffer;
+
+export type ExtendedJwtPayload<T> = JwtPayload & T;

@@ -2,7 +2,7 @@ import { CanActivate, ExecutionContext, ForbiddenException, Injectable } from '@
 import { Reflector } from "@nestjs/core";
 import { JwtPayload } from 'jsonwebtoken';
 import { JwtService } from "../jwt/JwtService";
-import { User } from "../User";
+import { UserDataJwtPayload } from "../UserService";
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -21,10 +21,10 @@ export class AuthGuard implements CanActivate {
     const publicMetadata = this.reflector.get('public', context.getHandler());
 
     if (jwt) {
-      const payload = await this.jwtService.verify(jwt);
+      const payload = await this.jwtService.verify<UserDataJwtPayload>(jwt);
 
       request.jwtPayload = payload;
-      request.user = payload.userData;
+      request.userId = payload.userData._id;
       return true;
     } else if (publicMetadata) {
       return true;
@@ -37,6 +37,6 @@ export class AuthGuard implements CanActivate {
 declare module "@nestjs/common" {
   interface Request {
     jwtPayload: JwtPayload;
-    user: User;
+    userId: string;
   }
 }

@@ -48,7 +48,7 @@ export class UserService {
 
     return {
       user: user,
-      jwt: await this.jwtService.sign({
+      jwt: await this.jwtService.sign<UserDataJwtPayload>({
         sub: user._id,
         userData: {
           _id: user._id,
@@ -97,3 +97,12 @@ export class UserService {
     );
   }
 }
+
+export type UserDataJwtPayload = {
+  userData: {
+    _id: string,
+    email: string,
+    nickname: string,
+    createdAt: string,
+  },
+};

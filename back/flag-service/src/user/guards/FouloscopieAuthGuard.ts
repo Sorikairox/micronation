@@ -22,10 +22,15 @@ export class FouloscopieAuthGuard implements CanActivate {
       return true;
     } else if (!token) {
       throw new MissingDirectusTokenError();
-    } else if (!await new Directus(process.env.DIRECTUS_URL).auth.static(token)) {
-      throw new InvalidDirectusTokenError();
-    }
+    } else {
+      const directus = new Directus(process.env.DIRECTUS_URL);
+      if (!await directus.auth.static(token)) {
+        throw new InvalidDirectusTokenError();
+      }
 
-    return true;
+      request.userId = (await directus.users.me.read({ fields: 'id' })).id;
+
+      return true;
+    }
   }
 }

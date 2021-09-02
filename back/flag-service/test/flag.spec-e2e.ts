@@ -2,7 +2,7 @@ import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { DatabaseClientService } from 'library/database/client/DatabaseClientService';
 import * as DirectusModule from "@directus/sdk";
-import { AuthToken, Directus } from "@directus/sdk";
+import { AuthToken, Directus, PartialItem, QueryOne, TypeOf, UserItem } from "@directus/sdk";
 import { bootstrap } from "../src/bootstrap";
 import { AuthBackend } from "../src/user/AuthBackend";
 import { registerAndLogin } from "./util/registerAndLogin";
@@ -11,6 +11,7 @@ import { v4 } from "uuid";
 jest.mock('@directus/sdk')
 
 const VALID_DIRECTUS_TOKEN = 'valid token';
+const USER_ID_SAMPLE = 'a user id';
 
 describe('Flag (e2e)', () => {
   let savedEnvAuthBackend: string;
@@ -45,8 +46,16 @@ describe('Flag (e2e)', () => {
             auth: {
               async static(token: AuthToken) {
                 return token === VALID_DIRECTUS_TOKEN;
-              }
-            }
+              },
+            },
+            users: {
+              me: {
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                async read(query?: QueryOne<UserItem<TypeOf<any, "directus_users">>>): Promise<PartialItem<UserItem<TypeOf<any, "directus_users">>>> {
+                  return { id: USER_ID_SAMPLE };
+                },
+              },
+            },
           } as Directus<any>));
         } else if (authBackend === AuthBackend.INTERNAL) {
           token = await registerAndLogin(app, v4() + '@example.com', 'password123', v4());

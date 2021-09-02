@@ -63,7 +63,7 @@ describe('UserController', () => {
       changePasswordSpy = jest
         .spyOn(userService, 'changePassword')
         .mockReturnValue({ fake: true } as any);
-      res = await userController.changePassword({ user: {} } as Request, {
+      res = await userController.changePassword({ userId: '' } as Request, {
         currentPassword: 'oldpassword135',
         newPassword: 'password123',
         newPasswordConfirmation: 'password123'
@@ -84,7 +84,7 @@ describe('UserController', () => {
       changeNicknameSpy = jest
         .spyOn(userService, 'changeNickname')
         .mockReturnValue({ nickname: 'jane2' } as any);
-      res = await userController.changeNickname({ user: {} } as Request, {
+      res = await userController.changeNickname({ userId: '' } as Request, {
         password: 'password123',
         newNickname: 'jane2'
       });
