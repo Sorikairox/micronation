@@ -8,6 +8,7 @@ import {
   Post,
   Put
 } from '@nestjs/common';
+import { UserId } from '../user/decorators/UserIdDecorator';
 import { FlagService } from './FlagService';
 import { UserAlreadyOwnAPixelError } from "./errors/UserAlreadyOwnAPixelError";
 import { CooldownTimerHasNotEndedYetError } from "./errors/CooldownTimerHasNotEndedYetError";
@@ -18,7 +19,7 @@ export class FlagController {
 
   @Post('pixel')
   async addPixel(
-    @Body('ownerId') ownerId: string,
+    @UserId() ownerId: string,
     @Body('hexColor') hexColor: string,
   ) {
     try {
@@ -33,7 +34,7 @@ export class FlagController {
 
   @Put('pixel')
   async changePixelColor(
-    @Body('ownerId') ownerId: string,
+    @UserId() ownerId: string,
     @Body('pixelId') pixelId: string,
     @Body('hexColor') hexColor: string,
   ) {
