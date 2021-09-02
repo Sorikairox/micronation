@@ -13,7 +13,7 @@ describe('UserIdDecorator', () => {
                         }
                     } as any;
                 } } as any;
-           expect(getUserIdFromCtx(fakectx)).toEqual('fakeUserId');
+           expect(getUserIdFromCtx(null, fakectx)).toEqual('fakeUserId');
         });
    })
 });
