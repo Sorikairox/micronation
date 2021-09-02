@@ -20,6 +20,7 @@ describe('Flag (e2e)', () => {
   let createdPixel;
   let modifiedPixel;
   let token: string;
+  let userId: string;
 
   beforeAll(() => {
     savedEnvAuthBackend = process.env.AUTH_BACKEND;
@@ -42,6 +43,7 @@ describe('Flag (e2e)', () => {
 
         if (authBackend === AuthBackend.FOULOSCOPIE) {
           token = VALID_DIRECTUS_TOKEN;
+          userId = USER_ID_SAMPLE;
           jest.spyOn(DirectusModule, 'Directus').mockImplementation(() => ({
             auth: {
               async static(token: AuthToken) {
@@ -58,7 +60,9 @@ describe('Flag (e2e)', () => {
             },
           } as Directus<any>));
         } else if (authBackend === AuthBackend.INTERNAL) {
-          token = await registerAndLogin(app, v4() + '@example.com', 'password123', v4());
+          const res = await registerAndLogin(app, v4() + '@example.com', 'password123', v4());
+          token = res.jwt;
+          userId = res.user._id;
         }
       });
 
@@ -71,7 +75,6 @@ describe('Flag (e2e)', () => {
           .post('/pixel')
           .set('authorization', token)
           .send({
-            ownerId: 'niceownerid',
             hexColor: '#FFADAD'
           });
         expect(res.status).toEqual(201);
@@ -84,7 +87,6 @@ describe('Flag (e2e)', () => {
           .set('authorization', token)
           .send({
             pixelId: createdPixel.entityId,
-            ownerId: 'niceownerid',
             hexColor: '#DDDDDD',
           });
         expect(res.status).toEqual(200);
@@ -99,7 +101,7 @@ describe('Flag (e2e)', () => {
 
         expect(res.status).toEqual(200);
 
-        expect(firstPixel.author).toEqual('niceownerid');
+        expect(firstPixel.author).toEqual(userId);
         expect(firstPixel.hexColor).toEqual('#DDDDDD');
         expect(firstPixel.createdAt).toEqual(createdPixel.createdAt);
         expect(firstPixel.lastUpdate).toEqual(modifiedPixel.createdAt);

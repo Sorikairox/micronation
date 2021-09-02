@@ -187,7 +187,8 @@ describe('User', () => {
       let jwt: string;
 
       beforeAll(async () => {
-        jwt = await registerAndLogin(app, v4() + '@example.com', 'password123', v4());
+        const res = await registerAndLogin(app, v4() + '@example.com', 'password123', v4());
+          jwt = res.jwt;
       });
 
       it('success', async () => {
@@ -205,7 +206,8 @@ describe('User', () => {
 
       describe('failure', () => {
         beforeAll(async () => {
-          jwt = await registerAndLogin(app, v4() + '@example.com', 'password123', v4());
+          const res = await registerAndLogin(app, v4() + '@example.com', 'password123', v4());
+          jwt = res.jwt;
         });
 
         function testBadValues(name: string, currentPassword: string, newPassword: string, newPasswordConfirmation: string) {
@@ -252,7 +254,8 @@ describe('User', () => {
     describe('PUT /user/change-nickname', () => {
       let jwt: string;
       beforeAll(async () => {
-        jwt = await registerAndLogin(app, v4() + '@example.com', 'password123', v4());
+        const res = await registerAndLogin(app, v4() + '@example.com', 'password123', v4());
+          jwt = res.jwt;
       });
 
       it('success', async () => {
@@ -270,7 +273,8 @@ describe('User', () => {
 
       describe('failure', function () {
         beforeAll(async () => {
-          jwt = await registerAndLogin(app, v4() + '@example.com', 'password123', v4());
+          const res = await registerAndLogin(app, v4() + '@example.com', 'password123', v4());
+          jwt = res.jwt;
         });
 
         describe('bad field values', () => {
