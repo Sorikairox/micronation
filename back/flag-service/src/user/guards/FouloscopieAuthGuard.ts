@@ -2,6 +2,7 @@ import { CanActivate, ExecutionContext, Injectable } from "@nestjs/common";
 import { InvalidDirectusTokenError } from "../errors/InvalidDirectusTokenError";
 import { Reflector } from "@nestjs/core";
 import { Directus } from "@directus/sdk";
+import { MissingDirectusTokenError } from "../errors/MissingDirectusTokenError";
 
 @Injectable()
 export class FouloscopieAuthGuard implements CanActivate {
@@ -19,10 +20,12 @@ export class FouloscopieAuthGuard implements CanActivate {
 
     if (publicMetadata) {
       return true;
-    } else if (token && await new Directus(process.env.DIRECTUS_URL).auth.static(token)) {
-      return true;
+    } else if (!token) {
+      throw new MissingDirectusTokenError();
+    } else if (!await new Directus(process.env.DIRECTUS_URL).auth.static(token)) {
+      throw new InvalidDirectusTokenError();
     }
 
-    throw new InvalidDirectusTokenError();
+    return true;
   }
 }

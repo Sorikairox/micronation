@@ -7,7 +7,6 @@ import { bootstrap } from "../src/bootstrap";
 import { AuthBackend } from "../src/user/AuthBackend";
 import { registerAndLogin } from "./util/registerAndLogin";
 import { v4 } from "uuid";
-import { getAvailableAppPort } from "./util/getAvailableAppPort";
 
 jest.mock('@directus/sdk')
 
@@ -33,7 +32,7 @@ describe('Flag (e2e)', () => {
     describe(`Auth backend: ${authBackend}`, () => {
       beforeAll(async () => {
         process.env.AUTH_BACKEND = authBackend;
-        app = await bootstrap(getAvailableAppPort());
+        app = await bootstrap(0);
 
         const dbService = app.get<DatabaseClientService>('DATABASE_CLIENT');
         const db = dbService.getDb();

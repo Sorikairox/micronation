@@ -6,6 +6,7 @@ import { AuthToken, Directus } from "@directus/sdk";
 import { Reflector } from "@nestjs/core";
 import { HttpArgumentsHost } from "@nestjs/common/interfaces";
 import { Public } from "../../decorators/PublicDecorator";
+import { MissingDirectusTokenError } from "../../errors/MissingDirectusTokenError";
 
 jest.mock('@directus/sdk')
 
@@ -67,6 +68,11 @@ describe('FouloscopieAuthGuard', () => {
       test('returns true', async () => {
         await expect(fouloscopieAuthGuard.canActivate(mockContext(handler, token)))
           .resolves.toBe(true);
+      });
+    } else if (token === undefined) {
+      test('throws a MissingDirectusTokenError', async () => {
+        await expect(fouloscopieAuthGuard.canActivate(mockContext(handler, token)))
+          .rejects.toThrow(MissingDirectusTokenError);
       });
     } else {
       test('throws an InvalidDirectusTokenError', async () => {

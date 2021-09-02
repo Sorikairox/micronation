@@ -6,7 +6,6 @@ import { INestApplication } from "@nestjs/common";
 import { DatabaseClientService } from "library/database/client/DatabaseClientService";
 import { bootstrap } from "../src/bootstrap";
 import { AuthBackend } from "../src/user/AuthBackend";
-import { getAvailableAppPort } from "./util/getAvailableAppPort";
 
 
 describe('User', () => {
@@ -22,7 +21,7 @@ describe('User', () => {
 
   async function startTestApp(authBackend: AuthBackend) {
     process.env.AUTH_BACKEND = authBackend;
-    const app = await bootstrap(getAvailableAppPort());
+    const app = await bootstrap(0);
     const dbService = app.get<DatabaseClientService>('DATABASE_CLIENT');
     await dbService.getDb().collection('users').deleteMany({});
     return app;
