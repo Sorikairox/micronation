@@ -102,7 +102,7 @@ describe('FlagController', () => {
           expect(getFlagSpy).toBeCalledTimes(1);
         })
         it('returns getFlag return value', () => {
-          expect(res).toEqual([{ modified: true }] );
+          expect(res).toEqual([{ modified: true }]);
         })
       });
       describe('failure', () => {
@@ -138,7 +138,7 @@ describe('FlagController', () => {
           expect(getFlagAtDateSpy).toBeCalledTimes(1);
         })
         it('returns getFlagAtDate return value', () => {
-          expect(res).toEqual([{ modified: true }] );
+          expect(res).toEqual([{ modified: true }]);
         })
       });
       describe('failure', () => {
