@@ -22,7 +22,7 @@ export class PixelRepository extends DatabaseRepository<DatabaseEvent<Pixel>> {
       },
     });
     const result = await this.getCollection().aggregate(aggregation).toArray();
-    return result[0] ;
+    return result[0];
   }
 
   async getPixelsAtDate(date: Date) {
