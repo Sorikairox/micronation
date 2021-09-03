@@ -161,4 +161,22 @@ describe('FlagController', () => {
       });
     });
   });
+  describe('getUserPixel', () => {
+    describe('success', () => {
+      let getPixelSpy;
+      let res;
+      beforeAll(async () => {
+        getPixelSpy = jest
+          .spyOn(flagService, 'getOrCreateUserPixel')
+          .mockReturnValue({ pixel: true } as any);
+        res = await flagController.getUserPixel('ownerId');
+      });
+      it('call getOrCreateUserPixel from service', () => {
+        expect(getPixelSpy).toBeCalledTimes(1);
+      })
+      it('returns getOrCreateUserPixel return value', () => {
+        expect(res).toEqual({ pixel: true });
+      })
+    });
+  });
 });
