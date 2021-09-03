@@ -8,8 +8,8 @@ import {
   Post,
   Put
 } from '@nestjs/common';
-import { Public } from '../user/decorators/PublicDecorator';
-import { UserId } from '../user/decorators/UserIdDecorator';
+import { Public } from '../user/decorators/Public';
+import { UserId } from '../user/decorators/UserId';
 import { FlagService } from './FlagService';
 import { UserAlreadyOwnAPixelError } from "./errors/UserAlreadyOwnAPixelError";
 import { CooldownTimerHasNotEndedYetError } from "./errors/CooldownTimerHasNotEndedYetError";
@@ -41,9 +41,9 @@ export class FlagController {
   ) {
     try {
       const event = await this.flagService.changePixelColor(
-          ownerId,
-          pixelId,
-          hexColor,
+        ownerId,
+        pixelId,
+        hexColor,
       );
       return event;
     } catch (e) {

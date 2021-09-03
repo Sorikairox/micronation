@@ -59,8 +59,8 @@ describe('FlagController', () => {
       let res;
       beforeAll(async () => {
         changePixelColorSpy = jest
-            .spyOn(flagService, 'changePixelColor')
-            .mockReturnValue({ modified: true } as any);
+          .spyOn(flagService, 'changePixelColor')
+          .mockReturnValue({ modified: true } as any);
         res = await flagController.changePixelColor('ownerId', 'pixelId', '#DDDDDD');
       });
       it('call changePixelColor from service', () => {
@@ -75,10 +75,10 @@ describe('FlagController', () => {
       let res;
       beforeAll(async () => {
         changePixelColorSpy = jest
-            .spyOn(flagService, 'changePixelColor')
-            .mockImplementation(() => {
-              throw new CooldownTimerHasNotEndedYetError();
-            });
+          .spyOn(flagService, 'changePixelColor')
+          .mockImplementation(() => {
+            throw new CooldownTimerHasNotEndedYetError();
+          });
         res = flagController.changePixelColor('ownerId', 'pixelId', '#ffffff');
       });
       it('call changePixelColor from service', () => {
@@ -95,8 +95,8 @@ describe('FlagController', () => {
       let res;
       beforeAll(async () => {
         getFlagSpy = jest
-            .spyOn(flagService, 'getFlag')
-            .mockReturnValue([{ modified: true }] as any);
+          .spyOn(flagService, 'getFlag')
+          .mockReturnValue([{ modified: true }] as any);
         res = await flagController.getFlag();
       });
       it('call getFlag from service', () => {
@@ -111,10 +111,10 @@ describe('FlagController', () => {
       let res;
       beforeAll(async () => {
         getFlagSpy = jest
-            .spyOn(flagService, 'getFlag')
-            .mockImplementation(() => {
-              throw new Error();
-            });
+          .spyOn(flagService, 'getFlag')
+          .mockImplementation(() => {
+            throw new Error();
+          });
         res = flagController.getFlag();
       });
       it('call getFlag from service', () => {
@@ -131,8 +131,8 @@ describe('FlagController', () => {
       let res;
       beforeAll(async () => {
         getFlagAtDateSpy = jest
-            .spyOn(flagService, 'getFlagAtDate')
-            .mockReturnValue([{ modified: true }] as any);
+          .spyOn(flagService, 'getFlagAtDate')
+          .mockReturnValue([{ modified: true }] as any);
         res = await flagController.getFlagAtDate(new Date());
       });
       it('call getFlagAtDate from service', () => {
@@ -147,10 +147,10 @@ describe('FlagController', () => {
       let res;
       beforeAll(async () => {
         getFlagAtDateSpy = jest
-            .spyOn(flagService, 'getFlagAtDate')
-            .mockImplementation(() => {
-              throw new Error();
-            });
+          .spyOn(flagService, 'getFlagAtDate')
+          .mockImplementation(() => {
+            throw new Error();
+          });
         res = flagController.getFlagAtDate(new Date());
       });
       it('call getFlag from service', () => {

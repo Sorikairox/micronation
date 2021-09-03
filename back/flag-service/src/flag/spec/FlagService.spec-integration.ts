@@ -70,13 +70,13 @@ describe('FlagService', () => {
     describe('user has pixel', () => {
       it('return pixel', async () => {
         const createdPixel = await flagService.addPixel(
-            'randomId',
-            '#DDDDDD',
+          'randomId',
+          '#DDDDDD',
         );
         await flagService.changePixelColor(
-            'randomId',
-            createdPixel.entityId,
-            '#000000',
+          'randomId',
+          createdPixel.entityId,
+          '#000000',
         );
         const pixel = await flagService.getUserPixel('randomId');
         expect(pixel.author).toEqual('randomId');

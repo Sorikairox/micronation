@@ -5,7 +5,7 @@ import * as DirectusModule from "@directus/sdk";
 import { AuthToken, Directus, PartialItem, QueryOne, TypeOf, UserItem } from "@directus/sdk";
 import { Reflector } from "@nestjs/core";
 import { HttpArgumentsHost } from "@nestjs/common/interfaces";
-import { Public } from "../../decorators/PublicDecorator";
+import { Public } from "../../decorators/Public";
 import { MissingDirectusTokenError } from "../../errors/MissingDirectusTokenError";
 
 jest.mock('@directus/sdk')

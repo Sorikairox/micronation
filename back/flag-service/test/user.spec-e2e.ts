@@ -188,7 +188,7 @@ describe('User', () => {
 
       beforeAll(async () => {
         const res = await registerAndLogin(app, v4() + '@example.com', 'password123', v4());
-          jwt = res.jwt;
+        jwt = res.jwt;
       });
 
       it('success', async () => {
@@ -255,7 +255,7 @@ describe('User', () => {
       let jwt: string;
       beforeAll(async () => {
         const res = await registerAndLogin(app, v4() + '@example.com', 'password123', v4());
-          jwt = res.jwt;
+        jwt = res.jwt;
       });
 
       it('success', async () => {

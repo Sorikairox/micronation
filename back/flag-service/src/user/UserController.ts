@@ -5,7 +5,7 @@ import { LoginDto } from './dto/LoginDto';
 import { RegisterDto } from './dto/RegisterDto';
 import { UserExceptionFilter } from './filters/UserExceptionFilter';
 import { UserService } from "./UserService";
-import { Public } from "./decorators/PublicDecorator";
+import { Public } from "./decorators/Public";
 
 
 @UseFilters(UserExceptionFilter)

@@ -1,5 +1,5 @@
 import { AuthGuard } from '../AuthGuard';
-import { Public } from "../../decorators/PublicDecorator";
+import { Public } from "../../decorators/Public";
 import { Reflector } from "@nestjs/core";
 import { ExecutionContext, ForbiddenException } from "@nestjs/common";
 import { HttpArgumentsHost } from "@nestjs/common/interfaces";
