@@ -35,15 +35,15 @@ export class FlagController {
 
   @Put('pixel')
   async changePixelColor(
-    @UserId() ownerId: string,
-    @Body('pixelId') pixelId: string,
-    @Body('hexColor') hexColor: string,
+      @UserId() ownerId: string,
+      @Body('pixelId') pixelId: string,
+      @Body('hexColor') hexColor: string,
   ) {
     try {
       const event = await this.flagService.changePixelColor(
-        ownerId,
-        pixelId,
-        hexColor,
+          ownerId,
+          pixelId,
+          hexColor,
       );
       return event;
     } catch (e) {
@@ -51,6 +51,13 @@ export class FlagController {
         throw new BadRequestException();
       }
     }
+  }
+
+  @Get('pixel')
+  async getPixel(
+      @UserId() userId: string
+  ) {
+    return this.flagService.getUserPixel(userId);
   }
 
   @Get('flag')
