@@ -57,7 +57,7 @@ export class FlagController {
   async getPixel(
       @UserId() userId: string
   ) {
-    return this.flagService.getUserPixel(userId);
+    return this.flagService.getOrCreateUserPixel(userId);
   }
 
   @Get('flag')

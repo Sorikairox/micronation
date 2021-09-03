@@ -78,14 +78,14 @@ describe('FlagService', () => {
           createdPixel.entityId,
           '#000000',
         );
-        const pixel = await flagService.getUserPixel('randomId');
+        const pixel = await flagService.getOrCreateUserPixel('randomId');
         expect(pixel.author).toEqual('randomId');
         expect(pixel.hexColor).toEqual('#000000');
       });
     })
     describe('user does not have pixel', () => {
       it('create and return pixel', async () => {
-        const pixel = await flagService.getUserPixel('notOwningPixelId');
+        const pixel = await flagService.getOrCreateUserPixel('notOwningPixelId');
         expect(pixel.author).toEqual('notOwningPixelId');
         expect(pixel.hexColor).toEqual('#FFFFFF');
       });
