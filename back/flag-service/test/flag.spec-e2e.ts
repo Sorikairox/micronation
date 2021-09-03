@@ -93,6 +93,20 @@ describe('Flag (e2e)', () => {
         modifiedPixel = res.body;
       });
 
+      it('/pixel (GET)', async () => {
+        const res = await request(app.getHttpServer())
+          .get('/pixel')
+          .set('authorization', authToken);
+        const mypixel = res.body;
+
+        expect(res.status).toEqual(200);
+
+        expect(mypixel.author).toEqual(userId);
+        expect(mypixel.hexColor).toEqual('#DDDDDD');
+        expect(mypixel.createdAt).toEqual(createdPixel.createdAt);
+        expect(mypixel.lastUpdate).toEqual(modifiedPixel.createdAt);
+      });
+
       it('/flag (GET)', async () => {
         const res = await request(app.getHttpServer())
           .get('/flag')
