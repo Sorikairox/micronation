@@ -66,7 +66,7 @@ describe('FlagService', () => {
   });
 
 
-  describe('getPixel', () => {
+  describe('getOrCreateUserPixel', () => {
     describe('user has pixel', () => {
       it('return pixel', async () => {
         const createdPixel = await flagService.addPixel(
