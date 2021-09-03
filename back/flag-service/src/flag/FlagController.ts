@@ -8,6 +8,7 @@ import {
   Post,
   Put
 } from '@nestjs/common';
+import { Public } from '../user/decorators/PublicDecorator';
 import { UserId } from '../user/decorators/UserIdDecorator';
 import { FlagService } from './FlagService';
 import { UserAlreadyOwnAPixelError } from "./errors/UserAlreadyOwnAPixelError";
@@ -53,6 +54,7 @@ export class FlagController {
   }
 
   @Get('flag')
+  @Public()
   async getFlag() {
     try {
       const flag = await this.flagService.getFlag();
@@ -63,6 +65,7 @@ export class FlagController {
   }
 
   @Get('flag/:date')
+  @Public()
   async getFlagAtDate(@Param('date') requestedDate: Date) {
     try {
       const flag = await this.flagService.getFlagAtDate(requestedDate);

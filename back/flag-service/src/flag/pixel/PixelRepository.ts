@@ -14,6 +14,17 @@ export class PixelRepository extends DatabaseRepository<DatabaseEvent<Pixel>> {
     return this.getCollection().aggregate(this.getPixelAggregation()).toArray();
   }
 
+  async getUserPixel(userId: string) {
+    const aggregation = this.getPixelAggregation();
+    aggregation.unshift({
+      $match: {
+        author: userId,
+      },
+    });
+    const result = await this.getCollection().aggregate(aggregation).toArray();
+    return result[0] ;
+  }
+
   async getPixelsAtDate(date: Date) {
     const aggregation = this.getPixelAggregation();
     aggregation.unshift({

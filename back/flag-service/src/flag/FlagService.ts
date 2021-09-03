@@ -53,4 +53,15 @@ export class FlagService {
   async getFlagAtDate(date: Date): Promise<Pixel[]> {
     return this.pixelRepository.getPixelsAtDate(date);
   }
+
+  async getUserPixel(userId: string) {
+    const pixelUserAlreadyOwn = await this.pixelRepository.findOne({
+      author: userId,
+      action: 'creation',
+    });
+    if (!pixelUserAlreadyOwn) {
+      await this.addPixel(userId);
+    }
+    return this.pixelRepository.getUserPixel(userId);
+  }
 }
