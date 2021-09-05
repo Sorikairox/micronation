@@ -1,6 +1,6 @@
 <template>
   <div
-    class="grid items-center w-full grid-cols-2 py-2 bg-white shadow-md px-7"
+    class="flex items-center justify-between w-full py-2 bg-white shadow-md sm:grid sm:grid-cols-2 px-7"
   >
     <div class="flex flex-row items-center justify-start space-x-8">
       <AppIconHome />
@@ -34,7 +34,7 @@
         ><AppPersonIcon
       /></AppButton>
     </div>
-    <div v-if="loggedIn" class="flex justify-end">
+    <!-- <div v-if="loggedIn" class="flex justify-end">
       <AppButton icon="left" variant="contained" class="bg-primary-dark"
         ><template #icon><AppPersonIcon /></template
         ><span class="hidden lg:block">Pseudo</span></AppButton
@@ -59,7 +59,7 @@
         class="bg-primary-dark lg:hidden"
         ><template #icon><AppLogInIcon /></template
       ></AppButton>
-    </div>
+    </div>-->
   </div>
 </template>
 

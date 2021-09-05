@@ -1,6 +1,9 @@
 export default {
   // Disable server-side rendering: https://go.nuxtjs.dev/ssr-mode
   ssr: false,
+  server: {
+    port: 3500, // default: 3000
+  },
 
   // Global page headers: https://go.nuxtjs.dev/config-head
   head: {
@@ -61,6 +64,13 @@ export default {
         },
       },
     },
+  },
+
+  env: {
+    apiUrl: process.env.api_url || "http://localhost:3000",
+  },
+  router: {
+    // middleware: ["auth"],
   },
 
   // Other Configs
