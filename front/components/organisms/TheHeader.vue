@@ -34,7 +34,7 @@
         ><AppPersonIcon
       /></AppButton>
     </div>
-    <div v-if="loggedIn" class="flex justify-end">
+    <!-- <div v-if="loggedIn" class="flex justify-end">
       <AppButton icon="left" variant="contained" class="bg-primary-dark"
         ><template #icon><AppPersonIcon /></template
         ><span class="hidden lg:block">Pseudo</span></AppButton
@@ -59,7 +59,7 @@
         class="bg-primary-dark lg:hidden"
         ><template #icon><AppLogInIcon /></template
       ></AppButton>
-    </div>
+    </div>-->
   </div>
 </template>
 

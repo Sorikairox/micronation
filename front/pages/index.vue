@@ -1,5 +1,8 @@
 <template>
   <div class="w-screen h-screen">
+    <!-- <div class="grid w-full h-full place-items-center bg-grey-light"> -->
+    <!-- <zoid-iframe class="z-10 w-1/2 bg-white shadow-lg h-1/2" /> -->
+    <!-- </div> -->
     <div id="flag" class="absolute inset-0 z-10 w-full h-full" />
   </div>
 </template>
@@ -11,7 +14,7 @@ import * as zoid from "zoid/dist/zoid.frameworks.js";
 // Auth part
 let ZoidIframe = zoid.create({
   tag: "zoid-iframe",
-  url: "https://preprod.fouloscopie.com/experiment.js",
+  url: "https://preprod.fouloscopie.fr/experiment/1 ",
   dimensions: {
     width: "50%",
     height: "50%",

@@ -53,7 +53,9 @@
                 Valider
               </AppButton>
             </div>
-            <div class="flex flex-col items-center justify-center w-auto mx-auto sm:w-1/2 sm:mx-0">
+            <div
+              class="flex flex-col items-center justify-center w-auto mx-auto sm:w-1/2 sm:mx-0"
+            >
               <v-color-picker
                 v-model="color"
                 :swatches="swatches"
@@ -77,6 +79,7 @@
 
 <script>
 import * as THREE from "three";
+import fouloscopie from "fouloscopie";
 
 class Pixel {
   constructor(x, y, color) {
@@ -412,6 +415,32 @@ export default {
     this.FetchUserPixel();
     setUserPixel(this.x, this.y);
     init();
+  },
+  async middleware({ env, redirect }) {
+    const instance = await fouloscopie();
+    const token = instance.userToken;
+    if (!token) {
+      redirect({ name: "index" });
+    }
+    // @ts-ignore
+    instance.onUserLogin = async () => {
+      // Validate the stored token to the server
+      fetch(context.env.apiUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          token,
+        }),
+      })
+        .then((response) => response.json())
+        .then((data) => console.log(data))
+        .catch((error) => {
+          console.log(error);
+          redirect({ name: "index" });
+        });
+    };
   },
 };
 </script>
