@@ -43,9 +43,9 @@ describe('FouloscopieAuthGuard', () => {
         return {
           getRequest() {
             return request;
-          }
+          },
         } as HttpArgumentsHost;
-      }
+      },
     } as ExecutionContext;
   }
 

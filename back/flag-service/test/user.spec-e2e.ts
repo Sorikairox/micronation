@@ -102,7 +102,7 @@ describe('User', () => {
                   email: email,
                   password: password,
                   passwordConfirmation: passwordConfirmation,
-                  nickname: nickname
+                  nickname: nickname,
                 });
             });
             it('responds with a Bad Request HTTP Error', async () => {

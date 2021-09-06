@@ -49,9 +49,9 @@ describe('AuthGuard', () => {
         return {
           getRequest() {
             return request;
-          }
+          },
         } as HttpArgumentsHost;
-      }
+      },
     } as ExecutionContext;
   }
 

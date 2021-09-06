@@ -75,7 +75,7 @@ describe('Flag (e2e)', () => {
           .post('/pixel')
           .set('authorization', authToken)
           .send({
-            hexColor: '#FFADAD'
+            hexColor: '#FFADAD',
           });
         expect(res.status).toEqual(201);
         createdPixel = res.body;

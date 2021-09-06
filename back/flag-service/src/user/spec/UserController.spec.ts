@@ -28,7 +28,7 @@ describe('UserController', () => {
         email: 'user@example.com',
         password: 'password',
         passwordConfirmation: 'password',
-        nickname: 'jane'
+        nickname: 'jane',
       });
     });
     it('calls register from service', () => {
@@ -66,7 +66,7 @@ describe('UserController', () => {
       res = await userController.changePassword({ userId: '' } as Request, {
         currentPassword: 'oldpassword135',
         newPassword: 'password123',
-        newPasswordConfirmation: 'password123'
+        newPasswordConfirmation: 'password123',
       });
     });
     it('calls changePassword from service', () => {
@@ -86,7 +86,7 @@ describe('UserController', () => {
         .mockReturnValue({ nickname: 'jane2' } as any);
       res = await userController.changeNickname({ userId: '' } as Request, {
         password: 'password123',
-        newNickname: 'jane2'
+        newNickname: 'jane2',
       });
     });
     it('calls changeNickname from service', () => {

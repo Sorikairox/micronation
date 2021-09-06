@@ -6,7 +6,7 @@ import {
   InternalServerErrorException,
   Param,
   Post,
-  Put
+  Put,
 } from '@nestjs/common';
 import { Public } from '../user/decorators/Public';
 import { UserId } from '../user/decorators/UserId';
@@ -55,7 +55,7 @@ export class FlagController {
 
   @Get('pixel')
   async getUserPixel(
-      @UserId() userId: string
+      @UserId() userId: string,
   ) {
     return this.flagService.getOrCreateUserPixel(userId);
   }
