@@ -65,6 +65,33 @@ describe('FlagService', () => {
     });
   });
 
+
+  describe('getOrCreateUserPixel', () => {
+    describe('user has pixel', () => {
+      it('return pixel', async () => {
+        const createdPixel = await flagService.addPixel(
+          'randomId',
+          '#DDDDDD',
+        );
+        await flagService.changePixelColor(
+          'randomId',
+          createdPixel.entityId,
+          '#000000',
+        );
+        const pixel = await flagService.getOrCreateUserPixel('randomId');
+        expect(pixel.author).toEqual('randomId');
+        expect(pixel.hexColor).toEqual('#000000');
+      });
+    })
+    describe('user does not have pixel', () => {
+      it('create and return pixel', async () => {
+        const pixel = await flagService.getOrCreateUserPixel('notOwningPixelId');
+        expect(pixel.author).toEqual('notOwningPixelId');
+        expect(pixel.hexColor).toEqual('#FFFFFF');
+      });
+    })
+  });
+
   describe('changePixelColor', () => {
     it('add pixel event in db', async () => {
       const addedPixelEvent = await flagService.addPixel('ownerid', '#DDDDDD');

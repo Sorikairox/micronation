@@ -1,4 +1,4 @@
-import { Public } from "../PublicDecorator";
+import { Public } from "../Public";
 import { Reflector } from "@nestjs/core";
 
 describe('PublicDecorator', () => {
