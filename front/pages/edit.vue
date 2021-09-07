@@ -416,22 +416,12 @@ export default {
     setUserPixel(this.x, this.y);
     init();
   },
-  async middleware({ env, redirect }) {
+  async middleware({ redirect }) {
     const instance = await fouloscopie();
     const token = instance.userToken;
+    console.log(token)
     if (!token) {
       redirect({ name: "index" });
-    } else {
-      // Handling the thing token verification
-      fetch(context.env.apiUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          token,
-        }),
-      });
     }
   },
 };

@@ -12,6 +12,9 @@ export default {
     (async () => {
       const instance = await fouloscopie();
 
+      instance.onUserLogin = (user) => {
+        console.log(user)
+      }
       instance.onUserLogout = () => {
         this.$router.push({ name: "index" });
       };
