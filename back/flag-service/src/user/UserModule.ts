@@ -61,12 +61,12 @@ export class UserModule {
 
   private static getAuthGuardClass(authBackend: AuthBackend): Type<CanActivate> {
     switch (authBackend) {
-      case AuthBackend.FOULOSCOPIE:
-        return FouloscopieAuthGuard;
-      case AuthBackend.INTERNAL:
-        return AuthGuard;
-      default:
-        throw new Error('Invalid AUTH_BACKEND: ' + authBackend);
+    case AuthBackend.FOULOSCOPIE:
+      return FouloscopieAuthGuard;
+    case AuthBackend.INTERNAL:
+      return AuthGuard;
+    default:
+      throw new Error('Invalid AUTH_BACKEND: ' + authBackend);
     }
   }
 }

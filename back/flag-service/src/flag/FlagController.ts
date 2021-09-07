@@ -6,8 +6,10 @@ import {
   InternalServerErrorException,
   Param,
   Post,
-  Put
+  Put,
 } from '@nestjs/common';
+import { Public } from '../user/decorators/Public';
+import { UserId } from '../user/decorators/UserId';
 import { FlagService } from './FlagService';
 import { UserAlreadyOwnAPixelError } from "./errors/UserAlreadyOwnAPixelError";
 import { CooldownTimerHasNotEndedYetError } from "./errors/CooldownTimerHasNotEndedYetError";
@@ -18,7 +20,7 @@ export class FlagController {
 
   @Post('pixel')
   async addPixel(
-    @Body('ownerId') ownerId: string,
+    @UserId() ownerId: string,
     @Body('hexColor') hexColor: string,
   ) {
     try {
@@ -33,9 +35,9 @@ export class FlagController {
 
   @Put('pixel')
   async changePixelColor(
-    @Body('ownerId') ownerId: string,
-    @Body('pixelId') pixelId: string,
-    @Body('hexColor') hexColor: string,
+      @UserId() ownerId: string,
+      @Body('pixelId') pixelId: string,
+      @Body('hexColor') hexColor: string,
   ) {
     try {
       const event = await this.flagService.changePixelColor(
@@ -51,7 +53,15 @@ export class FlagController {
     }
   }
 
+  @Get('pixel')
+  async getUserPixel(
+      @UserId() userId: string,
+  ) {
+    return this.flagService.getOrCreateUserPixel(userId);
+  }
+
   @Get('flag')
+  @Public()
   async getFlag() {
     try {
       const flag = await this.flagService.getFlag();
@@ -62,6 +72,7 @@ export class FlagController {
   }
 
   @Get('flag/:date')
+  @Public()
   async getFlagAtDate(@Param('date') requestedDate: Date) {
     try {
       const flag = await this.flagService.getFlagAtDate(requestedDate);

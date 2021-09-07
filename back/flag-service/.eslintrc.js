@@ -20,13 +20,16 @@ module.exports = {
     '@typescript-eslint/explicit-module-boundary-types': 'off',
     '@typescript-eslint/no-explicit-any': 'off',
     '@typescript-eslint/no-unused-vars': 'error',
+    'indent': ['error', 2, { 'FunctionExpression': { 'body': 1, 'parameters': 2 } }],
+    'object-curly-spacing': ['error', 'always'],
     '@typescript-eslint/ban-types': [
-      "error",
+      'error',
       {
-        "types": {
-          "Function": false,
+        'types': {
+          'Function': false,
         }
       }
     ],
+    'comma-dangle': ['error', 'always-multiline'],
   },
 };

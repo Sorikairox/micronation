@@ -19,7 +19,8 @@ describe('Flag (e2e)', () => {
   let app: INestApplication;
   let createdPixel;
   let modifiedPixel;
-  let token: string;
+  let authToken: string;
+  let userId: string;
 
   beforeAll(() => {
     savedEnvAuthBackend = process.env.AUTH_BACKEND;
@@ -41,7 +42,8 @@ describe('Flag (e2e)', () => {
         await db.collection('pixel-events').deleteMany({});
 
         if (authBackend === AuthBackend.FOULOSCOPIE) {
-          token = VALID_DIRECTUS_TOKEN;
+          authToken = VALID_DIRECTUS_TOKEN;
+          userId = USER_ID_SAMPLE;
           jest.spyOn(DirectusModule, 'Directus').mockImplementation(() => ({
             auth: {
               async static(token: AuthToken) {
@@ -58,7 +60,9 @@ describe('Flag (e2e)', () => {
             },
           } as Directus<any>));
         } else if (authBackend === AuthBackend.INTERNAL) {
-          token = await registerAndLogin(app, v4() + '@example.com', 'password123', v4());
+          const res = await registerAndLogin(app, v4() + '@example.com', 'password123', v4());
+          authToken = res.jwt;
+          userId = res.user._id;
         }
       });
 
@@ -69,10 +73,9 @@ describe('Flag (e2e)', () => {
       it('/pixel (POST)', async () => {
         const res = await request(app.getHttpServer())
           .post('/pixel')
-          .set('authorization', token)
+          .set('authorization', authToken)
           .send({
-            ownerId: 'niceownerid',
-            hexColor: '#FFADAD'
+            hexColor: '#FFADAD',
           });
         expect(res.status).toEqual(201);
         createdPixel = res.body;
@@ -81,25 +84,38 @@ describe('Flag (e2e)', () => {
       it('/pixel (PUT)', async () => {
         const res = await request(app.getHttpServer())
           .put('/pixel')
-          .set('authorization', token)
+          .set('authorization', authToken)
           .send({
             pixelId: createdPixel.entityId,
-            ownerId: 'niceownerid',
             hexColor: '#DDDDDD',
           });
         expect(res.status).toEqual(200);
         modifiedPixel = res.body;
       });
 
+      it('/pixel (GET)', async () => {
+        const res = await request(app.getHttpServer())
+          .get('/pixel')
+          .set('authorization', authToken);
+        const mypixel = res.body;
+
+        expect(res.status).toEqual(200);
+
+        expect(mypixel.author).toEqual(userId);
+        expect(mypixel.hexColor).toEqual('#DDDDDD');
+        expect(mypixel.createdAt).toEqual(createdPixel.createdAt);
+        expect(mypixel.lastUpdate).toEqual(modifiedPixel.createdAt);
+      });
+
       it('/flag (GET)', async () => {
         const res = await request(app.getHttpServer())
           .get('/flag')
-          .set('authorization', token);
+          .set('authorization', authToken);
         const firstPixel = res.body[0];
 
         expect(res.status).toEqual(200);
 
-        expect(firstPixel.author).toEqual('niceownerid');
+        expect(firstPixel.author).toEqual(userId);
         expect(firstPixel.hexColor).toEqual('#DDDDDD');
         expect(firstPixel.createdAt).toEqual(createdPixel.createdAt);
         expect(firstPixel.lastUpdate).toEqual(modifiedPixel.createdAt);
