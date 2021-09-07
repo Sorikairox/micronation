@@ -421,10 +421,8 @@ export default {
     const token = instance.userToken;
     if (!token) {
       redirect({ name: "index" });
-    }
-    // @ts-ignore
-    instance.onUserLogin = async () => {
-      // Validate the stored token to the server
+    } else {
+      // Handling the thing token verification
       fetch(context.env.apiUrl, {
         method: "POST",
         headers: {
@@ -433,14 +431,8 @@ export default {
         body: JSON.stringify({
           token,
         }),
-      })
-        .then((response) => response.json())
-        .then((data) => console.log(data))
-        .catch((error) => {
-          console.log(error);
-          redirect({ name: "index" });
-        });
-    };
+      });
+    }
   },
 };
 </script>
