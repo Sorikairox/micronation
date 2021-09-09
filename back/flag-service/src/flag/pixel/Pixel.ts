@@ -5,5 +5,6 @@ export class Pixel {
     public ownerId: string,
     public hexColor: string,
     public pixId: string = v4(),
+    public indexInFlag?: number,
   ) {}
 }
