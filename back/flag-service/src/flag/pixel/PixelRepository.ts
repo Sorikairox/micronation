@@ -14,6 +14,18 @@ export class PixelRepository extends DatabaseRepository<DatabaseEvent<Pixel>> {
     return this.getCollection().aggregate(this.getPixelAggregation()).toArray();
   }
 
+  async createAndReturn(data: DatabaseEvent<Pixel>) {
+    data.createdAt = new Date();
+    if (data.action === 'creation') {
+      data.data.indexInFlag = (await this.dbClient.getDb().collection('counter').findOneAndUpdate({ name: 'pixelCounter' }, { $inc: { counter: 1 } }, {
+        upsert: true,
+        returnDocument: 'after',
+      })).value.counter;
+    }
+    const insertOperation = await this.dbClient.getDb().collection(this.collectionName).insertOne(data);
+    return insertOperation.ops[0];
+  }
+
   async getUserPixel(userId: string) {
     const aggregation = this.getPixelAggregation();
     aggregation.unshift({
@@ -79,11 +91,12 @@ export class PixelRepository extends DatabaseRepository<DatabaseEvent<Pixel>> {
           lastUpdate: 1,
           author: 1,
           createdAt: 1,
+          indexInFlag: 1,
         },
       },
       {
         $sort: {
-          createdAt: 1,
+          indexInFlag: 1,
         },
       },
     ];

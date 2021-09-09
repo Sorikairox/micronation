@@ -37,26 +37,66 @@ describe('FlagService', () => {
     await dbClientService.client.close();
   });
 
-  beforeEach(async () => {
+  afterEach(async () => {
     await dbClientService
-      .getDb()
-      .collection(pixelRepository.getCollectionName())
-      .deleteMany({});
+        .getDb()
+        .collection(pixelRepository.getCollectionName())
+        .deleteMany({});
+    await dbClientService
+        .getDb()
+        .collection('counter')
+        .deleteMany({});
   });
   describe('addPixel', () => {
     it('add creation event in db', async () => {
       const addedPixelEvent = await flagService.addPixel(
-        'secondownerid',
-        '#DDDDDD',
+          'secondownerid',
+          '#DDDDDD',
       );
       const createdPixel = await dbClientService
-        .getDb()
-        .collection(pixelRepository.getCollectionName())
-        .findOne<DatabaseEvent<Pixel>>({ _id: addedPixelEvent._id });
+          .getDb()
+          .collection(pixelRepository.getCollectionName())
+          .findOne<DatabaseEvent<Pixel>>({ _id: addedPixelEvent._id });
       expect(createdPixel).toBeDefined();
       expect(createdPixel.data.hexColor).toEqual('#DDDDDD');
+      expect(createdPixel.data.indexInFlag).toEqual(1);
       expect(createdPixel.action).toEqual('creation');
     });
+
+    it('set unique index', async () => {
+      const firstPixel = flagService.addPixel(
+          'first',
+          '#DDDDDD',
+      );
+      const secondPixel = flagService.addPixel(
+          'second',
+          '#DDDDDD',
+      );
+      const thirdPixel = flagService.addPixel(
+          'third',
+          '#DDDDDD',
+      );
+      const [first, second, third] = await Promise.all([firstPixel, secondPixel, thirdPixel]);
+      const firstCreated = await dbClientService
+          .getDb()
+          .collection(pixelRepository.getCollectionName())
+          .findOne<DatabaseEvent<Pixel>>({ _id: first._id });
+      const secondCreated = await dbClientService
+          .getDb()
+          .collection(pixelRepository.getCollectionName())
+          .findOne<DatabaseEvent<Pixel>>({ _id: second._id });
+      const thirdCreated = await dbClientService
+          .getDb()
+          .collection(pixelRepository.getCollectionName())
+          .findOne<DatabaseEvent<Pixel>>({ _id: third._id });
+      expect([1, 2, 3]).toContain(firstCreated.data.indexInFlag);
+      expect([1, 2, 3]).toContain(secondCreated.data.indexInFlag);
+      expect([1, 2, 3]).toContain(thirdCreated.data.indexInFlag);
+      expect(firstCreated.data.indexInFlag === secondCreated.data.indexInFlag ).toEqual(false);
+      expect(firstCreated.data.indexInFlag === thirdCreated.data.indexInFlag ).toEqual(false);
+      expect(thirdCreated.data.indexInFlag === secondCreated.data.indexInFlag ).toEqual(false);
+    });
+
     it('throw error if owner already own a pixel', async () => {
       await flagService.addPixel('otherownerid', '#DDDDDD');
       await expect(flagService.addPixel('otherownerid')).rejects.toThrow(
@@ -113,7 +153,7 @@ describe('FlagService', () => {
 
       expect(events.length).toEqual(2);
       expect(events[0].action).toEqual('update');
-      expect(events[0].data).toEqual({ hexColor: '#FFFFFF' });
+      expect(events[0].data.hexColor).toEqual('#FFFFFF');
     });
     it('throw error when changing color before cooldown duration ends', async () => {
       process.env.CHANGE_COOLDOWN = '5';
@@ -156,8 +196,11 @@ describe('FlagService', () => {
       const flag = await flagService.getFlag();
       expect(flag.length).toEqual(3);
       expect(flag[0].hexColor).toEqual('#DDDDDD');
+      expect(flag[0].indexInFlag).toEqual(1);
       expect(flag[1].hexColor).toEqual('#AAAAAA');
+      expect(flag[1].indexInFlag).toEqual(2);
       expect(flag[2].hexColor).toEqual('#000000');
+      expect(flag[2].indexInFlag).toEqual(3);
     });
   });
 
@@ -176,6 +219,7 @@ describe('FlagService', () => {
               ownerId: 'ownerid',
               hexColor: '#DDDDDD',
               pixId: 'c35a2bf6-18a6-4fd5-933b-f81faf1015fe',
+              indexInFlag: 1,
             },
             createdAt: set(date, {
               year: 2021,
@@ -187,7 +231,7 @@ describe('FlagService', () => {
             }),
           },
           {
-            action: 'creation',
+            action: 'update',
             author: 'ownerid',
             entityId: 'c35a2bf6-18a6-4fd5-933b-f81faf1015fe',
             data: {
@@ -205,7 +249,7 @@ describe('FlagService', () => {
             }),
           },
           {
-            action: 'creation',
+            action: 'update',
             author: 'ownerid',
             entityId: 'c35a2bf6-18a6-4fd5-933b-f81faf1015fe',
             data: {
@@ -230,6 +274,7 @@ describe('FlagService', () => {
               ownerId: 'otherownerid',
               hexColor: '#BBBBBB',
               pixId: 'c35a2bf6-18a6-4fd5-933b-f81faf1015ff',
+              indexInFlag: 2,
             },
             createdAt: set(date, {
               year: 2021,
@@ -253,7 +298,9 @@ describe('FlagService', () => {
       );
       expect(flag.length).toEqual(2);
       expect(flag[0].hexColor).toEqual('#FFFFFF');
+      expect(flag[0].indexInFlag).toEqual(1);
       expect(flag[1].hexColor).toEqual('#BBBBBB');
+      expect(flag[1].indexInFlag).toEqual(2);
     });
   });
 });
