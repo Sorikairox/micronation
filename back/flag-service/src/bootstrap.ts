@@ -12,6 +12,7 @@ export async function bootstrap(appListenPort = 3000) {
   app.enableShutdownHooks();
   app.useGlobalPipes(new ValidationPipe());
   app.useGlobalFilters(new JwtExceptionFilter());
+  app.enableCors();
   await app.listen(appListenPort);
   return app;
 }
