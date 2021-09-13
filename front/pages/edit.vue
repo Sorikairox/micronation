@@ -301,7 +301,8 @@ export default {
   data() {
     return {
       token:
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjExOTVmYzE4LTk5MDktNDIyNC1iNDg5LWUxZGM3YTBjNjM1YyIsImlhdCI6MTYzMTE0NTcwOCwiZXhwIjoxNjMxMTQ2NjA4fQ.Ow0pVEYXaRC-zpsdxtg5MfZa0JJAoODzar1orIKalM8", // dev purpose, had to dealt with preprod problems so a temporary working token was taking as base
+        // dev purpose, had to dealt with preprod problems so a temporary working token was taking as a debugging base
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjExOTVmYzE4LTk5MDktNDIyNC1iNDg5LWUxZGM3YTBjNjM1YyIsImlhdCI6MTYzMTE0NTcwOCwiZXhwIjoxNjMxMTQ2NjA4fQ.Ow0pVEYXaRC-zpsdxtg5MfZa0JJAoODzar1orIKalM8",
       pixelId: undefined,
       color: "0000ff",
       openSuccessEditModal: false,
@@ -324,7 +325,7 @@ export default {
       }
     },
     Finish() {
-      $nuxt.$emit("newTexture", getCanvas());
+      this.$nuxt.$emit("newTexture", getCanvas());
       this.sendPixel(this.x, this.y);
     },
     Overlay() {
@@ -505,6 +506,7 @@ export default {
     const token = instance.userToken;
     console.log(token);
     if (!token) {
+      // commented out for debug purpose on this page, especially on the fetchs
       // redirect({ name: "index" });
     } else {
       this.token = token;
