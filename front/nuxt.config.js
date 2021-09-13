@@ -67,7 +67,7 @@ export default {
   },
 
   env: {
-    apiUrl: process.env.api_url || "http://localhost:3000",
+    apiUrl: process.env.API_URL || "http://localhost:3000",
   },
   router: {
     // middleware: ["auth"],

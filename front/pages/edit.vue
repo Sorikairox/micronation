@@ -300,7 +300,12 @@ export default {
   name: "edit",
   data() {
     return {
+      token:
+        // dev purpose, had to dealt with preprod problems so a temporary working token was taking as a debugging base
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjExOTVmYzE4LTk5MDktNDIyNC1iNDg5LWUxZGM3YTBjNjM1YyIsImlhdCI6MTYzMTE0NTcwOCwiZXhwIjoxNjMxMTQ2NjA4fQ.Ow0pVEYXaRC-zpsdxtg5MfZa0JJAoODzar1orIKalM8",
+      pixelId: undefined,
       color: "0000ff",
+      openSuccessEditModal: false,
       x: ~~(Math.random() * xPixel),
       y: ~~(Math.random() * yPixel),
       isMounted: false,
@@ -320,7 +325,7 @@ export default {
       }
     },
     Finish() {
-      $nuxt.$emit("newTexture", getCanvas());
+      this.$nuxt.$emit("newTexture", getCanvas());
       this.sendPixel(this.x, this.y);
     },
     Overlay() {
@@ -336,12 +341,31 @@ export default {
 
       let newX = xPixel,
         newY = yPixel;
+      fetch(`${process.env.apiUrl}/flag`, {
+        method: "GET",
+        mode: "no-cors",
+        headers: {
+          "Content-Type": "application/json",
+          Authentication: this.token,
+        },
+        body: JSON.stringify({
+          pixelId: this.pixelId,
+          hexColor: this.color,
+        }),
+      })
+        .then((data) => {
+          data = JSON.stringify(data);
+          newX = data.body.length;
+          newY = data.body[0].length;
+        })
+        .catch((err) => console.log(err));
       //for test, remove thx to back end
-      if (ack) {
+      /*if (ack) {
         newX = ~~(TEST + Math.random() * TEST);
         newY = ~~(newX / 2);
         console.log("New size", newX, newY);
-      }
+      }*/
+      fetch();
 
       if (xPixel != newX || yPixel != newY) {
         console.log("Many users, new flag, drawing...");
@@ -376,6 +400,35 @@ export default {
     FetchMap() {
       console.log("Fetching the whole map");
 
+      fetch(`${process.env.apiUrl}/flag`, {
+        method: "GET",
+        mode: "no-cors",
+        headers: {
+          "Content-Type": "application/json",
+          Authentication: this.token,
+        },
+        body: JSON.stringify({
+          pixelId: this.pixelId,
+          hexColor: this.color,
+        }),
+      })
+        .then((data) => {
+          data = JSON.stringify(data);
+          xPixel = data.body.length;
+          yPixel = data.body[0].length;
+          const NEW_MAP = new Array(xPixel);
+          for (let i = 0; i < NEW_MAP.length; i++) {
+            NEW_MAP[i] = new Array(yPixel);
+          }
+
+          for (let i = 0; i < NEW_MAP.length; i++) {
+            for (let j = 0; j < NEW_MAP[0].length; j++) {
+              NEW_MAP[i][j] = data.body[i][j].hexColor;
+            }
+          }
+        })
+        .catch((error) => console.log(error));
+
       const NEW_MAP = new Array(xPixel);
       for (let i = 0; i < NEW_MAP.length; i++) {
         NEW_MAP[i] = new Array(yPixel);
@@ -384,7 +437,7 @@ export default {
       //Seting the color (here is a french flag)
       for (let i = 0; i < NEW_MAP.length; i++) {
         for (let j = 0; j < NEW_MAP[0].length; j++) {
-          if (j < 100) {
+          /*if (j < 100) {
             if (i < 200 / 3) {
               NEW_MAP[i][j] = "#0000ff";
             } else if (i < 400 / 3) {
@@ -394,7 +447,8 @@ export default {
             }
           } else {
             NEW_MAP[i][j] = "#ffff00";
-          }
+          }*/
+          NEW_MAP[i][j];
         }
       }
       return NEW_MAP;
@@ -404,9 +458,40 @@ export default {
       const UserPixel = new Pixel(x, y, MAP_BASE[x][y]);
 
       console.log("Sending: ", UserPixel);
+      fetch(`${process.env.apiUrl}/pixel`, {
+        method: "PUT",
+        mode: "no-cors",
+        headers: {
+          "Content-Type": "application/json",
+          Authentication: this.token,
+        },
+        body: JSON.stringify({
+          pixelId: this.pixelId,
+          hexColor: this.color,
+        }),
+      })
+        .then((data) => {
+          this.openSuccessEditModal = true;
+        })
+        .catch((error) => console.log(error));
     },
     FetchUserPixel() {
       console.log("Fetching user pixel");
+      fetch(`${process.env.apiUrl}/pixel`, {
+        method: "GET",
+        mode: "no-cors",
+        headers: {
+          "Content-Type": "application/json",
+          Authentication: this.token,
+        },
+      })
+        .then((data) => {
+          data = JSON.stringify(data);
+          this.x = data.body.indexInFlag / xPixel;
+          this.y = data.body.indexInFlag % yPixel;
+          this.pixelId = data.body.entityId;
+        })
+        .catch((error) => console.log(error));
     },
   },
   mounted() {
@@ -416,31 +501,16 @@ export default {
     setUserPixel(this.x, this.y);
     init();
   },
-  async middleware({ env, redirect }) {
+  async middleware({ redirect }) {
     const instance = await fouloscopie();
     const token = instance.userToken;
+    console.log(token);
     if (!token) {
-      redirect({ name: "index" });
+      // commented out for debug purpose on this page, especially on the fetchs
+      // redirect({ name: "index" });
+    } else {
+      this.token = token;
     }
-    // @ts-ignore
-    instance.onUserLogin = async () => {
-      // Validate the stored token to the server
-      fetch(context.env.apiUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          token,
-        }),
-      })
-        .then((response) => response.json())
-        .then((data) => console.log(data))
-        .catch((error) => {
-          console.log(error);
-          redirect({ name: "index" });
-        });
-    };
   },
 };
 </script>

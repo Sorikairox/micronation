@@ -1,27 +1,10 @@
 <template>
-  <div class="w-screen h-screen">
-    <!-- <div class="grid w-full h-full place-items-center bg-grey-light"> -->
-    <!-- <zoid-iframe class="z-10 w-1/2 bg-white shadow-lg h-1/2" /> -->
-    <!-- </div> -->
+  <div class="w-screen h-screen min-w-full min-h-full">
     <div id="flag" class="absolute inset-0 z-10 w-full h-full" />
   </div>
 </template>
 
 <script>
-import Vue from "vue";
-import * as zoid from "zoid/dist/zoid.frameworks.js";
-
-// Auth part
-let ZoidIframe = zoid.create({
-  tag: "zoid-iframe",
-  url: "https://preprod.fouloscopie.fr/experiment/1 ",
-  dimensions: {
-    width: "50%",
-    height: "50%",
-  },
-  onUserToken: (userToken) => console.log("Token acquired : ", userToken),
-});
-
 import * as THREE from "three";
 import { OrbitControls } from "@/components/OrbitControl.js";
 
@@ -558,9 +541,6 @@ function changeTexture(canva) {
 
 export default {
   name: "index",
-  components: {
-    "zoid-iframe": ZoidIframe.driver("vue", Vue),
-  },
   data() {
     return {
       loggedIn: false,

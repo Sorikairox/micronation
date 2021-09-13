@@ -910,7 +910,7 @@
 
 "@directus/sdk@^9.0.0-rc.90":
   version "9.0.0-rc.92"
-  resolved "https://registry.yarnpkg.com/@directus/sdk/-/sdk-9.0.0-rc.92.tgz#4ebf650ee90e1f407912b63631695a4cd8e1cf5d"
+  resolved "https://registry.npmjs.org/@directus/sdk/-/sdk-9.0.0-rc.92.tgz"
   integrity sha512-boybPkw2vLfUWtdgChMf8LTs7Txo8GV/ysI1pBorym3Jg7h1VUu0WB9/EOHh3GSFE2X2EfO87J7H0mmdslZwLQ==
   dependencies:
     axios "^0.21.1"
@@ -4330,10 +4330,10 @@ form-data@~2.3.2:
     combined-stream "^1.0.6"
     mime-types "^2.1.12"
 
-fouloscopie@^2.0.2:
-  version "2.0.2"
-  resolved "https://registry.yarnpkg.com/fouloscopie/-/fouloscopie-2.0.2.tgz#10550b369b2fdf537a303308f57e57f877f82452"
-  integrity sha512-x+KKihyLOkar+vMZgPFBYkAyir3MgyXnpfisdJxYk3Z7R4TlGS50O0GrHVkzxIeO1ALP+eM8QmcnXSsksAJMTA==
+fouloscopie@^2.1.0:
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/fouloscopie/-/fouloscopie-2.1.0.tgz#8d26deb6aa887d0b5be9794d2370dd423fb40a3b"
+  integrity sha512-4pl/TJi5iBh3ocdVRIyPSvkUGu1KVx5yrYh4Uep8MHEUAZQrkJehMLq6v56D+jk7glvkUlEBND3xt3Lm0LkTgg==
   dependencies:
     "@directus/sdk" "^9.0.0-rc.90"
     zoid "9.0.40"
@@ -9999,7 +9999,7 @@ zalgo-promise@^1, zalgo-promise@^1.0.11, zalgo-promise@^1.0.22, zalgo-promise@^1
 
 zoid@9.0.40:
   version "9.0.40"
-  resolved "https://registry.yarnpkg.com/zoid/-/zoid-9.0.40.tgz#f4abf97e2bb38a84bb6118d20b86bdb191aaba5b"
+  resolved "https://registry.npmjs.org/zoid/-/zoid-9.0.40.tgz"
   integrity sha512-Bn5jxMqui0EXH5SMe5kt7UnGWv2h+JpkMc4T8Aj3m2zmwBIh/dZiQzldolEEqpWoTa0qBYu+yCeRYlejGDJy0w==
   dependencies:
     belter "^1.0.87"
