@@ -4330,10 +4330,10 @@ form-data@~2.3.2:
     combined-stream "^1.0.6"
     mime-types "^2.1.12"
 
-fouloscopie@^2.1.0:
-  version "2.1.0"
-  resolved "https://registry.yarnpkg.com/fouloscopie/-/fouloscopie-2.1.0.tgz#8d26deb6aa887d0b5be9794d2370dd423fb40a3b"
-  integrity sha512-4pl/TJi5iBh3ocdVRIyPSvkUGu1KVx5yrYh4Uep8MHEUAZQrkJehMLq6v56D+jk7glvkUlEBND3xt3Lm0LkTgg==
+fouloscopie@^2.2.0:
+  version "2.2.0"
+  resolved "https://registry.yarnpkg.com/fouloscopie/-/fouloscopie-2.2.0.tgz#9ec6317f730242ed02a78167c20681a12f5bfebb"
+  integrity sha512-6XwGSlCIIna2aPXF1GSndhGCKlUBw9sWF7MFRU5Csu8yq8SBWZw0RTBgE6tCyrFA5zz9FzsBX+5scNOf0gMK9Q==
   dependencies:
     "@directus/sdk" "^9.0.0-rc.90"
     zoid "9.0.40"
