@@ -300,9 +300,7 @@ export default {
   name: "edit",
   data() {
     return {
-      token:
-        // dev purpose, had to dealt with preprod problems so a temporary working token was taking as a debugging base
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjExOTVmYzE4LTk5MDktNDIyNC1iNDg5LWUxZGM3YTBjNjM1YyIsImlhdCI6MTYzMTE0NTcwOCwiZXhwIjoxNjMxMTQ2NjA4fQ.Ow0pVEYXaRC-zpsdxtg5MfZa0JJAoODzar1orIKalM8",
+      token: undefined,
       pixelId: undefined,
       color: "0000ff",
       openSuccessEditModal: false,
@@ -343,20 +341,16 @@ export default {
         newY = yPixel;
       fetch(`${process.env.apiUrl}/flag`, {
         method: "GET",
-        mode: "no-cors",
+        crossDomain: true,
         headers: {
           "Content-Type": "application/json",
-          Authentication: this.token,
         },
-        body: JSON.stringify({
-          pixelId: this.pixelId,
-          hexColor: this.color,
-        }),
       })
+        .then((response) => response.json())
         .then((data) => {
-          data = JSON.stringify(data);
-          newX = data.body.length;
-          newY = data.body[0].length;
+          newX = data.length;
+          // TOFIX : as the array of pixel is flattened (dim 1 instead of 2, how do we determine the y length ?)
+          // newY = data[0].length;
         })
         .catch((err) => console.log(err));
       //for test, remove thx to back end
@@ -365,7 +359,7 @@ export default {
         newY = ~~(newX / 2);
         console.log("New size", newX, newY);
       }*/
-      fetch();
+      // fetch();
 
       if (xPixel != newX || yPixel != newY) {
         console.log("Many users, new flag, drawing...");
@@ -385,6 +379,7 @@ export default {
     },
     FetchPixels() {
       console.log("Fetching the new pixel");
+      // TOFIX : how to fetch the new pixels from a back purpose ?
       const NEW_PIXEL = [];
       for (let i = 0; i < (Math.random() * xPixel * yPixel) / 2; i++) {
         NEW_PIXEL.push(
@@ -402,20 +397,16 @@ export default {
 
       fetch(`${process.env.apiUrl}/flag`, {
         method: "GET",
-        mode: "no-cors",
+        crossDomain: true,
         headers: {
           "Content-Type": "application/json",
-          Authentication: this.token,
         },
-        body: JSON.stringify({
-          pixelId: this.pixelId,
-          hexColor: this.color,
-        }),
       })
+        .then((response) => response.json())
         .then((data) => {
-          data = JSON.stringify(data);
-          xPixel = data.body.length;
-          yPixel = data.body[0].length;
+          xPixel = data.length;
+          // TOFIX : as the array of pixel is flattened (dim 1 instead of 2, how do we determine the y length ?)
+          // yPixel = data[0].length;
           const NEW_MAP = new Array(xPixel);
           for (let i = 0; i < NEW_MAP.length; i++) {
             NEW_MAP[i] = new Array(yPixel);
@@ -437,6 +428,7 @@ export default {
       //Seting the color (here is a french flag)
       for (let i = 0; i < NEW_MAP.length; i++) {
         for (let j = 0; j < NEW_MAP[0].length; j++) {
+          // TODO : insert here the fetched pixels (in a matrix way)
           /*if (j < 100) {
             if (i < 200 / 3) {
               NEW_MAP[i][j] = "#0000ff";
@@ -460,17 +452,18 @@ export default {
       console.log("Sending: ", UserPixel);
       fetch(`${process.env.apiUrl}/pixel`, {
         method: "PUT",
-        mode: "no-cors",
+        crossDomain: true,
         headers: {
           "Content-Type": "application/json",
           Authentication: this.token,
         },
         body: JSON.stringify({
           pixelId: this.pixelId,
-          hexColor: this.color,
+          hexColor: UserPixel.color,
         }),
       })
-        .then((data) => {
+        .then((response) => response.json())
+        .then(() => {
           this.openSuccessEditModal = true;
         })
         .catch((error) => console.log(error));
@@ -479,14 +472,14 @@ export default {
       console.log("Fetching user pixel");
       fetch(`${process.env.apiUrl}/pixel`, {
         method: "GET",
-        mode: "no-cors",
+        crossDomain: true,
         headers: {
           "Content-Type": "application/json",
           Authentication: this.token,
         },
       })
+        .then((response) => response.json())
         .then((data) => {
-          data = JSON.stringify(data);
           this.x = data.body.indexInFlag / xPixel;
           this.y = data.body.indexInFlag % yPixel;
           this.pixelId = data.body.entityId;
@@ -504,11 +497,12 @@ export default {
   async middleware({ redirect }) {
     const instance = await fouloscopie();
     const token = instance.userToken;
-    console.log(token);
+    console.log("DEBUG - userToken : ", token);
     if (!token) {
       // commented out for debug purpose on this page, especially on the fetchs
       // redirect({ name: "index" });
     } else {
+      // Connexion successful, storing the token for fetching purposes
       this.token = token;
     }
   },
