@@ -71,6 +71,16 @@ describe('Flag (e2e)', () => {
         await app.close();
       });
 
+      it('UserHasNoPixel error /pixel (PUT)', async () => {
+        const res = await request(app.getHttpServer())
+          .put('/pixel')
+          .set('authorization', authToken)
+          .send({
+            hexColor: '#DDDDDD',
+          });
+        expect(res.status).toEqual(400);
+        expect(res.body.message).toEqual('UserHasNoPixel');
+      });
       it('/pixel (POST)', async () => {
         const res = await request(app.getHttpServer())
           .post('/pixel')
@@ -87,7 +97,6 @@ describe('Flag (e2e)', () => {
           .put('/pixel')
           .set('authorization', authToken)
           .send({
-            pixelId: createdPixel.entityId,
             hexColor: '#DDDDDD',
           });
         expect(res.status).toEqual(200);

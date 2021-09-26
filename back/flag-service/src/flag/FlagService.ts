@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { UserHasNoPixel } from './errors/UserHasNoPixel';
 import { Pixel } from './pixel/Pixel';
 import { PixelRepository } from './pixel/PixelRepository';
 import { differenceInMinutes } from 'date-fns';
@@ -30,6 +31,9 @@ export class FlagService {
     const lastUserAction = await this.pixelRepository.findLast({
       author: ownerId,
     });
+    if (!lastUserAction) {
+      throw new UserHasNoPixel();
+    }
     if (
       lastUserAction.action === 'update' &&
       differenceInMinutes(lastUserAction.createdAt, new Date()) <

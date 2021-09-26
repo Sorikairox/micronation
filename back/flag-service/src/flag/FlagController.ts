@@ -10,6 +10,7 @@ import {
 } from '@nestjs/common';
 import { Public } from '../user/decorators/Public';
 import { UserId } from '../user/decorators/UserId';
+import { UserHasNoPixel } from './errors/UserHasNoPixel';
 import { FlagService } from './FlagService';
 import { UserAlreadyOwnAPixelError } from "./errors/UserAlreadyOwnAPixelError";
 import { CooldownTimerHasNotEndedYetError } from "./errors/CooldownTimerHasNotEndedYetError";
@@ -43,7 +44,9 @@ export class FlagController {
       return event;
     } catch (e) {
       if (e instanceof CooldownTimerHasNotEndedYetError) {
-        throw new BadRequestException();
+        throw new BadRequestException('CooldownNotEndedYet');
+      } else if (e instanceof UserHasNoPixel) {
+        throw new BadRequestException('UserHasNoPixel');
       }
     }
   }

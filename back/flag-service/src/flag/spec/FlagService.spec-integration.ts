@@ -1,4 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { UserHasNoPixel } from '../errors/UserHasNoPixel';
 import { FlagService } from '../FlagService';
 import { Pixel } from '../pixel/Pixel';
 import { DatabaseModule } from 'library/database/DatabaseModule';
@@ -147,6 +148,13 @@ describe('FlagService', () => {
       expect(events[0].action).toEqual('update');
       expect(events[0].data.hexColor).toEqual('#FFFFFF');
     });
+    it('throw error when user has no pixel', async () => {
+      process.env.CHANGE_COOLDOWN = '5';
+
+      await expect(
+          flagService.changePixelColor('fakeownerid', '#FFFFFF'),
+      ).rejects.toThrow(UserHasNoPixel);
+    });
     it('throw error when changing color before cooldown duration ends', async () => {
       process.env.CHANGE_COOLDOWN = '5';
       const addedPixelEvent = await flagService.addPixel('ownerid', '#DDDDDD');
@@ -155,7 +163,7 @@ describe('FlagService', () => {
       await flagService.changePixelColor('ownerid', '#FFFFFF');
 
       await expect(
-        flagService.changePixelColor('ownerid', '#FFFFFF'),
+          flagService.changePixelColor('ownerid', '#FFFFFF'),
       ).rejects.toThrow(CooldownTimerHasNotEndedYetError);
     });
   });
