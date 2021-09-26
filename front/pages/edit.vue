@@ -406,20 +406,20 @@ export default {
       })
         .then((response) => response.json())
         .then((data) => {
-          console.log("DEBUG - New map array : ", data)
+          console.log("DEBUG - New map array : ", data);
           xPixel = data.length;
           // TOFIX : as the array of pixel is flattened (dim 1 instead of 2, how do we determine the y length ?)
           // yPixel = data[0].length;
-          const NEW_MAP = new Array(xPixel);
-          for (let i = 0; i < NEW_MAP.length; i++) {
-            NEW_MAP[i] = new Array(yPixel);
-          }
+          // const NEW_MAP = new Array(xPixel);
+          // for (let i = 0; i < NEW_MAP.length; i++) {
+          //   NEW_MAP[i] = new Array(yPixel);
+          // }
 
-          for (let i = 0; i < NEW_MAP.length; i++) {
-            for (let j = 0; j < NEW_MAP[0].length; j++) {
-              NEW_MAP[i][j] = data.body[i][j].hexColor;
-            }
-          }
+          // for (let i = 0; i < NEW_MAP.length; i++) {
+          //   for (let j = 0; j < NEW_MAP[0].length; j++) {
+          //     NEW_MAP[i][j] = data[i][j].hexColor;
+          //   }
+          // }
         })
         .catch((error) => console.log(error));
 
@@ -452,13 +452,13 @@ export default {
       //Sending the user pixel with coords, color, timestamp?, userID?
       const UserPixel = new Pixel(x, y, MAP_BASE[x][y]);
 
-      console.log("Sending: ", UserPixel);
+      console.log("Sending: ", [UserPixel, this.pixelId]);
       fetch(`${process.env.apiUrl}/pixel`, {
         method: "PUT",
         crossDomain: true,
         headers: {
           "Content-Type": "application/json",
-          Authentication: this.token,
+          "Authorization": this.token,
         },
         body: JSON.stringify({
           pixelId: this.pixelId,
@@ -479,21 +479,26 @@ export default {
         crossDomain: true,
         headers: {
           "Content-Type": "application/json",
-          Authentication: this.token,
+          Authorization: this.token,
         },
       })
         .then((response) => response.json())
         .then((data) => {
           console.log("DEBUG - User pixel : ", data);
-          this.x = data.body.indexInFlag / xPixel;
-          this.y = data.body.indexInFlag % yPixel;
-          this.pixelId = data.body.entityId;
+          // field indexInFlag not in the response of the /pixel endpoint, the back-end has been contacted to discuss this issue
+          // this.x = data.indexInFlag / xPixel;
+          // this.y = data.indexInFlag % yPixel;
+          this.pixelId = data.entityId;
         })
         .catch((error) => console.log(error));
     },
   },
-  mounted() {
+  async mounted() {
     this.isMounted = true;
+
+    const instance = await fouloscopie();
+    this.token = instance.userToken;
+
     MAP_BASE = this.FetchMap();
     this.FetchUserPixel();
     setUserPixel(this.x, this.y);
@@ -506,10 +511,6 @@ export default {
     if (!token) {
       // commented out for debug purpose on this page, especially on the fetchs
       // redirect({ name: "index" });
-    } else {
-      // Connexion successful, storing the token for fetching purposes
-      // if not debugging on the preprod site, 
-      this.token = token;
     }
   },
 };
