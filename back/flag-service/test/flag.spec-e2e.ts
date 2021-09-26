@@ -40,6 +40,7 @@ describe('Flag (e2e)', () => {
         const db = dbService.getDb();
         await db.collection('users').deleteMany({});
         await db.collection('pixel-events').deleteMany({});
+        await db.collection('counter').deleteMany({});
 
         if (authBackend === AuthBackend.FOULOSCOPIE) {
           authToken = VALID_DIRECTUS_TOKEN;
@@ -105,6 +106,7 @@ describe('Flag (e2e)', () => {
         expect(mypixel.hexColor).toEqual('#DDDDDD');
         expect(mypixel.createdAt).toEqual(createdPixel.createdAt);
         expect(mypixel.lastUpdate).toEqual(modifiedPixel.createdAt);
+        expect(mypixel.indexInFlag).toEqual(1);
       });
 
       it('/flag (GET)', async () => {
