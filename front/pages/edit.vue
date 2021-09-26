@@ -349,6 +349,7 @@ export default {
         .then((response) => response.json())
         .then((data) => {
           newX = data.length;
+          console.log("DEBUG - size of flag : ", newX);
           // TOFIX : as the array of pixel is flattened (dim 1 instead of 2, how do we determine the y length ?)
           // newY = data[0].length;
         })
@@ -379,7 +380,8 @@ export default {
     },
     FetchPixels() {
       console.log("Fetching the new pixel");
-      // TOFIX : how to fetch the new pixels from a back purpose ?
+      // TOFIX : how to fetch the new pixels from a back purpose ? We can only use the /flag endpoint to get all the pixels, not just the recent one
+      // One way : fetching all the pixels and looking out the new compared to the actual map we have, maybe using the "entityId" field
       const NEW_PIXEL = [];
       for (let i = 0; i < (Math.random() * xPixel * yPixel) / 2; i++) {
         NEW_PIXEL.push(
@@ -404,6 +406,7 @@ export default {
       })
         .then((response) => response.json())
         .then((data) => {
+          console.log("DEBUG - New map array : ", data)
           xPixel = data.length;
           // TOFIX : as the array of pixel is flattened (dim 1 instead of 2, how do we determine the y length ?)
           // yPixel = data[0].length;
@@ -464,6 +467,7 @@ export default {
       })
         .then((response) => response.json())
         .then(() => {
+          console.log("DEBUG - Pixel successfuly sent out !");
           this.openSuccessEditModal = true;
         })
         .catch((error) => console.log(error));
@@ -480,6 +484,7 @@ export default {
       })
         .then((response) => response.json())
         .then((data) => {
+          console.log("DEBUG - User pixel : ", data);
           this.x = data.body.indexInFlag / xPixel;
           this.y = data.body.indexInFlag % yPixel;
           this.pixelId = data.body.entityId;
@@ -503,6 +508,7 @@ export default {
       // redirect({ name: "index" });
     } else {
       // Connexion successful, storing the token for fetching purposes
+      // if not debugging on the preprod site, 
       this.token = token;
     }
   },
