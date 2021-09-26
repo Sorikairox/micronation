@@ -36,15 +36,10 @@ export class FlagController {
   @Put('pixel')
   async changePixelColor(
       @UserId() ownerId: string,
-      @Body('pixelId') pixelId: string,
       @Body('hexColor') hexColor: string,
   ) {
     try {
-      const event = await this.flagService.changePixelColor(
-        ownerId,
-        pixelId,
-        hexColor,
-      );
+      const event = await this.flagService.changePixelColor(ownerId, hexColor);
       return event;
     } catch (e) {
       if (e instanceof CooldownTimerHasNotEndedYetError) {

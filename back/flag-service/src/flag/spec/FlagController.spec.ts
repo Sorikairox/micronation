@@ -61,7 +61,7 @@ describe('FlagController', () => {
         changePixelColorSpy = jest
           .spyOn(flagService, 'changePixelColor')
           .mockReturnValue({ modified: true } as any);
-        res = await flagController.changePixelColor('ownerId', 'pixelId', '#DDDDDD');
+        res = await flagController.changePixelColor('ownerId', '#DDDDDD');
       });
       it('call changePixelColor from service', () => {
         expect(changePixelColorSpy).toBeCalledTimes(1);
@@ -79,7 +79,7 @@ describe('FlagController', () => {
           .mockImplementation(() => {
             throw new CooldownTimerHasNotEndedYetError();
           });
-        res = flagController.changePixelColor('ownerId', 'pixelId', '#ffffff');
+        res = flagController.changePixelColor('ownerId', '#ffffff');
       });
       it('call changePixelColor from service', () => {
         expect(changePixelColorSpy).toBeCalledTimes(1);

@@ -113,11 +113,7 @@ describe('FlagService', () => {
           'randomId',
           '#DDDDDD',
         );
-        await flagService.changePixelColor(
-          'randomId',
-          createdPixel.entityId,
-          '#000000',
-        );
+        await flagService.changePixelColor('randomId', '#000000');
         const pixel = await flagService.getOrCreateUserPixel('randomId');
         expect(pixel.author).toEqual('randomId');
         expect(pixel.hexColor).toEqual('#000000');
@@ -137,11 +133,7 @@ describe('FlagService', () => {
       const addedPixelEvent = await flagService.addPixel('ownerid', '#DDDDDD');
       await new Promise((r) => setTimeout(r, 1));
 
-      await flagService.changePixelColor(
-        'ownerid',
-        addedPixelEvent.entityId,
-        '#FFFFFF',
-      );
+      await flagService.changePixelColor('ownerid', '#FFFFFF');
       const events = await dbClientService
         .getDb()
         .collection(pixelRepository.getCollectionName())
@@ -160,18 +152,10 @@ describe('FlagService', () => {
       const addedPixelEvent = await flagService.addPixel('ownerid', '#DDDDDD');
       await new Promise((r) => setTimeout(r, 1));
 
-      await flagService.changePixelColor(
-        'ownerid',
-        addedPixelEvent.entityId,
-        '#FFFFFF',
-      );
+      await flagService.changePixelColor('ownerid', '#FFFFFF');
 
       await expect(
-        flagService.changePixelColor(
-          'ownerid',
-          addedPixelEvent.entityId,
-          '#FFFFFF',
-        ),
+        flagService.changePixelColor('ownerid', '#FFFFFF'),
       ).rejects.toThrow(CooldownTimerHasNotEndedYetError);
     });
   });
@@ -187,11 +171,7 @@ describe('FlagService', () => {
         '#FFFFFF',
       );
       await new Promise((r) => setTimeout(r, 1));
-      await flagService.changePixelColor(
-        'thirdowner',
-        thirdPixelEvent.entityId,
-        '#000000',
-      );
+      await flagService.changePixelColor('thirdowner', '#000000');
 
       const flag = await flagService.getFlag();
       expect(flag.length).toEqual(3);

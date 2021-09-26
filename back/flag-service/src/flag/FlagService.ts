@@ -26,13 +26,12 @@ export class FlagService {
     });
   }
 
-  async changePixelColor(ownerId: string, pixelId: string, hexColor: string) {
+  async changePixelColor(ownerId: string, hexColor: string) {
     const lastUserAction = await this.pixelRepository.findLast({
       author: ownerId,
-      action: 'update',
     });
     if (
-      lastUserAction &&
+      lastUserAction.action === 'update' &&
       differenceInMinutes(lastUserAction.createdAt, new Date()) <
         Number(process.env.CHANGE_COOLDOWN)
     ) {
@@ -41,7 +40,7 @@ export class FlagService {
     return this.pixelRepository.createAndReturn({
       action: 'update',
       author: ownerId,
-      entityId: pixelId,
+      entityId: lastUserAction.entityId,
       data: { hexColor },
     });
   }
