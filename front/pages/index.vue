@@ -545,6 +545,7 @@ export default {
     return {};
   },
   mounted() {
+    
     init();
     this.$nuxt.$on("FlagClick", () => {
       this.$router.push({ name: "edit" });
@@ -552,31 +553,6 @@ export default {
     this.$nuxt.$on("newTexture", (canva) => {
       changeTexture(canva);
     });
-
-    fetch(`${process.env.apiUrl}/flag`, {
-      method: "GET",
-      crossDomain: true,
-      headers: {
-        "Content-Type": "application/json",
-      },
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        console.log("fetched : ", data);
-        // xPixel = data.body.length;
-        // yPixel = data.body[0].length;
-        // const NEW_MAP = new Array(xPixel);
-        // for (let i = 0; i < NEW_MAP.length; i++) {
-        //   NEW_MAP[i] = new Array(yPixel);
-        // }
-
-        // for (let i = 0; i < NEW_MAP.length; i++) {
-        //   for (let j = 0; j < NEW_MAP[0].length; j++) {
-        //     NEW_MAP[i][j] = data.body[i][j].hexColor;
-        //   }
-        // }
-      })
-      .catch((error) => console.log(error));
   },
   beforeDestroy() {
     cancelAnimationFrame(ID);

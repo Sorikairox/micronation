@@ -2,11 +2,11 @@
   <v-app>
     <div class="w-screen h-screen bg-grey-light">
       <div
-        class="grid h-full grid-rows-2 pt-24 space-y-8  lg:grid-cols-2 lg:space-x-8"
+        class="grid h-full grid-rows-2 pt-24 space-y-8 lg:grid-cols-2 lg:space-x-8"
       >
         <div
           id="flagContainer"
-          class="flex flex-col justify-center w-3/4 mx-auto bg-white rounded-lg  sm:mx-4 sm:w-full"
+          class="flex flex-col justify-center w-3/4 mx-auto bg-white rounded-lg sm:mx-4 sm:w-full"
         >
           <canvas
             id="flagCanva"
@@ -17,7 +17,7 @@
           class="flex flex-col items-center px-4 py-1 mx-4 mb-auto bg-white rounded-lg "
         >
           <div
-            class="flex flex-col items-center w-full h-full pb-4 mb-4 border-b-2  sm:flex-row justify-evenly border-grey-base"
+            class="flex flex-col items-center w-full h-full pb-4 mb-4 border-b-2 sm:flex-row justify-evenly border-grey-base"
           >
             <div class="flex flex-col justify-around h-96">
               <AppButton
@@ -54,7 +54,7 @@
               </AppButton>
             </div>
             <div
-              class="flex flex-col items-center justify-center w-auto mx-auto  sm:w-1/2 sm:mx-0"
+              class="flex flex-col items-center justify-center w-auto mx-auto sm:w-1/2 sm:mx-0"
             >
               <v-color-picker
                 v-model="color"
@@ -74,20 +74,30 @@
         </div>
       </div>
       <AppAlert
+        v-if="this.errorMessage == 'CooldownNotEndedYet'"
         variant="error"
         @close="closeCooldownModal"
         :open="openFailedEditModal"
         >La date de dernière modification de votre pixel est trop récente,
         veuillez attendre
-        <vue-countdown :time="cooldownTime" v-slot="{ minutes, seconds }">
+        <!-- <vue-countdown :time="cooldownTime" v-slot="{ minutes, seconds }">
           {{ minutes }}:{{ seconds }} </vue-countdown
-        >avant de pouvoir changer sa couleur.</AppAlert
+        > -->
+        avant de pouvoir changer sa couleur.</AppAlert
+      >
+      <AppAlert
+        v-else
+        variant="error"
+        @close="closeCooldownModal"
+        :open="openFailedEditModal"
+      >
+        <pre>{{ this.errorMessage }}</pre></AppAlert
       ><AppAlert
         variant="error"
         @close="closeSuccessfulModal"
         :open="openSuccessEditModal"
         >La couleur (
-        <pre>{{ this.color }}</pre>
+        <pre>{{ this.color.hex }}</pre>
         ) a été changée avec succès !</AppAlert
       >
     </div>
@@ -201,6 +211,7 @@ function drawPixel(x, y, clr, changeTexture = false, size = 1, ctx = context) {
   if (changeTexture) {
     MAP_BASE[x][y] = clr;
   }
+  ctx.fillStyle = "#000000";
 }
 
 //Initalising the flag canvas
@@ -323,9 +334,12 @@ export default {
   data() {
     return {
       token: undefined,
-      color: "0000ff",
+      color: {
+        hex: "00ffff",
+      },
       maxCooldownTime: 5, // min
-      lastSubmittedTime: undefined,
+      lastSubmittedTime: new Date(),
+      errorMessage: "",
       openSuccessEditModal: false,
       openFailedEditModal: false,
       x: ~~(Math.random() * xPixel),
@@ -343,7 +357,13 @@ export default {
   computed: {
     cooldownTime() {
       // return in ms
-      let remaining = new Date(lastSubmittedTime);
+      let remaining = new Date(this.lastSubmittedTime);
+      console.log(
+        "Debug - time remaining : ",
+        1000 *
+          (this.maxCooldownTime * 60 -
+            (remaining.getMinutes() * 60 + remaining.getSeconds()))
+      );
       return (
         1000 *
         (this.maxCooldownTime * 60 -
@@ -360,7 +380,7 @@ export default {
     },
     change() {
       if (this.isMounted) {
-        changeColor(this.color);
+        changeColor(this.color.hex);
       }
     },
     Finish() {
@@ -374,7 +394,7 @@ export default {
         drawZoom();
       }, 3000);
     },
-    Refresh(ack = false) {
+    async Refresh(ack = false) {
       console.log("REFRESH", ack);
       console.log("Fetching the flag size");
 
@@ -391,8 +411,7 @@ export default {
         .then((data) => {
           newX = data.length;
           console.log("DEBUG - size of flag : ", newX);
-          // TOFIX : as the array of pixel is flattened (dim 1 instead of 2, how do we determine the y length ?)
-          // newY = data[0].length;
+          newY = ~~(newX / ratio);
         })
         .catch((err) => console.log(err));
       //for test, remove thx to back end
@@ -407,7 +426,7 @@ export default {
         console.log("Many users, new flag, drawing...");
         xPixel = newX;
         yPixel = newY;
-        MAP_BASE = this.FetchMap();
+        MAP_BASE = await this.FetchMap();
         initCanvas();
         initZoom();
       } else {
@@ -424,21 +443,20 @@ export default {
       // TOFIX : how to fetch the new pixels from a back purpose ? We can only use the /flag endpoint to get all the pixels, not just the recent one
       // One way : fetching all the pixels and looking out the new compared to the actual map we have, maybe using the "entityId" field
       const NEW_PIXEL = [];
-      for (let i = 0; i < (Math.random() * xPixel * yPixel) / 2; i++) {
-        NEW_PIXEL.push(
-          new Pixel(
-            ~~(Math.random() * xPixel),
-            ~~(Math.random() * yPixel),
-            "#ff00ff"
-          )
-        );
-      }
+      // for (let i = 0; i < (Math.random() * xPixel * yPixel) / 2; i++) {
+      //   NEW_PIXEL.push(
+      //     new Pixel(
+      //       ~~(Math.random() * xPixel),
+      //       ~~(Math.random() * yPixel),
+      //       "#ff00ff"
+      //     )
+      //   );
+      // }
       return NEW_PIXEL;
     },
-    FetchMap() {
+    async FetchMap() {
       console.log("Fetching the whole map");
-
-      fetch(`${process.env.apiUrl}/flag`, {
+      return await fetch(`${process.env.apiUrl}/flag`, {
         method: "GET",
         crossDomain: true,
         headers: {
@@ -448,46 +466,35 @@ export default {
         .then((response) => response.json())
         .then((data) => {
           console.log("DEBUG - New map array : ", data);
-          xPixel = data.length;
-          // TOFIX : as the array of pixel is flattened (dim 1 instead of 2, how do we determine the y length ?)
-          // yPixel = data[0].length;
-          // const NEW_MAP = new Array(xPixel);
-          // for (let i = 0; i < NEW_MAP.length; i++) {
-          //   NEW_MAP[i] = new Array(yPixel);
-          // }
+          xPixel = 20;
+          yPixel = ~~(xPixel / ratio);
+          const NEW_MAP = new Array(xPixel);
+          for (let i = 0; i < NEW_MAP.length; i++) {
+            NEW_MAP[i] = new Array(yPixel);
+          }
 
-          // for (let i = 0; i < NEW_MAP.length; i++) {
-          //   for (let j = 0; j < NEW_MAP[0].length; j++) {
-          //     NEW_MAP[i][j] = data[i][j].hexColor;
-          //   }
+          // data = new Array(xPixel * yPixel);
+          // for (let j = 0; j < xPixel * yPixel; j++) {
+          //   data[j] = {
+          //     // hexColor: "#" + Math.ceil(Math.random() * 16777215).toString(16),
+          //     hexColor: "#ff0000"
+          //   };
           // }
+          for (let i = 0; i < data.length; i++) {
+            let j = i % xPixel;
+            let k = ~~(i / yPixel);
+            NEW_MAP[j][k] = data[i].hexColor;
+          }
+          console.log("DEBUG - New random map : ", NEW_MAP);
+          return NEW_MAP;
+          /*for (let i = 0; i < NEW_MAP.length; i++) {
+            for (let j = 0; j < NEW_MAP[0].length; j++) {
+              NEW_MAP[i][j] = data[i*ypix + j].hexColor;
+
+            }
+          }*/
         })
         .catch((error) => console.log(error));
-
-      const NEW_MAP = new Array(xPixel);
-      for (let i = 0; i < NEW_MAP.length; i++) {
-        NEW_MAP[i] = new Array(yPixel);
-      }
-
-      //Seting the color (here is a french flag)
-      for (let i = 0; i < NEW_MAP.length; i++) {
-        for (let j = 0; j < NEW_MAP[0].length; j++) {
-          // TODO : insert here the fetched pixels (in a matrix way)
-          /*if (j < 100) {
-            if (i < 200 / 3) {
-              NEW_MAP[i][j] = "#0000ff";
-            } else if (i < 400 / 3) {
-              NEW_MAP[i][j] = "#00ff00";
-            } else if (i < 200) {
-              NEW_MAP[i][j] = "#ff0000";
-            }
-          } else {
-            NEW_MAP[i][j] = "#ffff00";
-          }*/
-          NEW_MAP[i][j];
-        }
-      }
-      return NEW_MAP;
     },
     sendPixel(x, y) {
       //Sending the user pixel with coords, color, timestamp?, userID?
@@ -507,11 +514,10 @@ export default {
       })
         .then((response) => response.json())
         .then((data) => {
-          if (
-            data?.statusCode == 400 &&
-            data?.message == "CooldownNotEndedYet"
-          ) {
+          console.log("DEBUG SA MERE LA PUTE : ", data);
+          if (data.statusCode && data.statusCode != 200) {
             this.openFailedEditModal = true;
+            this.errorMessage = data?.message;
             /*fetch(`${process.env.apiUrl}/cooldown`, {
               method: "GET",
               crossDomain: true,
@@ -531,9 +537,9 @@ export default {
         })
         .catch((error) => console.log(error));
     },
-    FetchUserPixel() {
+    async FetchUserPixel() {
       console.log("Fetching user pixel");
-      fetch(`${process.env.apiUrl}/pixel`, {
+      await fetch(`${process.env.apiUrl}/pixel`, {
         method: "GET",
         crossDomain: true,
         headers: {
@@ -545,25 +551,26 @@ export default {
         .then((data) => {
           console.log("DEBUG - User pixel : ", data);
           // field indexInFlag not in the response of the /pixel endpoint, the back-end has been contacted to discuss this issue
-          this.x = data.indexInFlag / xPixel;
-          this.y = data.indexInFlag % yPixel;
-          this.color = data.hexColor;
+          this.x = (data.indexInFlag % xPixel) - 1;
+          this.y = ~~(data.indexInFlag / yPixel);
+          this.color = {
+            hex: data.hexColor,
+          };
           this.lastSubmittedTime = data.lastUpdate;
           setUserPixel(this.x, this.y);
-          changeColor(data.hexColor);
+          changeColor(this.color.hex);
         })
         .catch((error) => console.log(error));
     },
   },
   async mounted() {
-    this.isMounted = true;
-
     const instance = await fouloscopie();
     this.token = instance.userToken;
 
-    MAP_BASE = this.FetchMap();
-    this.FetchUserPixel();
+    MAP_BASE = await this.FetchMap();
+    await this.FetchUserPixel();
     init();
+    this.isMounted = true;
   },
   async middleware({ redirect }) {
     const instance = await fouloscopie();
@@ -571,7 +578,7 @@ export default {
     console.log("DEBUG - userToken : ", token);
     if (!token) {
       // commented out for debug purpose on this page, especially on the fetchs
-      redirect({ name: "index" });
+      // redirect({ name: "index" });
     }
   },
 };
