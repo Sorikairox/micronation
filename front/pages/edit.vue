@@ -73,6 +73,20 @@
           </div>
         </div>
       </div>
+      <AppAlert
+        variant="error"
+        @close="closeCooldownModal"
+        :open="openFailedEditModal"
+        >La date de dernière modification de votre pixel est trop récente,
+        veuillez patienter.</AppAlert
+      ><AppAlert
+        variant="error"
+        @close="closeSuccessfulModal"
+        :open="openSuccessEditModal"
+        >La couleur (
+        <pre>{{ this.color }}</pre>
+        ) a été changée avec succès !</AppAlert
+      >
     </div>
   </v-app>
 </template>
@@ -80,6 +94,7 @@
 <script>
 import * as THREE from "three";
 import fouloscopie from "fouloscopie";
+import AppAlert from "~/components/organisms/AppAlert";
 
 class Pixel {
   constructor(x, y, color) {
@@ -260,6 +275,7 @@ function init() {
 
 //Change the color value and draw it to the user pixel
 function changeColor(newColor) {
+  console.log("Pixel draw informations :", [newColor, userXPixel, userYPixel]);
   drawPixel(userXPixel, userYPixel, newColor, true);
   color = newColor;
   drawZoom();
@@ -298,12 +314,15 @@ function onPointerMove(e) {
 
 export default {
   name: "edit",
+  components: {
+    AppAlert,
+  },
   data() {
     return {
       token: undefined,
-      pixelId: undefined,
       color: "0000ff",
       openSuccessEditModal: false,
+      openFailedEditModal: false,
       x: ~~(Math.random() * xPixel),
       y: ~~(Math.random() * yPixel),
       isMounted: false,
@@ -317,6 +336,12 @@ export default {
     };
   },
   methods: {
+    closeCooldownModal() {
+      this.openFailedEditModal = false;
+    },
+    closeSuccessfulModal() {
+      this.openSuccessEditModal = false;
+    },
     change() {
       if (this.isMounted) {
         changeColor(this.color);
@@ -452,23 +477,29 @@ export default {
       //Sending the user pixel with coords, color, timestamp?, userID?
       const UserPixel = new Pixel(x, y, MAP_BASE[x][y]);
 
-      console.log("Sending: ", [UserPixel, this.pixelId]);
+      console.log("Sending: ", UserPixel);
       fetch(`${process.env.apiUrl}/pixel`, {
         method: "PUT",
         crossDomain: true,
         headers: {
           "Content-Type": "application/json",
-          "Authorization": this.token,
+          Authorization: this.token,
         },
         body: JSON.stringify({
-          pixelId: this.pixelId,
           hexColor: UserPixel.color,
         }),
       })
         .then((response) => response.json())
-        .then(() => {
-          console.log("DEBUG - Pixel successfuly sent out !");
-          this.openSuccessEditModal = true;
+        .then((data) => {
+          if (
+            data?.statusCode == 400 &&
+            data?.message == "CooldownNotEndedYet"
+          ) {
+            this.openFailedEditModal = true;
+          } else {
+            this.openSuccessEditModal = true;
+            this.FetchMap();
+          }
         })
         .catch((error) => console.log(error));
     },
@@ -486,9 +517,11 @@ export default {
         .then((data) => {
           console.log("DEBUG - User pixel : ", data);
           // field indexInFlag not in the response of the /pixel endpoint, the back-end has been contacted to discuss this issue
-          // this.x = data.indexInFlag / xPixel;
-          // this.y = data.indexInFlag % yPixel;
-          this.pixelId = data.entityId;
+          this.x = data.indexInFlag / xPixel;
+          this.y = data.indexInFlag % yPixel;
+          this.color = data.hexColor;
+          setUserPixel(this.x, this.y);
+          changeColor(data.hexColor);
         })
         .catch((error) => console.log(error));
     },
@@ -501,7 +534,6 @@ export default {
 
     MAP_BASE = this.FetchMap();
     this.FetchUserPixel();
-    setUserPixel(this.x, this.y);
     init();
   },
   async middleware({ redirect }) {
@@ -510,7 +542,7 @@ export default {
     console.log("DEBUG - userToken : ", token);
     if (!token) {
       // commented out for debug purpose on this page, especially on the fetchs
-      // redirect({ name: "index" });
+      redirect({ name: "index" });
     }
   },
 };
