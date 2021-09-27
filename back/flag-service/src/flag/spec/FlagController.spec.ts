@@ -1,3 +1,4 @@
+import { UserHasNoPixel } from '../errors/UserHasNoPixel';
 import { FlagController } from '../FlagController';
 import { FlagService } from '../FlagService';
 import { BadRequestException, InternalServerErrorException } from '@nestjs/common';
@@ -61,7 +62,7 @@ describe('FlagController', () => {
         changePixelColorSpy = jest
           .spyOn(flagService, 'changePixelColor')
           .mockReturnValue({ modified: true } as any);
-        res = await flagController.changePixelColor('ownerId', 'pixelId', '#DDDDDD');
+        res = await flagController.changePixelColor('ownerId', '#DDDDDD');
       });
       it('call changePixelColor from service', () => {
         expect(changePixelColorSpy).toBeCalledTimes(1);
@@ -71,21 +72,41 @@ describe('FlagController', () => {
       })
     });
     describe('failure', () => {
-      let changePixelColorSpy;
-      let res;
-      beforeAll(async () => {
-        changePixelColorSpy = jest
-          .spyOn(flagService, 'changePixelColor')
-          .mockImplementation(() => {
-            throw new CooldownTimerHasNotEndedYetError();
-          });
-        res = flagController.changePixelColor('ownerId', 'pixelId', '#ffffff');
+      describe('service.changePixelColor throw CooldownTimerHasNotEndedYet', () => {
+        let changePixelColorSpy;
+        let res;
+        beforeAll(async () => {
+          changePixelColorSpy = jest
+            .spyOn(flagService, 'changePixelColor')
+            .mockImplementation(() => {
+              throw new CooldownTimerHasNotEndedYetError();
+            });
+          res = flagController.changePixelColor('ownerId', '#ffffff');
+        });
+        it('call changePixelColor from service', () => {
+          expect(changePixelColorSpy).toBeCalledTimes(1);
+        });
+        it('throw BadRequestException', async () => {
+          await expect(res).rejects.toThrow(BadRequestException);
+        });
       });
-      it('call changePixelColor from service', () => {
-        expect(changePixelColorSpy).toBeCalledTimes(1);
-      });
-      it('throw BadRequestException when service throw an CooldownTimerHasNotEndedYet error', async () => {
-        await expect(res).rejects.toThrow(BadRequestException);
+      describe('service.changePixelColor throw UserHasNoPixel', () => {
+        let changePixelColorSpy;
+        let res;
+        beforeAll(async () => {
+          changePixelColorSpy = jest
+            .spyOn(flagService, 'changePixelColor')
+            .mockImplementation(() => {
+              throw new UserHasNoPixel();
+            });
+          res = flagController.changePixelColor('ownerId', '#ffffff');
+        });
+        it('call changePixelColor from service', () => {
+          expect(changePixelColorSpy).toBeCalledTimes(1);
+        });
+        it('throw BadRequestException', async () => {
+          await expect(res).rejects.toThrow(BadRequestException);
+        });
       });
     });
   });

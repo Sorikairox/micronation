@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { UserHasNoPixel } from './errors/UserHasNoPixel';
 import { Pixel } from './pixel/Pixel';
 import { PixelRepository } from './pixel/PixelRepository';
 import { differenceInMinutes } from 'date-fns';
@@ -26,13 +27,15 @@ export class FlagService {
     });
   }
 
-  async changePixelColor(ownerId: string, pixelId: string, hexColor: string) {
+  async changePixelColor(ownerId: string, hexColor: string) {
     const lastUserAction = await this.pixelRepository.findLast({
       author: ownerId,
-      action: 'update',
     });
+    if (!lastUserAction) {
+      throw new UserHasNoPixel();
+    }
     if (
-      lastUserAction &&
+      lastUserAction.action === 'update' &&
       differenceInMinutes(lastUserAction.createdAt, new Date()) <
         Number(process.env.CHANGE_COOLDOWN)
     ) {
@@ -41,7 +44,7 @@ export class FlagService {
     return this.pixelRepository.createAndReturn({
       action: 'update',
       author: ownerId,
-      entityId: pixelId,
+      entityId: lastUserAction.entityId,
       data: { hexColor },
     });
   }

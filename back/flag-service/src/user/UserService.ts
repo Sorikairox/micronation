@@ -49,12 +49,12 @@ export class UserService {
     return {
       user: user,
       jwt: await this.jwtService.sign<UserDataJwtPayload>({
-        sub: user._id,
+        sub: user._id.toHexString(),
         userData: {
-          _id: user._id,
+          _id: user._id.toHexString(),
           email: user.email,
           nickname: user.nickname,
-          createdAt: user.createdAt,
+          createdAt: user.createdAt.toISOString(),
         },
       }, '15 days'),
     };

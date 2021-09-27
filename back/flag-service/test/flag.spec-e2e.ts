@@ -40,6 +40,7 @@ describe('Flag (e2e)', () => {
         const db = dbService.getDb();
         await db.collection('users').deleteMany({});
         await db.collection('pixel-events').deleteMany({});
+        await db.collection('counter').deleteMany({});
 
         if (authBackend === AuthBackend.FOULOSCOPIE) {
           authToken = VALID_DIRECTUS_TOKEN;
@@ -70,6 +71,16 @@ describe('Flag (e2e)', () => {
         await app.close();
       });
 
+      it('UserHasNoPixel error /pixel (PUT)', async () => {
+        const res = await request(app.getHttpServer())
+          .put('/pixel')
+          .set('authorization', authToken)
+          .send({
+            hexColor: '#DDDDDD',
+          });
+        expect(res.status).toEqual(400);
+        expect(res.body.message).toEqual('UserHasNoPixel');
+      });
       it('/pixel (POST)', async () => {
         const res = await request(app.getHttpServer())
           .post('/pixel')
@@ -86,7 +97,6 @@ describe('Flag (e2e)', () => {
           .put('/pixel')
           .set('authorization', authToken)
           .send({
-            pixelId: createdPixel.entityId,
             hexColor: '#DDDDDD',
           });
         expect(res.status).toEqual(200);
@@ -105,6 +115,7 @@ describe('Flag (e2e)', () => {
         expect(mypixel.hexColor).toEqual('#DDDDDD');
         expect(mypixel.createdAt).toEqual(createdPixel.createdAt);
         expect(mypixel.lastUpdate).toEqual(modifiedPixel.createdAt);
+        expect(mypixel.indexInFlag).toEqual(1);
       });
 
       it('/flag (GET)', async () => {
