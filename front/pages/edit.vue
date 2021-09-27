@@ -79,11 +79,18 @@
         @close="closeCooldownModal"
         :open="openFailedEditModal"
         >La date de dernière modification de votre pixel est trop récente,
-        veuillez attendre
-        <!-- <vue-countdown :time="cooldownTime" v-slot="{ minutes, seconds }">
-          {{ minutes }}:{{ seconds }} </vue-countdown
-        > -->
-        avant de pouvoir changer sa couleur.</AppAlert
+        veuillez patienter ! <br />
+        Temps restant :
+        <countdown
+          :time="this.cooldownTime"
+          :interval="1000"
+          tag="span"
+          class="text-2xl font-bold"
+        >
+          <template slot-scope="props"
+            >{{ props.minutes }} : {{ props.seconds }}</template
+          ></countdown
+        ></AppAlert
       >
       <AppAlert
         v-else
@@ -93,7 +100,7 @@
       >
         <pre>{{ this.errorMessage }}</pre></AppAlert
       ><AppAlert
-        variant="error"
+        variant="info"
         @close="closeSuccessfulModal"
         :open="openSuccessEditModal"
         >La couleur (
@@ -108,6 +115,7 @@
 import * as THREE from "three";
 import fouloscopie from "fouloscopie";
 import AppAlert from "~/components/organisms/AppAlert";
+import countdown from "@chenfengyuan/vue-countdown";
 
 class Pixel {
   constructor(x, y, color) {
@@ -149,43 +157,11 @@ let Xoffset,
   Yoffset,
   zoom = 2;
 
-//Initalising the MAP
-// for (let i = 0; i < MAP_BASE.length; i++) {
-//   MAP_BASE[i] = new Array(yPixel);
-// }
-
-// //Seting the color (here is a french flag)
-// for (let i = 0; i < MAP_BASE.length; i++) {
-//   for (let j = 0; j < MAP_BASE[0].length; j++) {
-//     if (i < MAP_BASE.length / 3) {
-//       MAP_BASE[i][j] = "#0000ff";
-//     } else if (i < MAP_BASE.length / 1.5) {
-//       MAP_BASE[i][j] = "#00ff00";
-//     } else {
-//       MAP_BASE[i][j] = "#ff0000";
-//     }
-//   }
-// }
-
 //Draw EVERY PIXEL of the map given
 function drawFlag(MAP) {
   for (let i = 0; i < MAP.length; i++) {
     for (let j = 0; j < MAP[0].length; j++) {
       drawPixel(i, j, MAP[i][j]);
-    }
-  }
-}
-
-//Draw a grid, usefull for debuging but can bug
-function drawGrid() {
-  for (let i = 0; i < MAP_BASE.length; i++) {
-    for (let j = 0; j < MAP_BASE[0].length; j++) {
-      if (i % 8 == 0) {
-        MAP_BASE[i][j] = "#ff00ff";
-      }
-      if (j % 8 == 0) {
-        MAP_BASE[i][j] = "#ff00ff";
-      }
     }
   }
 }
@@ -211,7 +187,7 @@ function drawPixel(x, y, clr, changeTexture = false, size = 1, ctx = context) {
   if (changeTexture) {
     MAP_BASE[x][y] = clr;
   }
-  ctx.fillStyle = "#000000";
+  ctx.fillStyle = "#ffffff";
 }
 
 //Initalising the flag canvas
@@ -231,7 +207,6 @@ function initCanvas() {
   BoundingBox = canvas.getBoundingClientRect();
   context = canvas.getContext("2d");
 
-  // drawGrid()
   drawFlag(MAP_BASE);
 }
 
@@ -284,7 +259,6 @@ function init() {
 
   window.addEventListener("resize", onWindowResize);
   canvas.addEventListener("pointermove", onPointerMove, false);
-  canvas.addEventListener("pointerdown", onPointerDown, false);
 }
 
 //Change the color value and draw it to the user pixel
@@ -311,12 +285,6 @@ function onWindowResize() {
 
 //Draw a pixel on the pointer's coords
 function onPointerDown(event) {
-  drawPixel(
-    ~~(((mouse.x + 1) * xPixel) / 2),
-    ~~(((-mouse.y + 1) * yPixel) / 2),
-    color,
-    true
-  );
   drawZoom(~~(((mouse.x + 1) * WIDTH) / 2), ~~(((-mouse.y + 1) * HEIGHT) / 2));
 }
 
@@ -330,6 +298,7 @@ export default {
   name: "edit",
   components: {
     AppAlert,
+    countdown,
   },
   data() {
     return {
@@ -357,18 +326,12 @@ export default {
   computed: {
     cooldownTime() {
       // return in ms
-      let remaining = new Date(this.lastSubmittedTime);
-      console.log(
-        "Debug - time remaining : ",
-        1000 *
-          (this.maxCooldownTime * 60 -
-            (remaining.getMinutes() * 60 + remaining.getSeconds()))
-      );
-      return (
-        1000 *
-        (this.maxCooldownTime * 60 -
-          (remaining.getMinutes() * 60 + remaining.getSeconds()))
-      );
+      console.log("DEBUG - Informations : ", [
+        new Date(),
+        new Date(this.lastSubmittedTime),
+        new Date() - new Date(this.lastSubmittedTime),
+      ]);
+      return new Date() - new Date(this.lastSubmittedTime);
     },
   },
   methods: {
@@ -414,13 +377,6 @@ export default {
           newY = ~~(newX / ratio);
         })
         .catch((err) => console.log(err));
-      //for test, remove thx to back end
-      /*if (ack) {
-        newX = ~~(TEST + Math.random() * TEST);
-        newY = ~~(newX / 2);
-        console.log("New size", newX, newY);
-      }*/
-      // fetch();
 
       if (xPixel != newX || yPixel != newY) {
         console.log("Many users, new flag, drawing...");
@@ -473,26 +429,12 @@ export default {
             NEW_MAP[i] = new Array(yPixel);
           }
 
-          // data = new Array(xPixel * yPixel);
-          // for (let j = 0; j < xPixel * yPixel; j++) {
-          //   data[j] = {
-          //     // hexColor: "#" + Math.ceil(Math.random() * 16777215).toString(16),
-          //     hexColor: "#ff0000"
-          //   };
-          // }
           for (let i = 0; i < data.length; i++) {
             let j = i % xPixel;
             let k = ~~(i / yPixel);
             NEW_MAP[j][k] = data[i].hexColor;
           }
-          console.log("DEBUG - New random map : ", NEW_MAP);
           return NEW_MAP;
-          /*for (let i = 0; i < NEW_MAP.length; i++) {
-            for (let j = 0; j < NEW_MAP[0].length; j++) {
-              NEW_MAP[i][j] = data[i*ypix + j].hexColor;
-
-            }
-          }*/
         })
         .catch((error) => console.log(error));
     },
@@ -514,7 +456,6 @@ export default {
       })
         .then((response) => response.json())
         .then((data) => {
-          console.log("DEBUG SA MERE LA PUTE : ", data);
           if (data.statusCode && data.statusCode != 200) {
             this.openFailedEditModal = true;
             this.errorMessage = data?.message;
@@ -557,6 +498,7 @@ export default {
             hex: data.hexColor,
           };
           this.lastSubmittedTime = data.lastUpdate;
+          console.log("DEBUG - time last updated ", this.lastSubmittedTime);
           setUserPixel(this.x, this.y);
           changeColor(this.color.hex);
         })
