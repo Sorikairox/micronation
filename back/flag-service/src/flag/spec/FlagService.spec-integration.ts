@@ -40,24 +40,24 @@ describe('FlagService', () => {
 
   afterEach(async () => {
     await dbClientService
-        .getDb()
-        .collection(pixelRepository.getCollectionName())
-        .deleteMany({});
+      .getDb()
+      .collection(pixelRepository.getCollectionName())
+      .deleteMany({});
     await dbClientService
-        .getDb()
-        .collection('counter')
-        .deleteMany({});
+      .getDb()
+      .collection('counter')
+      .deleteMany({});
   });
   describe('addPixel', () => {
     it('add creation event in db', async () => {
       const addedPixelEvent = await flagService.addPixel(
-          'secondownerid',
-          '#DDDDDD',
+        'secondownerid',
+        '#DDDDDD',
       );
       const createdPixel = await dbClientService
-          .getDb()
-          .collection(pixelRepository.getCollectionName())
-          .findOne<DatabaseEvent<Pixel>>({ _id: addedPixelEvent._id });
+        .getDb()
+        .collection(pixelRepository.getCollectionName())
+        .findOne<DatabaseEvent<Pixel>>({ _id: addedPixelEvent._id });
       expect(createdPixel).toBeDefined();
       expect(createdPixel.data.hexColor).toEqual('#DDDDDD');
       expect(createdPixel.data.indexInFlag).toEqual(1);
@@ -66,30 +66,30 @@ describe('FlagService', () => {
 
     it('set unique index', async () => {
       const firstPixel = flagService.addPixel(
-          'first',
-          '#DDDDDD',
+        'first',
+        '#DDDDDD',
       );
       const secondPixel = flagService.addPixel(
-          'second',
-          '#DDDDDD',
+        'second',
+        '#DDDDDD',
       );
       const thirdPixel = flagService.addPixel(
-          'third',
-          '#DDDDDD',
+        'third',
+        '#DDDDDD',
       );
       const [first, second, third] = await Promise.all([firstPixel, secondPixel, thirdPixel]);
       const firstCreated = await dbClientService
-          .getDb()
-          .collection(pixelRepository.getCollectionName())
-          .findOne<DatabaseEvent<Pixel>>({ _id: first._id });
+        .getDb()
+        .collection(pixelRepository.getCollectionName())
+        .findOne<DatabaseEvent<Pixel>>({ _id: first._id });
       const secondCreated = await dbClientService
-          .getDb()
-          .collection(pixelRepository.getCollectionName())
-          .findOne<DatabaseEvent<Pixel>>({ _id: second._id });
+        .getDb()
+        .collection(pixelRepository.getCollectionName())
+        .findOne<DatabaseEvent<Pixel>>({ _id: second._id });
       const thirdCreated = await dbClientService
-          .getDb()
-          .collection(pixelRepository.getCollectionName())
-          .findOne<DatabaseEvent<Pixel>>({ _id: third._id });
+        .getDb()
+        .collection(pixelRepository.getCollectionName())
+        .findOne<DatabaseEvent<Pixel>>({ _id: third._id });
       expect([1, 2, 3]).toContain(firstCreated.data.indexInFlag);
       expect([1, 2, 3]).toContain(secondCreated.data.indexInFlag);
       expect([1, 2, 3]).toContain(thirdCreated.data.indexInFlag);
@@ -110,10 +110,6 @@ describe('FlagService', () => {
   describe('getOrCreateUserPixel', () => {
     describe('user has pixel', () => {
       it('return pixel', async () => {
-        const createdPixel = await flagService.addPixel(
-          'randomId',
-          '#DDDDDD',
-        );
         await flagService.changePixelColor('randomId', '#000000');
         const pixel = await flagService.getOrCreateUserPixel('randomId');
         expect(pixel.author).toEqual('randomId');
@@ -152,18 +148,18 @@ describe('FlagService', () => {
       process.env.CHANGE_COOLDOWN = '5';
 
       await expect(
-          flagService.changePixelColor('fakeownerid', '#FFFFFF'),
+        flagService.changePixelColor('fakeownerid', '#FFFFFF'),
       ).rejects.toThrow(UserHasNoPixel);
     });
     it('throw error when changing color before cooldown duration ends', async () => {
       process.env.CHANGE_COOLDOWN = '5';
-      const addedPixelEvent = await flagService.addPixel('ownerid', '#DDDDDD');
+      await flagService.addPixel('ownerid', '#DDDDDD');
       await new Promise((r) => setTimeout(r, 1));
 
       await flagService.changePixelColor('ownerid', '#FFFFFF');
 
       await expect(
-          flagService.changePixelColor('ownerid', '#FFFFFF'),
+        flagService.changePixelColor('ownerid', '#FFFFFF'),
       ).rejects.toThrow(CooldownTimerHasNotEndedYetError);
     });
   });
@@ -174,7 +170,7 @@ describe('FlagService', () => {
       await new Promise((r) => setTimeout(r, 1));
       await flagService.addPixel('secondowner', '#AAAAAA');
       await new Promise((r) => setTimeout(r, 1));
-      const thirdPixelEvent = await flagService.addPixel(
+      await flagService.addPixel(
         'thirdowner',
         '#FFFFFF',
       );
