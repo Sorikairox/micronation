@@ -577,8 +577,7 @@ export default {
     const token = instance.userToken;
     console.log("DEBUG - userToken : ", token);
     if (!token) {
-      // commented out for debug purpose on this page, especially on the fetchs
-      // redirect({ name: "index" });
+      redirect({ name: "index" });
     }
   },
 };
