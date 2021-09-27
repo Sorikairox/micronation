@@ -79,4 +79,12 @@ export class FlagController {
       throw new InternalServerErrorException();
     }
   }
+
+  @Get('cooldown')
+  @Public()
+  getChangeCooldown() {
+    return {
+      cooldown: Number(process.env.CHANGE_COOLDOWN),
+    };
+  }
 }
