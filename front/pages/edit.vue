@@ -2,11 +2,11 @@
   <v-app>
     <div class="w-screen h-screen bg-grey-light">
       <div
-        class="grid h-full grid-rows-2 pt-24 space-y-8 lg:grid-cols-2 lg:space-x-8"
+        class="grid h-full grid-rows-2 pt-24 space-y-8  lg:grid-cols-2 lg:space-x-8"
       >
         <div
           id="flagContainer"
-          class="flex flex-col justify-center w-3/4 mx-auto bg-white rounded-lg sm:mx-4 sm:w-full"
+          class="flex flex-col justify-center w-3/4 mx-auto bg-white rounded-lg  sm:mx-4 sm:w-full"
         >
           <canvas
             id="flagCanva"
@@ -17,7 +17,7 @@
           class="flex flex-col items-center px-4 py-1 mx-4 mb-auto bg-white rounded-lg "
         >
           <div
-            class="flex flex-col items-center w-full h-full pb-4 mb-4 border-b-2 sm:flex-row justify-evenly border-grey-base"
+            class="flex flex-col items-center w-full h-full pb-4 mb-4 border-b-2  sm:flex-row justify-evenly border-grey-base"
           >
             <div class="flex flex-col justify-around h-96">
               <AppButton
@@ -54,7 +54,7 @@
               </AppButton>
             </div>
             <div
-              class="flex flex-col items-center justify-center w-auto mx-auto sm:w-1/2 sm:mx-0"
+              class="flex flex-col items-center justify-center w-auto mx-auto  sm:w-1/2 sm:mx-0"
             >
               <v-color-picker
                 v-model="color"
@@ -78,7 +78,10 @@
         @close="closeCooldownModal"
         :open="openFailedEditModal"
         >La date de dernière modification de votre pixel est trop récente,
-        veuillez patienter.</AppAlert
+        veuillez attendre
+        <vue-countdown :time="cooldownTime" v-slot="{ minutes, seconds }">
+          {{ minutes }}:{{ seconds }} </vue-countdown
+        >avant de pouvoir changer sa couleur.</AppAlert
       ><AppAlert
         variant="error"
         @close="closeSuccessfulModal"
@@ -321,6 +324,8 @@ export default {
     return {
       token: undefined,
       color: "0000ff",
+      maxCooldownTime: 5, // min
+      lastSubmittedTime: undefined,
       openSuccessEditModal: false,
       openFailedEditModal: false,
       x: ~~(Math.random() * xPixel),
@@ -334,6 +339,17 @@ export default {
         ["#0000FF", "#0000AA", "#000055"],
       ],
     };
+  },
+  computed: {
+    cooldownTime() {
+      // return in ms
+      let remaining = new Date(lastSubmittedTime);
+      return (
+        1000 *
+        (this.maxCooldownTime * 60 -
+          (remaining.getMinutes() * 60 + remaining.getSeconds()))
+      );
+    },
   },
   methods: {
     closeCooldownModal() {
@@ -496,6 +512,18 @@ export default {
             data?.message == "CooldownNotEndedYet"
           ) {
             this.openFailedEditModal = true;
+            /*fetch(`${process.env.apiUrl}/cooldown`, {
+              method: "GET",
+              crossDomain: true,
+              headers: {
+                "Content-Type": "application/json",
+              },
+            })
+              .then((response) => response.json())
+              .then((data) => {
+                this.maxCooldownTime = data.cooldown;
+              })
+              .catch((err) => console.log(err));*/
           } else {
             this.openSuccessEditModal = true;
             this.FetchMap();
@@ -520,6 +548,7 @@ export default {
           this.x = data.indexInFlag / xPixel;
           this.y = data.indexInFlag % yPixel;
           this.color = data.hexColor;
+          this.lastSubmittedTime = data.lastUpdate;
           setUserPixel(this.x, this.y);
           changeColor(data.hexColor);
         })
