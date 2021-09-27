@@ -131,6 +131,14 @@ describe('Flag (e2e)', () => {
         expect(firstPixel.createdAt).toEqual(createdPixel.createdAt);
         expect(firstPixel.lastUpdate).toEqual(modifiedPixel.createdAt);
       });
+      it('/cooldown (GET)', async () => {
+        const res = await request(app.getHttpServer())
+          .get('/cooldown')
+          .set('authorization', authToken);
+
+        expect(res.status).toEqual(200);
+        expect(res.body.cooldown).toEqual(Number(process.env.CHANGE_COOLDOWN));
+      });
     });
   }
 });
