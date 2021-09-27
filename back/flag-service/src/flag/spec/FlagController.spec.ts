@@ -200,4 +200,12 @@ describe('FlagController', () => {
       })
     });
   });
+  describe('getCoolDown', () => {
+    describe('success', () => {
+      it('returns process.env.CHANGE_COOLDOWN', () => {
+        process.env.CHANGE_COOLDOWN = '15';
+        expect(flagController.getChangeCooldown().cooldown).toEqual(15);
+      })
+    });
+  });
 });
