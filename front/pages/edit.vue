@@ -73,6 +73,33 @@
           </div>
         </div>
       </div>
+      <AppAlert
+        v-if="this.errorMessage == 'CooldownNotEndedYet'"
+        variant="error"
+        @close="closeCooldownModal"
+        :open="openFailedEditModal"
+        >La date de dernière modification de votre pixel est trop récente,
+        veuillez attendre
+        <!-- <vue-countdown :time="cooldownTime" v-slot="{ minutes, seconds }">
+          {{ minutes }}:{{ seconds }} </vue-countdown
+        > -->
+        avant de pouvoir changer sa couleur.</AppAlert
+      >
+      <AppAlert
+        v-else
+        variant="error"
+        @close="closeCooldownModal"
+        :open="openFailedEditModal"
+      >
+        <pre>{{ this.errorMessage }}</pre></AppAlert
+      ><AppAlert
+        variant="error"
+        @close="closeSuccessfulModal"
+        :open="openSuccessEditModal"
+        >La couleur (
+        <pre>{{ this.color.hex }}</pre>
+        ) a été changée avec succès !</AppAlert
+      >
     </div>
   </v-app>
 </template>
@@ -80,6 +107,7 @@
 <script>
 import * as THREE from "three";
 import fouloscopie from "fouloscopie";
+import AppAlert from "~/components/organisms/AppAlert";
 
 class Pixel {
   constructor(x, y, color) {
@@ -183,6 +211,7 @@ function drawPixel(x, y, clr, changeTexture = false, size = 1, ctx = context) {
   if (changeTexture) {
     MAP_BASE[x][y] = clr;
   }
+  ctx.fillStyle = "#000000";
 }
 
 //Initalising the flag canvas
@@ -260,6 +289,7 @@ function init() {
 
 //Change the color value and draw it to the user pixel
 function changeColor(newColor) {
+  console.log("Pixel draw informations :", [newColor, userXPixel, userYPixel]);
   drawPixel(userXPixel, userYPixel, newColor, true);
   color = newColor;
   drawZoom();
@@ -298,14 +328,20 @@ function onPointerMove(e) {
 
 export default {
   name: "edit",
+  components: {
+    AppAlert,
+  },
   data() {
     return {
-      token:
-        // dev purpose, had to dealt with preprod problems so a temporary working token was taking as a debugging base
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjExOTVmYzE4LTk5MDktNDIyNC1iNDg5LWUxZGM3YTBjNjM1YyIsImlhdCI6MTYzMTE0NTcwOCwiZXhwIjoxNjMxMTQ2NjA4fQ.Ow0pVEYXaRC-zpsdxtg5MfZa0JJAoODzar1orIKalM8",
-      pixelId: undefined,
-      color: "0000ff",
+      token: undefined,
+      color: {
+        hex: "00ffff",
+      },
+      maxCooldownTime: 5, // min
+      lastSubmittedTime: new Date(),
+      errorMessage: "",
       openSuccessEditModal: false,
+      openFailedEditModal: false,
       x: ~~(Math.random() * xPixel),
       y: ~~(Math.random() * yPixel),
       isMounted: false,
@@ -318,10 +354,33 @@ export default {
       ],
     };
   },
+  computed: {
+    cooldownTime() {
+      // return in ms
+      let remaining = new Date(this.lastSubmittedTime);
+      console.log(
+        "Debug - time remaining : ",
+        1000 *
+          (this.maxCooldownTime * 60 -
+            (remaining.getMinutes() * 60 + remaining.getSeconds()))
+      );
+      return (
+        1000 *
+        (this.maxCooldownTime * 60 -
+          (remaining.getMinutes() * 60 + remaining.getSeconds()))
+      );
+    },
+  },
   methods: {
+    closeCooldownModal() {
+      this.openFailedEditModal = false;
+    },
+    closeSuccessfulModal() {
+      this.openSuccessEditModal = false;
+    },
     change() {
       if (this.isMounted) {
-        changeColor(this.color);
+        changeColor(this.color.hex);
       }
     },
     Finish() {
@@ -335,7 +394,7 @@ export default {
         drawZoom();
       }, 3000);
     },
-    Refresh(ack = false) {
+    async Refresh(ack = false) {
       console.log("REFRESH", ack);
       console.log("Fetching the flag size");
 
@@ -343,20 +402,16 @@ export default {
         newY = yPixel;
       fetch(`${process.env.apiUrl}/flag`, {
         method: "GET",
-        mode: "no-cors",
+        crossDomain: true,
         headers: {
           "Content-Type": "application/json",
-          Authentication: this.token,
         },
-        body: JSON.stringify({
-          pixelId: this.pixelId,
-          hexColor: this.color,
-        }),
       })
+        .then((response) => response.json())
         .then((data) => {
-          data = JSON.stringify(data);
-          newX = data.body.length;
-          newY = data.body[0].length;
+          newX = data.length;
+          console.log("DEBUG - size of flag : ", newX);
+          newY = ~~(newX / ratio);
         })
         .catch((err) => console.log(err));
       //for test, remove thx to back end
@@ -365,13 +420,13 @@ export default {
         newY = ~~(newX / 2);
         console.log("New size", newX, newY);
       }*/
-      fetch();
+      // fetch();
 
       if (xPixel != newX || yPixel != newY) {
         console.log("Many users, new flag, drawing...");
         xPixel = newX;
         yPixel = newY;
-        MAP_BASE = this.FetchMap();
+        MAP_BASE = await this.FetchMap();
         initCanvas();
         initZoom();
       } else {
@@ -385,73 +440,61 @@ export default {
     },
     FetchPixels() {
       console.log("Fetching the new pixel");
+      // TOFIX : how to fetch the new pixels from a back purpose ? We can only use the /flag endpoint to get all the pixels, not just the recent one
+      // One way : fetching all the pixels and looking out the new compared to the actual map we have, maybe using the "entityId" field
       const NEW_PIXEL = [];
-      for (let i = 0; i < (Math.random() * xPixel * yPixel) / 2; i++) {
-        NEW_PIXEL.push(
-          new Pixel(
-            ~~(Math.random() * xPixel),
-            ~~(Math.random() * yPixel),
-            "#ff00ff"
-          )
-        );
-      }
+      // for (let i = 0; i < (Math.random() * xPixel * yPixel) / 2; i++) {
+      //   NEW_PIXEL.push(
+      //     new Pixel(
+      //       ~~(Math.random() * xPixel),
+      //       ~~(Math.random() * yPixel),
+      //       "#ff00ff"
+      //     )
+      //   );
+      // }
       return NEW_PIXEL;
     },
-    FetchMap() {
+    async FetchMap() {
       console.log("Fetching the whole map");
-
-      fetch(`${process.env.apiUrl}/flag`, {
+      return await fetch(`${process.env.apiUrl}/flag`, {
         method: "GET",
-        mode: "no-cors",
+        crossDomain: true,
         headers: {
           "Content-Type": "application/json",
-          Authentication: this.token,
         },
-        body: JSON.stringify({
-          pixelId: this.pixelId,
-          hexColor: this.color,
-        }),
       })
+        .then((response) => response.json())
         .then((data) => {
-          data = JSON.stringify(data);
-          xPixel = data.body.length;
-          yPixel = data.body[0].length;
+          console.log("DEBUG - New map array : ", data);
+          xPixel = 20;
+          yPixel = ~~(xPixel / ratio);
           const NEW_MAP = new Array(xPixel);
           for (let i = 0; i < NEW_MAP.length; i++) {
             NEW_MAP[i] = new Array(yPixel);
           }
 
-          for (let i = 0; i < NEW_MAP.length; i++) {
-            for (let j = 0; j < NEW_MAP[0].length; j++) {
-              NEW_MAP[i][j] = data.body[i][j].hexColor;
-            }
+          // data = new Array(xPixel * yPixel);
+          // for (let j = 0; j < xPixel * yPixel; j++) {
+          //   data[j] = {
+          //     // hexColor: "#" + Math.ceil(Math.random() * 16777215).toString(16),
+          //     hexColor: "#ff0000"
+          //   };
+          // }
+          for (let i = 0; i < data.length; i++) {
+            let j = i % xPixel;
+            let k = ~~(i / yPixel);
+            NEW_MAP[j][k] = data[i].hexColor;
           }
+          console.log("DEBUG - New random map : ", NEW_MAP);
+          return NEW_MAP;
+          /*for (let i = 0; i < NEW_MAP.length; i++) {
+            for (let j = 0; j < NEW_MAP[0].length; j++) {
+              NEW_MAP[i][j] = data[i*ypix + j].hexColor;
+
+            }
+          }*/
         })
         .catch((error) => console.log(error));
-
-      const NEW_MAP = new Array(xPixel);
-      for (let i = 0; i < NEW_MAP.length; i++) {
-        NEW_MAP[i] = new Array(yPixel);
-      }
-
-      //Seting the color (here is a french flag)
-      for (let i = 0; i < NEW_MAP.length; i++) {
-        for (let j = 0; j < NEW_MAP[0].length; j++) {
-          /*if (j < 100) {
-            if (i < 200 / 3) {
-              NEW_MAP[i][j] = "#0000ff";
-            } else if (i < 400 / 3) {
-              NEW_MAP[i][j] = "#00ff00";
-            } else if (i < 200) {
-              NEW_MAP[i][j] = "#ff0000";
-            }
-          } else {
-            NEW_MAP[i][j] = "#ffff00";
-          }*/
-          NEW_MAP[i][j];
-        }
-      }
-      return NEW_MAP;
     },
     sendPixel(x, y) {
       //Sending the user pixel with coords, color, timestamp?, userID?
@@ -460,56 +503,81 @@ export default {
       console.log("Sending: ", UserPixel);
       fetch(`${process.env.apiUrl}/pixel`, {
         method: "PUT",
-        mode: "no-cors",
+        crossDomain: true,
         headers: {
           "Content-Type": "application/json",
-          Authentication: this.token,
+          Authorization: this.token,
         },
         body: JSON.stringify({
-          pixelId: this.pixelId,
-          hexColor: this.color,
+          hexColor: UserPixel.color,
         }),
       })
+        .then((response) => response.json())
         .then((data) => {
-          this.openSuccessEditModal = true;
+          console.log("DEBUG SA MERE LA PUTE : ", data);
+          if (data.statusCode && data.statusCode != 200) {
+            this.openFailedEditModal = true;
+            this.errorMessage = data?.message;
+            /*fetch(`${process.env.apiUrl}/cooldown`, {
+              method: "GET",
+              crossDomain: true,
+              headers: {
+                "Content-Type": "application/json",
+              },
+            })
+              .then((response) => response.json())
+              .then((data) => {
+                this.maxCooldownTime = data.cooldown;
+              })
+              .catch((err) => console.log(err));*/
+          } else {
+            this.openSuccessEditModal = true;
+            this.FetchMap();
+          }
         })
         .catch((error) => console.log(error));
     },
-    FetchUserPixel() {
+    async FetchUserPixel() {
       console.log("Fetching user pixel");
-      fetch(`${process.env.apiUrl}/pixel`, {
+      await fetch(`${process.env.apiUrl}/pixel`, {
         method: "GET",
-        mode: "no-cors",
+        crossDomain: true,
         headers: {
           "Content-Type": "application/json",
-          Authentication: this.token,
+          Authorization: this.token,
         },
       })
+        .then((response) => response.json())
         .then((data) => {
-          data = JSON.stringify(data);
-          this.x = data.body.indexInFlag / xPixel;
-          this.y = data.body.indexInFlag % yPixel;
-          this.pixelId = data.body.entityId;
+          console.log("DEBUG - User pixel : ", data);
+          // field indexInFlag not in the response of the /pixel endpoint, the back-end has been contacted to discuss this issue
+          this.x = (data.indexInFlag % xPixel) - 1;
+          this.y = ~~(data.indexInFlag / yPixel);
+          this.color = {
+            hex: data.hexColor,
+          };
+          this.lastSubmittedTime = data.lastUpdate;
+          setUserPixel(this.x, this.y);
+          changeColor(this.color.hex);
         })
         .catch((error) => console.log(error));
     },
   },
-  mounted() {
-    this.isMounted = true;
-    MAP_BASE = this.FetchMap();
-    this.FetchUserPixel();
-    setUserPixel(this.x, this.y);
+  async mounted() {
+    const instance = await fouloscopie();
+    this.token = instance.userToken;
+
+    MAP_BASE = await this.FetchMap();
+    await this.FetchUserPixel();
     init();
+    this.isMounted = true;
   },
   async middleware({ redirect }) {
     const instance = await fouloscopie();
     const token = instance.userToken;
-    console.log(token);
+    console.log("DEBUG - userToken : ", token);
     if (!token) {
-      // commented out for debug purpose on this page, especially on the fetchs
-      // redirect({ name: "index" });
-    } else {
-      this.token = token;
+      redirect({ name: "index" });
     }
   },
 };

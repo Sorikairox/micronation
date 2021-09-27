@@ -542,11 +542,10 @@ function changeTexture(canva) {
 export default {
   name: "index",
   data() {
-    return {
-      loggedIn: false,
-    };
+    return {};
   },
   mounted() {
+    
     init();
     this.$nuxt.$on("FlagClick", () => {
       this.$router.push({ name: "edit" });
