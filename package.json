@@ -1,5 +1,7 @@
 {
   "scripts": {
-    "heroku-postbuild": "cd back/ && yarn && yarn workspace flag-service start"
-  }
+    "heroku-postbuild": "cd back/ && yarn && yarn workspace flag-service build",
+    "start": "node back/flag-service/dist/main.js"
+  },
+  "dependencies": {}
 }
