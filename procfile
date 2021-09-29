@@ -1,1 +1,0 @@
-web: cd back/flag-service/ && yarn start
