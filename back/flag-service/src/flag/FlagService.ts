@@ -34,9 +34,9 @@ export class FlagService {
     if (!lastUserAction) {
       throw new UserHasNoPixel();
     }
+    const difference = differenceInMinutes(new Date(), lastUserAction.createdAt);
     if (
-      lastUserAction.action === 'update' &&
-      differenceInMinutes(lastUserAction.createdAt, new Date()) <
+      lastUserAction.action === 'update' && difference <
         Number(process.env.CHANGE_COOLDOWN)
     ) {
       throw new CooldownTimerHasNotEndedYetError();
