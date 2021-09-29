@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "@chenfengyuan/vue-countdown": "^2.0.0-rc",
+    "vue": "^3.2.19"
+  }
+}

@@ -10,7 +10,7 @@ To run micronation, you will need :
 
 ## Installation
 
-First, clone the repository with : 
+First, clone the repository with :
 
 `git clone https://github.com/Sorikairox/micronation`
 
@@ -21,16 +21,26 @@ Copy `.env.example` content to a `.env`, `.env.test.integration` and `.env.test.
 
 ## Running the apps
 
+The entire project is meant to be considered as an **experiment**, thus is made to be visited from the **Fouloscopie** plateform.
+As a result, expose the **front** server on port `3500` and the back one on port `3000` and then visit https://preprod.fouloscopie.com/experiment/1
+
 ### Back
 Microservices are built with NestJS framework and use their scripts.
 
 Before running, `library` must be built **at least once** with `tsc --build library/tsconfig.json` (or `cd library && yarn tsc`).
 
 - `yarn start:dev` to run and watch for changes
-- `yarn start` to run the app 
+- `yarn start` to run the app
 - `yarn test` to run base tests
 - `yarn test:integration` to run integration tests
 - `yarn test:e2e` to run end-to-end tests
+
+### Front
+
+The Nuxt environnement is being used for the front integration, in addition with `yarn` scripts.
+
+Go to the `front` folder and enter `yarn` to install all the dependencies.
+Then, start the dev mode with `yarn dev` or build the entire project with `yarn build`.
 
 ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
