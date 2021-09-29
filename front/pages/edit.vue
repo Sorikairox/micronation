@@ -326,12 +326,17 @@ export default {
   computed: {
     cooldownTime() {
       // return in ms
+      const remainingTime =
+        this.maxCooldownTime * 60000 -
+        (new Date() - new Date(this.lastSubmittedTime));
       console.log("DEBUG - Informations : ", [
         new Date(),
         new Date(this.lastSubmittedTime),
+        this.maxCooldownTime,
         new Date() - new Date(this.lastSubmittedTime),
+        remainingTime,
       ]);
-      return new Date() - new Date(this.lastSubmittedTime);
+      return remainingTime;
     },
   },
   methods: {
@@ -473,6 +478,7 @@ export default {
               .catch((err) => console.log(err));*/
           } else {
             this.openSuccessEditModal = true;
+            this.FetchUserPixel();
             this.FetchMap();
           }
         })
@@ -504,11 +510,24 @@ export default {
         })
         .catch((error) => console.log(error));
     },
+    async FetchCooldown() {
+      const res = await fetch(`${process.env.apiUrl}/cooldown`,
+        {
+          method: "GET",
+          crossDomain: true,
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: this.token,
+          },
+        });
+      const body = await res.json();
+      return body.cooldown;
+    }
   },
   async mounted() {
     const instance = await fouloscopie();
-    this.token = instance.userToken;
-
+    this.token = instance.userInfo.token;
+    this.maxCooldownTime = await this.FetchCooldown();
     MAP_BASE = await this.FetchMap();
     await this.FetchUserPixel();
     init();
@@ -516,7 +535,7 @@ export default {
   },
   async middleware({ redirect }) {
     const instance = await fouloscopie();
-    const token = instance.userToken;
+    const token = instance.userInfo.token;
     console.log("DEBUG - userToken : ", token);
     if (!token) {
       redirect({ name: "index" });
