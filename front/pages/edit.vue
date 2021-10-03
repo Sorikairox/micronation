@@ -57,11 +57,11 @@
               class="flex flex-col items-center justify-center w-auto mx-auto sm:w-1/2 sm:mx-0"
             >
               <v-color-picker
-                v-model="color"
+                :value="color"
                 :swatches="swatches"
                 show-swatches
                 :elevation="5"
-                @update:color="change()"
+                @update:color="change"
               ></v-color-picker>
             </div>
           </div>
@@ -103,9 +103,7 @@
         variant="info"
         @close="closeSuccessfulModal"
         :open="openSuccessEditModal"
-        >La couleur (
-        <pre>{{ this.color.hex }}</pre>
-        ) a été changée avec succès !</AppAlert
+        >La couleur a été changée avec succès !</AppAlert
       >
     </div>
   </v-app>
@@ -146,7 +144,7 @@ let zoomCanvas, zoomContext;
 let BoundingBox;
 
 //Color from the colorPicker
-let color = "#ff0000";
+let canvasPixelColor = "#ff0000";
 
 //the coords of the user's pixel
 let userXPixel = 0;
@@ -181,13 +179,15 @@ function drawOverlay() {
 //Draw a pixel on a coord given (x,y,clr), if changetexture is set to true, change the value on the map
 //You can change the size and the context to draw, default is flag context
 function drawPixel(x, y, clr, changeTexture = false, size = 1, ctx = context) {
-  let drawSize = (WIDTH / xPixel) * size;
-  ctx.fillStyle = clr;
-  ctx.fillRect(x * drawSize, y * drawSize, drawSize + 1, drawSize + 1);
-  if (changeTexture) {
-    MAP_BASE[x][y] = clr;
+  if (ctx) {
+    let drawSize = (WIDTH / xPixel) * size;
+    ctx.fillStyle = clr;
+    ctx.fillRect(x * drawSize, y * drawSize, drawSize + 1, drawSize + 1);
+    if (changeTexture) {
+      MAP_BASE[x][y] = clr;
+    }
+    ctx.fillStyle = "#ffffff";
   }
-  ctx.fillStyle = "#ffffff";
 }
 
 //Initalising the flag canvas
@@ -239,17 +239,19 @@ function drawZoom(
     : y + Yoffset > HEIGHT
     ? (y = HEIGHT - 2 * Yoffset)
     : (y -= Yoffset);
-  zoomContext.drawImage(
-    canvas,
-    x,
-    y,
-    zoomCanvas.width / zoom,
-    zoomCanvas.height / zoom,
-    0,
-    0,
-    zoomCanvas.width,
-    zoomCanvas.height
-  );
+  if (zoomContext) {
+    zoomContext.drawImage(
+      canvas,
+      x,
+      y,
+      zoomCanvas.width / zoom,
+      zoomCanvas.height / zoom,
+      0,
+      0,
+      zoomCanvas.width,
+      zoomCanvas.height
+    );
+  }
 }
 
 //Initalising the variables to their value
@@ -263,9 +265,9 @@ function init() {
 
 //Change the color value and draw it to the user pixel
 function changeColor(newColor) {
-  console.log("Pixel draw informations :", [newColor, userXPixel, userYPixel]);
+  // console.log("Pixel draw informations :", [newColor, userXPixel, userYPixel]);
+  canvasPixelColor = newColor;
   drawPixel(userXPixel, userYPixel, newColor, true);
-  color = newColor;
   drawZoom();
 }
 
@@ -303,9 +305,7 @@ export default {
   data() {
     return {
       token: undefined,
-      color: {
-        hex: "00ffff",
-      },
+      color: "ff0000",
       maxCooldownTime: 5, // min
       lastSubmittedTime: new Date(),
       errorMessage: "",
@@ -346,9 +346,10 @@ export default {
     closeSuccessfulModal() {
       this.openSuccessEditModal = false;
     },
-    change() {
+    change(newColorObject) {
+      this.color = newColorObject.hex;
       if (this.isMounted) {
-        changeColor(this.color.hex);
+        changeColor(this.color);
       }
     },
     Finish() {
@@ -500,13 +501,11 @@ export default {
           // field indexInFlag not in the response of the /pixel endpoint, the back-end has been contacted to discuss this issue
           this.x = (data.indexInFlag % xPixel) - 1;
           this.y = ~~(data.indexInFlag / yPixel);
-          this.color = {
-            hex: data.hexColor,
-          };
+          this.color = data.hexColor;
           this.lastSubmittedTime = data.lastUpdate;
           console.log("DEBUG - time last updated ", this.lastSubmittedTime);
           setUserPixel(this.x, this.y);
-          changeColor(this.color.hex);
+          changeColor(this.color);
         })
         .catch((error) => console.log(error));
     },
