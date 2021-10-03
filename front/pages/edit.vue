@@ -535,7 +535,7 @@ export default {
   async middleware({ redirect }) {
     const instance = await fouloscopie();
     const token = instance.userInfo.token;
-    console.log("DEBUG - userToken : ", token);
+    // console.log("DEBUG - userToken : ", token);
     if (!token) {
       redirect({ name: "index" });
     }
