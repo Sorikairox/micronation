@@ -17,7 +17,7 @@ const main = async () => {
     event.action = 'creation';
     event.author = v4();
     event.entityId = v4();
-    event.data = new Pixel(event.author, `#${Math.floor(Math.random()*16777215).toString(16)}`, event.entityId, i);
+    event.data = new Pixel(event.author, `${"#000000".replace(/0/g,function(){return (~~(Math.random()*16)).toString(16)})}`, event.entityId, i);
     event.createdAt = new Date();
     await db.collection('pixel-events').insertOne(event);
     i++;
