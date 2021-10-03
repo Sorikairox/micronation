@@ -19,7 +19,7 @@ const main = async () => {
   const db = client.db('micronation');
   const counter = (await db.collection('counter').findOne({ name: 'pixelCounter' })).counter;
   let i = counter + 1;
-  while (i < counter + numberOfPixelToGenerate) {
+  while (i <= counter + numberOfPixelToGenerate) {
     const event = new DatabaseEvent()
     event.action = 'creation';
     event.author = v4();
