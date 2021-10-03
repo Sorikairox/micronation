@@ -18,9 +18,9 @@ export default {
     return {};
   },
   async mounted() {
-    const ratio_texture = 2;
-    const width = 20;
-    const height = ~~(width / ratio_texture);
+    const ratio_texture = 0.5;
+    let height = 250;
+    let width = ~~(height / ratio_texture);
 
     async function getFlag() {
       const response = await fetch(`${process.env.apiUrl}/flag`, {
@@ -33,8 +33,14 @@ export default {
 
       return response.json();
     }
-    var flag_data = await getFlag();
-
+    const flag_data = await getFlag();
+    if (flag_data.length < 250) {
+      height = 1;
+      width = flag_data.length;
+    } else {
+      width = 250;
+      height = ~~(flag_data.length / 250) + 1;
+    }
     const new_data = new Uint8Array(3 * width * height);
 
     for (let i = 0; i < 3 * width * height; i++) {
@@ -77,7 +83,7 @@ export default {
     const MASS = 0.1;
 
     //changing ratio here
-    const ratio = 1920 / 1080;
+    const ratio = 1 / 250;
     const restDistance = 25;
     const xSegs = 10;
     const ySegs = 10;
