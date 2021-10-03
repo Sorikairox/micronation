@@ -18,9 +18,9 @@ export default {
     return {};
   },
   async mounted() {
-    const ratio_texture = 0.5;
-    let height = 250;
-    let width = ~~(height / ratio_texture);
+    let height;
+    let width;
+    let desired_flag_width = 500;
 
     async function getFlag() {
       const response = await fetch(`${process.env.apiUrl}/flag`, {
@@ -34,17 +34,17 @@ export default {
       return response.json();
     }
     const flag_data = await getFlag();
-    if (flag_data.length < 250) {
+    if (flag_data.length < desired_flag_width) {
       height = 1;
       width = flag_data.length;
     } else {
-      width = 250;
-      height = ~~(flag_data.length / 250) + 1;
+      width = desired_flag_width;
+      height = ~~(flag_data.length / desired_flag_width) + 1;
     }
-    const new_data = new Uint8Array(3 * width * height);
+    const new_data = new Uint8Array(4 * width * height);
 
-    for (let i = 0; i < 3 * width * height; i++) {
-      new_data[i] = 255;
+    for (let i = 0; i < 4 * width * height; i++) {
+      new_data[i] = 0;
     }
 
     for (let i = 0; i < flag_data.length; i++) {
@@ -52,12 +52,12 @@ export default {
       const r = Math.floor(color.r * 255);
       const g = Math.floor(color.g * 255);
       const b = Math.floor(color.b * 255);
-
-      const stride = i * 3;
+      const stride = i * 4;
 
       new_data[stride] = r;
       new_data[stride + 1] = g;
       new_data[stride + 2] = b;
+      new_data[stride + 3] = 255;
     }
 
     // used the buffer to create a DataTexture
@@ -65,7 +65,7 @@ export default {
       new_data,
       width,
       height,
-      THREE.RGBFormat
+      THREE.RGBAFormat
     );
 
     // Switch the y-axis, a THREEjs little joke
