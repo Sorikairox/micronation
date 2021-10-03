@@ -83,7 +83,7 @@ export default {
     const MASS = 0.1;
 
     //changing ratio here
-    const ratio = 1 / 250;
+    const ratio = 1920 / 1080;
     const restDistance = 25;
     const xSegs = 10;
     const ySegs = 10;
