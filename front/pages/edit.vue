@@ -14,7 +14,7 @@
           />
         </div>
         <div
-          class="flex flex-col items-center px-4 py-1 mx-4 mb-auto bg-white rounded-lg "
+          class="flex flex-col items-center px-4 py-1 mx-4 mb-auto mt-0 bg-white rounded-lg "
         >
           <div
             class="flex flex-col items-center w-full h-full pb-4 mb-4 border-b-2 sm:flex-row justify-evenly border-grey-base"
