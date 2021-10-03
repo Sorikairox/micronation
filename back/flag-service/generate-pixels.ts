@@ -12,12 +12,14 @@ const main = async () => {
   const args = process.argv.slice(2);
   if (args.length === 0) {
     console.log('You need to put the number of pixel you want to generate as argument. Example : ts-node generate-pixels 5');
-    return;
   }
+  const numberOfPixelToGenerate = Number(args[0]);
+
   client = await client.connect();
   const db = client.db('micronation');
-  let i = 2;
-  while (i < 2 + Number(args[0])) {
+  const counter = (await db.collection('counter').findOne({ name: 'pixelCounter' })).counter;
+  let i = counter + 1;
+  while (i < counter + numberOfPixelToGenerate) {
     const event = new DatabaseEvent()
     event.action = 'creation';
     event.author = v4();
@@ -27,6 +29,7 @@ const main = async () => {
     await db.collection('pixel-events').insertOne(event);
     i++;
   }
+  await db.collection('counter').findOneAndUpdate({ name: 'pixelCounter' }, { $set :  { counter : counter + numberOfPixelToGenerate } });
   await client.close();
 }
 
