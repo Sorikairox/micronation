@@ -9,10 +9,15 @@ config();
 let client = new MongoClient(process.env.DATABASE_URI, { useUnifiedTopology: true });
 
 const main = async () => {
+  const args = process.argv.slice(2);
+  if (args.length === 0) {
+    console.log('You need to put the number of pixel you want to generate as argument. Example : ts-node generate-pixels 5');
+    return;
+  }
   client = await client.connect();
   const db = client.db('micronation');
   let i = 2;
-  while (i < 100000) {
+  while (i < 2 + Number(args[0])) {
     const event = new DatabaseEvent()
     event.action = 'creation';
     event.author = v4();
