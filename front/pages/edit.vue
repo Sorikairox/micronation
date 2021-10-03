@@ -26,7 +26,7 @@
                 variant="contained"
                 class="bg-primary-dark"
               >
-                Votre pixel: {{ x }}:{{ y }}
+                Votre pixel: {{ x + 1 }}:{{ y + 1 }}
               </AppButton>
               <AppButton
                 size="medium"
@@ -128,10 +128,9 @@ class Pixel {
 }
 
 //Initialising all the var
-const ratio = 2 / 1;
-const TEST = 200;
-let xPixel = TEST;
-let yPixel = ~~(xPixel / ratio);
+let desired_flag_width = 500;
+let xPixel = desired_flag_width;
+let yPixel;
 let MAP_BASE = new Array(xPixel);
 
 const mouse = new THREE.Vector2();
@@ -158,7 +157,7 @@ let Xoffset,
 //Draw EVERY PIXEL of the map given
 function drawFlag(MAP) {
   for (let i = 0; i < MAP.length; i++) {
-    for (let j = 0; j < MAP[0].length; j++) {
+    for (let j = 0; j < MAP[i].length; j++) {
       drawPixel(i, j, MAP[i][j]);
     }
   }
@@ -180,9 +179,10 @@ function drawOverlay() {
 //You can change the size and the context to draw, default is flag context
 function drawPixel(x, y, clr, changeTexture = false, size = 1, ctx = context) {
   if (ctx) {
-    let drawSize = (WIDTH / xPixel) * size;
+    let xDrawSize = (WIDTH / xPixel) * size;
+    let yDrawSize = (HEIGHT / yPixel) * size;
     ctx.fillStyle = clr;
-    ctx.fillRect(x * drawSize, y * drawSize, drawSize + 1, drawSize + 1);
+    ctx.fillRect(x * xDrawSize, y * yDrawSize, xDrawSize + 1, yDrawSize + 1);
     if (changeTexture) {
       MAP_BASE[x][y] = clr;
     }
@@ -428,17 +428,17 @@ export default {
         .then((response) => response.json())
         .then((data) => {
           console.log("DEBUG - New map array : ", data);
-          xPixel = 20;
-          yPixel = ~~(xPixel / ratio);
+          xPixel = (data.length > desired_flag_width) ? desired_flag_width: data.length;
+          yPixel = (data.length > desired_flag_width) ? Math.ceil(data.length / desired_flag_width) : 1;
           const NEW_MAP = new Array(xPixel);
           for (let i = 0; i < NEW_MAP.length; i++) {
             NEW_MAP[i] = new Array(yPixel);
           }
 
           for (let i = 0; i < data.length; i++) {
-            let j = i % xPixel;
-            let k = ~~(i / yPixel);
-            NEW_MAP[j][k] = data[i].hexColor;
+            let k = i % xPixel;
+            let j = Math.floor(i / desired_flag_width);
+            NEW_MAP[k][j] = data[i].hexColor;
           }
           return NEW_MAP;
         })
@@ -499,8 +499,8 @@ export default {
         .then((data) => {
           console.log("DEBUG - User pixel : ", data);
           // field indexInFlag not in the response of the /pixel endpoint, the back-end has been contacted to discuss this issue
-          this.x = (data.indexInFlag % xPixel) - 1;
-          this.y = ~~(data.indexInFlag / yPixel);
+          this.x = (data.indexInFlag % desired_flag_width) - 1;
+          this.y = ~~(data.indexInFlag / desired_flag_width);
           this.color = data.hexColor;
           this.lastSubmittedTime = data.lastUpdate;
           console.log("DEBUG - time last updated ", this.lastSubmittedTime);
