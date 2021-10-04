@@ -6,6 +6,7 @@
 	  "dist",
 	  "**/*.spec.ts",
 	  "**/*.spec-integration.ts",
-	  "**/*.spec-e2e.ts"
+	  "**/*.spec-e2e.ts",
+	  "generate-pixels.ts",
   ]
 }

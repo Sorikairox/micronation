@@ -1,3 +1,4 @@
+import { ConfigModule } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
 import { UserHasNoPixel } from '../errors/UserHasNoPixel';
 import { FlagService } from '../FlagService';
@@ -10,20 +11,27 @@ import { DatabaseEvent } from 'library/database/object/event/DatabaseEvent';
 import { set } from 'date-fns';
 import { UserAlreadyOwnAPixelError } from "../errors/UserAlreadyOwnAPixelError";
 import { CooldownTimerHasNotEndedYetError } from "../errors/CooldownTimerHasNotEndedYetError";
+import { FlagSnapshotModule } from '../snapshot/SnapshotModule';
+import { FlagSnapshotRepository } from '../snapshot/SnapshotRepository';
+import { FlagSnapshotService } from '../snapshot/SnapshotService';
 
 describe('FlagService', () => {
   let flagService: FlagService;
   let dbClientService: DatabaseClientService;
   let pixelRepository: PixelRepository;
+  let flagSnapshotRepository: FlagSnapshotRepository;
+  let flagSnapshotService: FlagSnapshotService;
 
   beforeAll(async () => {
     const app: TestingModule = await Test.createTestingModule({
       imports: [
+        ConfigModule.forRoot({ isGlobal: true }),
         DatabaseModule.register({
           uri: process.env.DATABASE_URI,
           dbName: 'testDb',
         }),
         PixelModule,
+        FlagSnapshotModule,
       ],
       controllers: [],
       providers: [FlagService],
@@ -31,7 +39,21 @@ describe('FlagService', () => {
     flagService = app.get<FlagService>(FlagService);
     dbClientService = app.get<DatabaseClientService>('DATABASE_CLIENT');
     pixelRepository = app.get<PixelRepository>(PixelRepository);
+    flagSnapshotRepository = app.get<FlagSnapshotRepository>(FlagSnapshotRepository);
+    flagSnapshotService = app.get<FlagSnapshotService>(FlagSnapshotService);
     await dbClientService.onModuleInit();
+    await dbClientService
+      .getDb()
+      .collection(pixelRepository.getCollectionName())
+      .deleteMany({});
+    await dbClientService
+      .getDb()
+      .collection('counter')
+      .deleteMany({});
+    await dbClientService
+      .getDb()
+      .collection(flagSnapshotRepository.getCollectionName())
+      .deleteMany({});
   });
 
   afterAll(async () => {
@@ -62,6 +84,7 @@ describe('FlagService', () => {
       expect(createdPixel.data.hexColor).toEqual('#DDDDDD');
       expect(createdPixel.data.indexInFlag).toEqual(1);
       expect(createdPixel.action).toEqual('creation');
+      expect(createdPixel.eventId).toEqual(1);
     });
 
     it('set unique index', async () => {
@@ -108,19 +131,22 @@ describe('FlagService', () => {
 
 
   describe('getOrCreateUserPixel', () => {
-    describe('user has pixel', () => {
-      it('return pixel', async () => {
-        await flagService.changePixelColor('randomId', '#000000');
-        const pixel = await flagService.getOrCreateUserPixel('randomId');
-        expect(pixel.author).toEqual('randomId');
-        expect(pixel.hexColor).toEqual('#000000');
-      });
-    })
     describe('user does not have pixel', () => {
       it('create and return pixel', async () => {
         const pixel = await flagService.getOrCreateUserPixel('notOwningPixelId');
         expect(pixel.author).toEqual('notOwningPixelId');
         expect(pixel.hexColor).toEqual('#FFFFFF');
+      });
+    });
+    describe('user has pixel', () => {
+      it('return pixel', async () => {
+        await flagService.addPixel(
+          'randomId',
+          '#DDDDDD',
+        );
+        const pixel = await flagService.getOrCreateUserPixel('randomId');
+        expect(pixel.author).toEqual('randomId');
+        expect(pixel.hexColor).toEqual('#DDDDDD');
       });
     })
   });
@@ -143,6 +169,7 @@ describe('FlagService', () => {
       expect(events.length).toEqual(2);
       expect(events[0].action).toEqual('update');
       expect(events[0].data.hexColor).toEqual('#FFFFFF');
+      expect(events[0].eventId).toEqual(2);
     });
     it('throw error when user has no pixel', async () => {
       process.env.CHANGE_COOLDOWN = '5';
@@ -165,26 +192,52 @@ describe('FlagService', () => {
   });
 
   describe('getFlag', () => {
-    it('returns last flag', async () => {
-      await flagService.addPixel('ownerid', '#DDDDDD');
-      await new Promise((r) => setTimeout(r, 1));
-      await flagService.addPixel('secondowner', '#AAAAAA');
-      await new Promise((r) => setTimeout(r, 1));
-      await flagService.addPixel(
-        'thirdowner',
-        '#FFFFFF',
-      );
-      await new Promise((r) => setTimeout(r, 1));
-      await flagService.changePixelColor('thirdowner', '#000000');
+    describe('without snapshot', () => {
+      it('returns latest flag', async () => {
+        await flagService.addPixel('ownerid', '#DDDDDD');
+        await new Promise((r) => setTimeout(r, 1));
+        await flagService.addPixel('secondowner', '#AAAAAA');
+        await new Promise((r) => setTimeout(r, 1));
+        await flagService.addPixel(
+          'thirdowner',
+          '#FFFFFF',
+        );
+        await new Promise((r) => setTimeout(r, 1));
+        await flagService.changePixelColor('thirdowner', '#000000');
 
-      const flag = await flagService.getFlag();
-      expect(flag.length).toEqual(3);
-      expect(flag[0].hexColor).toEqual('#DDDDDD');
-      expect(flag[0].indexInFlag).toEqual(1);
-      expect(flag[1].hexColor).toEqual('#AAAAAA');
-      expect(flag[1].indexInFlag).toEqual(2);
-      expect(flag[2].hexColor).toEqual('#000000');
-      expect(flag[2].indexInFlag).toEqual(3);
+        const flag = await flagService.getFlag();
+        expect(flag.length).toEqual(3);
+        expect(flag[0].hexColor).toEqual('#DDDDDD');
+        expect(flag[0].indexInFlag).toEqual(1);
+        expect(flag[1].hexColor).toEqual('#AAAAAA');
+        expect(flag[1].indexInFlag).toEqual(2);
+        expect(flag[2].hexColor).toEqual('#000000');
+        expect(flag[2].indexInFlag).toEqual(3);
+      });
+    });
+    describe('with snapshot', () => {
+      it('returns latest flag', async () => {
+        await flagService.addPixel('ownerid', '#DDDDDD');
+        await new Promise((r) => setTimeout(r, 1));
+        await flagService.addPixel('secondowner', '#AAAAAA');
+        await flagSnapshotService.createSnapShot(2);
+        await new Promise((r) => setTimeout(r, 1));
+        await flagService.addPixel(
+          'thirdowner',
+          '#FFFFFF',
+        );
+        await new Promise((r) => setTimeout(r, 1));
+        await flagService.changePixelColor('thirdowner', '#000000');
+
+        const flag = await flagService.getFlag();
+        expect(flag.length).toEqual(3);
+        expect(flag[0].hexColor).toEqual('#DDDDDD');
+        expect(flag[0].indexInFlag).toEqual(1);
+        expect(flag[1].hexColor).toEqual('#AAAAAA');
+        expect(flag[1].indexInFlag).toEqual(2);
+        expect(flag[2].hexColor).toEqual('#000000');
+        expect(flag[2].indexInFlag).toEqual(3);
+      });
     });
   });
 
@@ -287,4 +340,5 @@ describe('FlagService', () => {
       expect(flag[1].indexInFlag).toEqual(2);
     });
   });
+
 });

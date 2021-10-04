@@ -10,7 +10,7 @@ describe('FlagController', () => {
   let flagService: FlagService;
 
   beforeAll(async () => {
-    flagService = new FlagService(null);
+    flagService = new FlagService(null, null);
     flagController = new FlagController(flagService);
   });
 

@@ -5,4 +5,5 @@ export class DatabaseEvent<T> extends DatabaseObject {
     data: Partial<T>;
     author: string;
     entityId: string;
+    eventId?: number;
 }

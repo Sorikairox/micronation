@@ -41,6 +41,7 @@ describe('Flag (e2e)', () => {
         await db.collection('users').deleteMany({});
         await db.collection('pixel-events').deleteMany({});
         await db.collection('counter').deleteMany({});
+        await db.collection('flag-snapshot').deleteMany({});
 
         if (authBackend === AuthBackend.FOULOSCOPIE) {
           authToken = VALID_DIRECTUS_TOKEN;

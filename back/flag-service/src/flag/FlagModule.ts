@@ -6,6 +6,7 @@ import { DatabaseModule } from 'library/database/DatabaseModule';
 import { ConfigModule } from '@nestjs/config';
 import { UserModule } from "../user/UserModule";
 import { AuthBackend } from "../user/AuthBackend";
+import { FlagSnapshotModule } from './snapshot/SnapshotModule';
 
 @Module({})
 export class FlagModule {
@@ -13,12 +14,13 @@ export class FlagModule {
     return {
       module: FlagModule,
       imports: [
-        ConfigModule.forRoot(),
+        ConfigModule.forRoot({ isGlobal: true }),
         DatabaseModule.register({
           uri: process.env.DATABASE_URI,
           dbName: 'micronation',
         }),
         PixelModule,
+        FlagSnapshotModule,
         UserModule.register(authBackend),
       ],
       controllers: [FlagController],

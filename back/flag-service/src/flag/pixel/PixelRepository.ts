@@ -1,4 +1,5 @@
 import { DatabaseRepository } from 'library/database/repository/DatabaseRepository';
+import { GetPixelDTO } from './GetPixelDTO';
 import { Pixel } from './Pixel';
 import { Inject, Injectable } from '@nestjs/common';
 import { DatabaseClientService } from 'library/database/client/DatabaseClientService';
@@ -15,15 +16,17 @@ export class PixelRepository extends DatabaseRepository<DatabaseEvent<Pixel>> {
   }
 
   async createAndReturn(data: DatabaseEvent<Pixel>) {
-    data.createdAt = new Date();
     if (data.action === 'creation') {
       data.data.indexInFlag = (await this.dbClient.getDb().collection('counter').findOneAndUpdate({ name: 'pixelCounter' }, { $inc: { counter: 1 } }, {
         upsert: true,
         returnDocument: 'after',
       })).value.counter;
     }
-    const insertOperation = await this.dbClient.getDb().collection(this.collectionName).insertOne(data);
-    return insertOperation.ops[0];
+    data.eventId = (await this.dbClient.getDb().collection('counter').findOneAndUpdate({ name: 'pixelEventCounter' }, { $inc: { counter: 1 } }, {
+      upsert: true,
+      returnDocument: 'after',
+    })).value.counter
+    return super.createAndReturn(data);
   }
 
   async getUserPixel(userId: string) {
@@ -47,10 +50,39 @@ export class PixelRepository extends DatabaseRepository<DatabaseEvent<Pixel>> {
     return this.getCollection().aggregate(aggregation).toArray();
   }
 
+  async getPixelsBetweenEventIds(from: number, to: number): Promise<GetPixelDTO[]> {
+    const aggregation = this.getPixelAggregation();
+    aggregation.unshift({
+      $match: { eventId: { $lte: to, $gt : from },
+      },
+    });
+    return this.getCollection().aggregate(aggregation).toArray();
+  }
+
+  async getPixelsAfterEventId(eventId: number) {
+    const aggregation = this.getPixelAggregation();
+    aggregation.unshift({
+      $match: {
+        eventId: { $gt: eventId },
+      },
+    });
+    return this.getCollection().aggregate(aggregation).toArray();
+  }
+
+  async getPixelsUntilEventId(eventId: number) {
+    const aggregation = this.getPixelAggregation();
+    aggregation.unshift({
+      $match: {
+        eventId: { $lte: eventId },
+      },
+    });
+    return this.getCollection().aggregate(aggregation).toArray();
+  }
+
   private getPixelAggregation(): Array<any> {
     return [
       {
-        $sort: { createdAt: 1 },
+        $sort: { eventId: 1 },
       },
       {
         $group: {
