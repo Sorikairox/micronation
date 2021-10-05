@@ -37,6 +37,7 @@ describe('FlagService', () => {
             pixId: 'c35a2bf6-18a6-4fd5-933b-f81faf1015fe',
             indexInFlag: 1,
           },
+          eventId: 1,
           createdAt: set(date, {
             year: 2021,
             month: 7,
@@ -54,7 +55,9 @@ describe('FlagService', () => {
             ownerId: 'ownerid',
             hexColor: '#FFFFFF',
             pixId: 'c35a2bf6-18a6-4fd5-933b-f81faf1015fe',
+            indexInFlag: 1,
           },
+          eventId: 2,
           createdAt: set(date, {
             year: 2021,
             month: 7,
@@ -72,7 +75,9 @@ describe('FlagService', () => {
             ownerId: 'ownerid',
             hexColor: '#AAAAAA',
             pixId: 'c35a2bf6-18a6-4fd5-933b-f81faf1015fe',
+            indexInFlag: 2,
           },
+          eventId: 4,
           createdAt: set(date, {
             year: 2021,
             month: 7,
@@ -92,6 +97,7 @@ describe('FlagService', () => {
             pixId: 'c35a2bf6-18a6-4fd5-933b-f81faf1015ff',
             indexInFlag: 2,
           },
+          eventId: 3,
           createdAt: set(date, {
             year: 2021,
             month: 7,
@@ -362,7 +368,7 @@ describe('FlagService', () => {
       );
       expect(flag.length).toEqual(1);
       expect(flag[0].hexColor).toEqual('#AAAAAA');
-      expect(flag[0].indexInFlag).toEqual(1);
+      expect(flag[0].indexInFlag).toEqual(2);
     });
   });
 
