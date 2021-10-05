@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { UserHasNoPixel } from './errors/UserHasNoPixel';
+import { GetPixelDTO } from './pixel/GetPixelDTO';
 import { Pixel } from './pixel/Pixel';
 import { PixelRepository } from './pixel/PixelRepository';
 import { differenceInMinutes } from 'date-fns';
@@ -55,7 +56,7 @@ export class FlagService {
     return createdEvent;
   }
 
-  async getFlag(): Promise<Pixel[]> {
+  async getFlag(): Promise<GetPixelDTO[]> {
     const latestSnapshot = await this.flagSnapshotService.getLatestSnapshot();
     if (!latestSnapshot) {
       return this.pixelRepository.getPixels();
@@ -65,7 +66,7 @@ export class FlagService {
     }
   }
 
-  async getFlagAtDate(date: Date): Promise<Pixel[]> {
+  async getFlagAtDate(date: Date): Promise<GetPixelDTO[]> {
     return this.pixelRepository.getPixelsAtDate(date);
   }
 
