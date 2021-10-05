@@ -2,11 +2,26 @@
   <v-app>
     <div class="w-screen h-screen bg-grey-light">
       <div
-        class="grid h-full grid-rows-2 pt-24 space-y-8 lg:grid-cols-2 lg:space-x-8"
+        class="
+          grid
+          h-full
+          grid-rows-2
+          pt-24
+          space-y-8
+          lg:grid-cols-2 lg:space-x-8
+        "
       >
         <div
           id="flagContainer"
-          class="flex flex-col justify-center w-3/4 mx-auto bg-white rounded-lg sm:mx-4 sm:w-full"
+          class="
+            flex flex-col
+            justify-center
+            w-3/4
+            mx-auto
+            bg-white
+            rounded-lg
+            sm:mx-4 sm:w-full
+          "
         >
           <canvas
             id="flagCanva"
@@ -14,10 +29,31 @@
           />
         </div>
         <div
-          class="flex flex-col items-center px-4 py-1 mx-4 mb-auto mt-0 bg-white rounded-lg "
+          class="
+            flex flex-col
+            items-center
+            px-4
+            py-1
+            mx-4
+            mb-auto
+            mt-0
+            bg-white
+            rounded-lg
+          "
         >
           <div
-            class="flex flex-col items-center w-full h-full pb-4 mb-4 border-b-2 sm:flex-row justify-evenly border-grey-base"
+            class="
+              flex flex-col
+              items-center
+              w-full
+              h-full
+              pb-4
+              mb-4
+              border-b-2
+              sm:flex-row
+              justify-evenly
+              border-grey-base
+            "
           >
             <div class="flex flex-col justify-around h-96">
               <AppButton
@@ -54,7 +90,14 @@
               </AppButton>
             </div>
             <div
-              class="flex flex-col items-center justify-center w-auto mx-auto sm:w-1/2 sm:mx-0"
+              class="
+                flex flex-col
+                items-center
+                justify-center
+                w-auto
+                mx-auto
+                sm:w-1/2 sm:mx-0
+              "
             >
               <v-color-picker
                 :value="color"
@@ -131,7 +174,7 @@ class Pixel {
 let desired_flag_width = 500;
 let xPixel = desired_flag_width;
 let yPixel;
-let MAP_BASE = new Array(xPixel);
+let FLAG = new Array(xPixel);
 
 const mouse = new THREE.Vector2();
 
@@ -154,6 +197,18 @@ let Xoffset,
   Yoffset,
   zoom = 2;
 
+let lastUpdate = new Date();
+let pixelNumber = 0;
+
+function set2DSizeFromPixelNumber(length) {
+  xPixel =
+    length > desired_flag_width ? desired_flag_width : length;
+  yPixel =
+    length > desired_flag_width
+      ? Math.ceil(length / desired_flag_width)
+      : 1;
+}
+
 //Draw EVERY PIXEL of the map given
 function drawFlag(MAP) {
   for (let i = 0; i < MAP.length; i++) {
@@ -165,8 +220,8 @@ function drawFlag(MAP) {
 
 //Draw an overlay to find the user pixel on the whole flag
 function drawOverlay() {
-  for (let i = 0; i < MAP_BASE.length; i++) {
-    for (let j = 0; j < MAP_BASE[0].length; j++) {
+  for (let i = 0; i < FLAG.length; i++) {
+    for (let j = 0; j < FLAG[0].length; j++) {
       if (!(i == userXPixel && j == userYPixel)) {
         drawPixel(i, j, "#090909e0");
       }
@@ -184,7 +239,7 @@ function drawPixel(x, y, clr, changeTexture = false, size = 1, ctx = context) {
     ctx.fillStyle = clr;
     ctx.fillRect(x * xDrawSize, y * yDrawSize, xDrawSize + 1, yDrawSize + 1);
     if (changeTexture) {
-      MAP_BASE[x][y] = clr;
+      FLAG[x][y] = clr;
     }
     ctx.fillStyle = "#ffffff";
   }
@@ -207,7 +262,7 @@ function initCanvas() {
   BoundingBox = canvas.getBoundingClientRect();
   context = canvas.getContext("2d");
 
-  drawFlag(MAP_BASE);
+  drawFlag(FLAG);
 }
 
 //Initalising the zoom canvas
@@ -285,17 +340,17 @@ function onWindowResize() {
   initZoom();
 }
 
-//Draw a pixel on the pointer's coords
-function onPointerDown(event) {
-  drawZoom(~~(((mouse.x + 1) * WIDTH) / 2), ~~(((-mouse.y + 1) * HEIGHT) / 2));
-}
-
 function onPointerMove(e) {
   mouse.y = -((e.clientY - BoundingBox.top) / HEIGHT) * 2 + 1;
   mouse.x = ((e.clientX - BoundingBox.left) / WIDTH) * 2 - 1;
   drawZoom(~~(((mouse.x + 1) * WIDTH) / 2), ~~(((-mouse.y + 1) * HEIGHT) / 2));
 }
 
+function getCoordinateFromFlagIndex(i) {
+  let x = i % xPixel;
+  let y = Math.floor(i / desired_flag_width);
+  return { x, y };
+}
 export default {
   name: "edit",
   components: {
@@ -359,7 +414,7 @@ export default {
     Overlay() {
       drawOverlay();
       setTimeout(() => {
-        drawFlag(MAP_BASE);
+        drawFlag(FLAG);
         drawZoom();
       }, 3000);
     },
@@ -367,9 +422,7 @@ export default {
       console.log("REFRESH", ack);
       console.log("Fetching the flag size");
 
-      let newX = xPixel,
-        newY = yPixel;
-      fetch(`${process.env.apiUrl}/flag`, {
+      await fetch(`${process.env.apiUrl}/flag/after/${lastUpdate.toISOString()}`, {
         method: "GET",
         crossDomain: true,
         headers: {
@@ -378,43 +431,21 @@ export default {
       })
         .then((response) => response.json())
         .then((data) => {
-          newX = data.length;
-          console.log("DEBUG - size of flag : ", newX);
-          newY = ~~(newX / ratio);
+          for (const modifiedPixel of data) {
+            const { x, y } = getCoordinateFromFlagIndex(
+              modifiedPixel.indexInFlag
+            );
+            if (!FLAG[x][y]) {
+              pixelNumber++;
+            }
+            FLAG[x][y] = modifiedPixel.hexColor;
+          }
+          lastUpdate = new Date();
+          set2DSizeFromPixelNumber(pixelNumber);
+          initCanvas();
+          initZoom();
         })
         .catch((err) => console.log(err));
-
-      if (xPixel != newX || yPixel != newY) {
-        console.log("Many users, new flag, drawing...");
-        xPixel = newX;
-        yPixel = newY;
-        MAP_BASE = await this.FetchMap();
-        initCanvas();
-        initZoom();
-      } else {
-        //Fetch only new pixels
-        this.FetchPixels().forEach((pixel) => {
-          pixel.draw();
-        });
-      }
-
-      drawZoom();
-    },
-    FetchPixels() {
-      console.log("Fetching the new pixel");
-      // TOFIX : how to fetch the new pixels from a back purpose ? We can only use the /flag endpoint to get all the pixels, not just the recent one
-      // One way : fetching all the pixels and looking out the new compared to the actual map we have, maybe using the "entityId" field
-      const NEW_PIXEL = [];
-      // for (let i = 0; i < (Math.random() * xPixel * yPixel) / 2; i++) {
-      //   NEW_PIXEL.push(
-      //     new Pixel(
-      //       ~~(Math.random() * xPixel),
-      //       ~~(Math.random() * yPixel),
-      //       "#ff00ff"
-      //     )
-      //   );
-      // }
-      return NEW_PIXEL;
     },
     async FetchMap() {
       console.log("Fetching the whole map");
@@ -428,17 +459,17 @@ export default {
         .then((response) => response.json())
         .then((data) => {
           console.log("DEBUG - New map array : ", data);
-          xPixel = (data.length > desired_flag_width) ? desired_flag_width: data.length;
-          yPixel = (data.length > desired_flag_width) ? Math.ceil(data.length / desired_flag_width) : 1;
+
+          set2DSizeFromPixelNumber(data.length);
+          pixelNumber = data.length;
           const NEW_MAP = new Array(xPixel);
           for (let i = 0; i < NEW_MAP.length; i++) {
             NEW_MAP[i] = new Array(yPixel);
           }
 
           for (let i = 0; i < data.length; i++) {
-            let k = i % xPixel;
-            let j = Math.floor(i / desired_flag_width);
-            NEW_MAP[k][j] = data[i].hexColor;
+            const { x, y } = getCoordinateFromFlagIndex(i);
+            NEW_MAP[x][y] = data[i].hexColor;
           }
           return NEW_MAP;
         })
@@ -446,7 +477,7 @@ export default {
     },
     sendPixel(x, y) {
       //Sending the user pixel with coords, color, timestamp?, userID?
-      const UserPixel = new Pixel(x, y, MAP_BASE[x][y]);
+      const UserPixel = new Pixel(x, y, FLAG[x][y]);
 
       console.log("Sending: ", UserPixel);
       fetch(`${process.env.apiUrl}/pixel`, {
@@ -510,27 +541,29 @@ export default {
         .catch((error) => console.log(error));
     },
     async FetchCooldown() {
-      const res = await fetch(`${process.env.apiUrl}/cooldown`,
-        {
-          method: "GET",
-          crossDomain: true,
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: this.token,
-          },
-        });
+      const res = await fetch(`${process.env.apiUrl}/cooldown`, {
+        method: "GET",
+        crossDomain: true,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: this.token,
+        },
+      });
       const body = await res.json();
       return body.cooldown;
-    }
+    },
   },
   async mounted() {
     const instance = await fouloscopie();
     this.token = instance.userInfo.token;
     this.maxCooldownTime = await this.FetchCooldown();
-    MAP_BASE = await this.FetchMap();
+    FLAG = await this.FetchMap();
     await this.FetchUserPixel();
     init();
     this.isMounted = true;
+    setInterval(async () => {
+      await this.Refresh();
+    }, 30000)
   },
   async middleware({ redirect }) {
     const instance = await fouloscopie();
