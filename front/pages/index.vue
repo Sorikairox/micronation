@@ -246,18 +246,14 @@ export default {
       }
     }
 
-    let ID = null;
     let container;
     let camera, scene, renderer;
     let WIDTH, HEIGHT;
 
-    let clothGeometry,
-      canvasTexture = null;
+    let clothGeometry;
     let object;
     let pole;
 
-    let windowHalfX = window.innerWidth / 2; //on resize
-    let windowHalfY = window.innerHeight / 2;
     let hover = false,
       clicked = false;
 
@@ -411,22 +407,10 @@ export default {
       // light.shadow.camera.near = 0.5;
 
       light.shadow.camera.far = 2000;
-      const helper = new THREE.CameraHelper(light.shadow.camera);
-      // scene.add(helper);
       scene.add(light);
 
-      // cloth material
-      const flag = require("@/assets/flagITA.png");
-      let clothTexture;
-      if (canvasTexture) {
-        clothTexture = canvasTexture;
-      } else {
-        clothTexture = flag_texture;
-      }
-      // clothTexture.anisotropy = 16;
-
       const clothMaterial = new THREE.MeshLambertMaterial({
-        map: clothTexture,
+        map: flag_texture,
         side: THREE.DoubleSide,
         alphaTest: 0.5,
       });
@@ -450,7 +434,7 @@ export default {
 
       object.customDepthMaterial = new THREE.MeshDepthMaterial({
         depthPacking: THREE.RGBADepthPacking,
-        map: clothTexture,
+        map: flag_texture,
         alphaTest: 0.5,
       });
 
@@ -464,7 +448,6 @@ export default {
       const groundMaterial = new THREE.MeshLambertMaterial({
         map: groundTexture,
       });
-      // const groundMaterial = new THREE.MeshLambertMaterial({color: new THREE.Color( 0x00f000 )});
       let mesh = new THREE.Mesh(
         new THREE.PlaneGeometry(20000, 20000),
         groundMaterial
@@ -519,7 +502,6 @@ export default {
       Focuspoint.position.y = poleHeight - ySegs * restDistance;
       Focuspoint.receiveShadow = true;
       Focuspoint.castShadow = true;
-      // scene.add(Focuspoint);
 
       // renderer
       renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -537,26 +519,12 @@ export default {
       controls.minDistance = 1000;
       controls.maxDistance = 5000;
 
-      const axesHelper = new THREE.AxesHelper(100);
-      // scene.add(axesHelper);
-
-      // performance monitor
-      // stats = new Stats();
-      // container.appendChild( stats.dom );
-
-      //
       window.addEventListener("resize", onWindowResize);
       container.addEventListener("pointermove", onPointerMove, false);
       container.addEventListener("pointerdown", onPointerDown, false);
       container.addEventListener("pointerup", onPointerUp, false);
 
-      // window.requestAnimationFrame(render);
       return animate(0);
-
-      //GUI for some controls
-      // const gui = new GUI();
-      // gui.add( params, 'enableWind' ).name( 'Enable wind' );
-      // gui.add( params, 'togglePins' ).name( 'Toggle pins' );
     }
 
     function onWindowResize() {
@@ -591,7 +559,7 @@ export default {
     }
 
     function animate(now) {
-      ID = requestAnimationFrame(animate);
+       requestAnimationFrame(animate);
       simulate(now);
       render();
     }
@@ -624,23 +592,11 @@ export default {
       renderer.render(scene, camera);
     }
 
-    function changeTexture(canva) {
-      const texture = new THREE.CanvasTexture(canva);
-      texture.anisotropy = 16;
-      canvasTexture = texture;
-    }
-
     init();
     this.$nuxt.$on("FlagClick", () => {
       this.$router.push({ name: "edit" });
     });
-    this.$nuxt.$on("newTexture", (canva) => {
-      changeTexture(canva);
-    });
   },
-  // beforeDestroy() {
-  //   cancelAnimationFrame(ID);
-  // },
 };
 </script>
 
