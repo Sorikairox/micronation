@@ -79,6 +79,16 @@ export class PixelRepository extends DatabaseRepository<DatabaseEvent<Pixel>> {
     return this.getCollection().aggregate(aggregation).toArray();
   }
 
+  async getPixelsAfterDate(from: Date) {
+    const aggregation = this.getPixelAggregation();
+    aggregation.unshift({
+      $match: {
+        createdAt: { $gte: from },
+      },
+    });
+    return this.getCollection().aggregate(aggregation).toArray();
+  }
+
   private getPixelAggregation(): Array<any> {
     return [
       {

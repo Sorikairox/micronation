@@ -22,6 +22,88 @@ describe('FlagService', () => {
   let flagSnapshotRepository: FlagSnapshotRepository;
   let flagSnapshotService: FlagSnapshotService;
 
+  async function addPixelsToDb(date: Date) {
+    await dbClientService
+      .getDb()
+      .collection(pixelRepository.getCollectionName())
+      .insertMany([
+        {
+          action: 'creation',
+          author: 'ownerid',
+          entityId: 'c35a2bf6-18a6-4fd5-933b-f81faf1015fe',
+          data: {
+            ownerId: 'ownerid',
+            hexColor: '#DDDDDD',
+            pixId: 'c35a2bf6-18a6-4fd5-933b-f81faf1015fe',
+            indexInFlag: 1,
+          },
+          createdAt: set(date, {
+            year: 2021,
+            month: 7,
+            date: 9,
+            hours: 23,
+            minutes: 0,
+            seconds: 0,
+          }),
+        },
+        {
+          action: 'update',
+          author: 'ownerid',
+          entityId: 'c35a2bf6-18a6-4fd5-933b-f81faf1015fe',
+          data: {
+            ownerId: 'ownerid',
+            hexColor: '#FFFFFF',
+            pixId: 'c35a2bf6-18a6-4fd5-933b-f81faf1015fe',
+          },
+          createdAt: set(date, {
+            year: 2021,
+            month: 7,
+            date: 9,
+            hours: 23,
+            minutes: 10,
+            seconds: 0,
+          }),
+        },
+        {
+          action: 'update',
+          author: 'ownerid',
+          entityId: 'c35a2bf6-18a6-4fd5-933b-f81faf1015fe',
+          data: {
+            ownerId: 'ownerid',
+            hexColor: '#AAAAAA',
+            pixId: 'c35a2bf6-18a6-4fd5-933b-f81faf1015fe',
+          },
+          createdAt: set(date, {
+            year: 2021,
+            month: 7,
+            date: 9,
+            hours: 23,
+            minutes: 15,
+            seconds: 0,
+          }),
+        },
+        {
+          action: 'creation',
+          author: 'otherownerid',
+          entityId: 'c35a2bf6-18a6-4fd5-933b-f81faf1015ff',
+          data: {
+            ownerId: 'otherownerid',
+            hexColor: '#BBBBBB',
+            pixId: 'c35a2bf6-18a6-4fd5-933b-f81faf1015ff',
+            indexInFlag: 2,
+          },
+          createdAt: set(date, {
+            year: 2021,
+            month: 7,
+            date: 9,
+            hours: 23,
+            minutes: 10,
+            seconds: 0,
+          }),
+        },
+      ]);
+  }
+
   beforeAll(async () => {
     const app: TestingModule = await Test.createTestingModule({
       imports: [
@@ -170,6 +252,7 @@ describe('FlagService', () => {
       expect(events[0].action).toEqual('update');
       expect(events[0].data.hexColor).toEqual('#FFFFFF');
       expect(events[0].eventId).toEqual(2);
+      expect(events[0].data.indexInFlag).toEqual(1);
     });
     it('throw error when user has no pixel', async () => {
       process.env.CHANGE_COOLDOWN = '5';
@@ -227,15 +310,15 @@ describe('FlagService', () => {
           '#FFFFFF',
         );
         await new Promise((r) => setTimeout(r, 1));
-        await flagService.changePixelColor('thirdowner', '#000000');
+        await flagService.changePixelColor('secondowner', '#000000');
 
         const flag = await flagService.getFlag();
         expect(flag.length).toEqual(3);
         expect(flag[0].hexColor).toEqual('#DDDDDD');
         expect(flag[0].indexInFlag).toEqual(1);
-        expect(flag[1].hexColor).toEqual('#AAAAAA');
+        expect(flag[1].hexColor).toEqual('#000000');
         expect(flag[1].indexInFlag).toEqual(2);
-        expect(flag[2].hexColor).toEqual('#000000');
+        expect(flag[2].hexColor).toEqual('#FFFFFF');
         expect(flag[2].indexInFlag).toEqual(3);
       });
     });
@@ -244,85 +327,7 @@ describe('FlagService', () => {
   describe('getFlagAtDate', () => {
     it('returns flag at given timestamp', async () => {
       const date = new Date();
-      await dbClientService
-        .getDb()
-        .collection(pixelRepository.getCollectionName())
-        .insertMany([
-          {
-            action: 'creation',
-            author: 'ownerid',
-            entityId: 'c35a2bf6-18a6-4fd5-933b-f81faf1015fe',
-            data: {
-              ownerId: 'ownerid',
-              hexColor: '#DDDDDD',
-              pixId: 'c35a2bf6-18a6-4fd5-933b-f81faf1015fe',
-              indexInFlag: 1,
-            },
-            createdAt: set(date, {
-              year: 2021,
-              month: 7,
-              date: 9,
-              hours: 23,
-              minutes: 0,
-              seconds: 0,
-            }),
-          },
-          {
-            action: 'update',
-            author: 'ownerid',
-            entityId: 'c35a2bf6-18a6-4fd5-933b-f81faf1015fe',
-            data: {
-              ownerId: 'ownerid',
-              hexColor: '#FFFFFF',
-              pixId: 'c35a2bf6-18a6-4fd5-933b-f81faf1015fe',
-            },
-            createdAt: set(date, {
-              year: 2021,
-              month: 7,
-              date: 9,
-              hours: 23,
-              minutes: 10,
-              seconds: 0,
-            }),
-          },
-          {
-            action: 'update',
-            author: 'ownerid',
-            entityId: 'c35a2bf6-18a6-4fd5-933b-f81faf1015fe',
-            data: {
-              ownerId: 'ownerid',
-              hexColor: '#AAAAAA',
-              pixId: 'c35a2bf6-18a6-4fd5-933b-f81faf1015fe',
-            },
-            createdAt: set(date, {
-              year: 2021,
-              month: 7,
-              date: 9,
-              hours: 23,
-              minutes: 15,
-              seconds: 0,
-            }),
-          },
-          {
-            action: 'creation',
-            author: 'otherownerid',
-            entityId: 'c35a2bf6-18a6-4fd5-933b-f81faf1015ff',
-            data: {
-              ownerId: 'otherownerid',
-              hexColor: '#BBBBBB',
-              pixId: 'c35a2bf6-18a6-4fd5-933b-f81faf1015ff',
-              indexInFlag: 2,
-            },
-            createdAt: set(date, {
-              year: 2021,
-              month: 7,
-              date: 9,
-              hours: 23,
-              minutes: 10,
-              seconds: 0,
-            }),
-          },
-        ]);
+      await addPixelsToDb(date);
       const flag = await flagService.getFlagAtDate(
         set(date, {
           year: 2021,
@@ -338,6 +343,26 @@ describe('FlagService', () => {
       expect(flag[0].indexInFlag).toEqual(1);
       expect(flag[1].hexColor).toEqual('#BBBBBB');
       expect(flag[1].indexInFlag).toEqual(2);
+    });
+  });
+
+  describe('getFlagAfterDate', () => {
+    it('returns flag after a given timestamp', async () => {
+      const date = new Date();
+      await addPixelsToDb(date);
+      const flag = await flagService.getFlagAfterDate(
+        set(date, {
+          year: 2021,
+          month: 7,
+          date: 9,
+          hours: 23,
+          minutes: 13,
+          seconds: 0,
+        }),
+      );
+      expect(flag.length).toEqual(1);
+      expect(flag[0].hexColor).toEqual('#AAAAAA');
+      expect(flag[0].indexInFlag).toEqual(1);
     });
   });
 

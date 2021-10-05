@@ -50,7 +50,7 @@ export class FlagService {
       action: 'update',
       author: ownerId,
       entityId: lastUserAction.entityId,
-      data: { hexColor },
+      data: { ...lastUserAction.data, hexColor },
     });
     this.flagSnapshotService.createSnapshotIfEventIdMeetThreshold(createdEvent.eventId);
     return createdEvent;
@@ -68,6 +68,10 @@ export class FlagService {
 
   async getFlagAtDate(date: Date): Promise<GetPixelDTO[]> {
     return this.pixelRepository.getPixelsAtDate(date);
+  }
+
+  async getFlagAfterDate(from: Date): Promise<GetPixelDTO[]> {
+    return this.pixelRepository.getPixelsAfterDate(from);
   }
 
   async getOrCreateUserPixel(userId: string) {

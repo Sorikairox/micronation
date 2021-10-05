@@ -80,6 +80,17 @@ export class FlagController {
     }
   }
 
+  @Get('flag/after/:date')
+  @Public()
+  async getFlagAfterDate(@Param('date') requestedDate: Date) {
+    try {
+      const flag = await this.flagService.getFlagAfterDate(requestedDate);
+      return flag;
+    } catch (e) {
+      throw new InternalServerErrorException();
+    }
+  }
+
   @Get('cooldown')
   @Public()
   getChangeCooldown() {
