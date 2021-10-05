@@ -43,11 +43,10 @@ export default {
     }
     const new_data = new Uint8Array(4 * width * height);
 
-    for (let i = 0; i < 4 * width * height; i++) {
-      new_data[i] = 0;
-    }
+    let i = 0;
 
-    for (let i = 0; i < flag_data.length; i++) {
+    console.log(flag_data);
+    while (i < flag_data.length) {
       const color = new THREE.Color(flag_data[i].hexColor);
       const r = Math.floor(color.r * 255);
       const g = Math.floor(color.g * 255);
@@ -58,6 +57,11 @@ export default {
       new_data[stride + 1] = g;
       new_data[stride + 2] = b;
       new_data[stride + 3] = 255;
+      i++;
+    }
+    i = i * 4;
+    while (i < 4 * width * height) {
+      new_data[i++] = 0;
     }
 
     // used the buffer to create a DataTexture
