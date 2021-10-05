@@ -1,5 +1,5 @@
 import { DatabaseRepository } from 'library/database/repository/DatabaseRepository';
-import { GetPixelDTO } from './GetPixelDTO';
+import { GetPixelDTO } from './dto/GetPixelDTO';
 import { Pixel } from './Pixel';
 import { Inject, Injectable } from '@nestjs/common';
 import { DatabaseClientService } from 'library/database/client/DatabaseClientService';

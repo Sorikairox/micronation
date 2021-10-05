@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { UserHasNoPixel } from './errors/UserHasNoPixel';
-import { GetPixelDTO } from './pixel/GetPixelDTO';
+import { GetPixelDTO } from './pixel/dto/GetPixelDTO';
 import { Pixel } from './pixel/Pixel';
 import { PixelRepository } from './pixel/PixelRepository';
 import { differenceInMinutes } from 'date-fns';
