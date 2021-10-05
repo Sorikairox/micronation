@@ -66,22 +66,6 @@
               </AppButton>
               <AppButton
                 size="medium"
-                v-on:click="Refresh()"
-                variant="contained"
-                class="bg-primary-dark"
-              >
-                Actualiser map
-              </AppButton>
-              <AppButton
-                size="medium"
-                v-on:click="Refresh(true)"
-                variant="contained"
-                class="bg-primary-dark"
-              >
-                Actualiser size
-              </AppButton>
-              <AppButton
-                size="medium"
                 v-on:click="Finish()"
                 variant="contained"
                 class="bg-primary-dark"
