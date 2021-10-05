@@ -12,58 +12,69 @@
 import * as THREE from "three";
 import { OrbitControls } from "@/components/OrbitControl.js";
 
+let desired_flag_width = 500;
+
+async function getFlag() {
+  const response = await fetch(`${process.env.apiUrl}/flag`, {
+    method: "GET",
+    crossDomain: true,
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  return response.json();
+}
+function computeTextureWidthAndHeightFromFlag(flag) {
+  let width;
+  let height;
+  if (flag.length < desired_flag_width) {
+    height = 1;
+    width = flag.length;
+  } else {
+    width = desired_flag_width;
+    height = ~~(flag.length / desired_flag_width) + 1;
+  }
+  return { width, height }
+}
+
+function createTextureArray(width, height, flag_data) {
+  const textureArray = new Uint8Array(4 * width * height);
+
+  let i = 0;
+
+  while (i < flag_data.length) {
+    const color = new THREE.Color(flag_data[i].hexColor);
+    const r = Math.floor(color.r * 255);
+    const g = Math.floor(color.g * 255);
+    const b = Math.floor(color.b * 255);
+    const stride = i * 4;
+
+    textureArray[stride] = r;
+    textureArray[stride + 1] = g;
+    textureArray[stride + 2] = b;
+    textureArray[stride + 3] = 255;
+    i++;
+  }
+  i = i * 4;
+  while (i < 4 * width * height) {
+    textureArray[i++] = 0;
+  }
+  return textureArray;
+}
+
+
 export default {
   name: "index",
   data() {
     return {};
   },
   async mounted() {
-    let height;
-    let width;
-    let desired_flag_width = 500;
 
-    async function getFlag() {
-      const response = await fetch(`${process.env.apiUrl}/flag`, {
-        method: "GET",
-        crossDomain: true,
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      return response.json();
-    }
     const flag_data = await getFlag();
-    if (flag_data.length < desired_flag_width) {
-      height = 1;
-      width = flag_data.length;
-    } else {
-      width = desired_flag_width;
-      height = ~~(flag_data.length / desired_flag_width) + 1;
-    }
-    const new_data = new Uint8Array(4 * width * height);
+    let { width, height } = computeTextureWidthAndHeightFromFlag(flag_data);
 
-    let i = 0;
-
-    console.log(flag_data);
-    while (i < flag_data.length) {
-      const color = new THREE.Color(flag_data[i].hexColor);
-      const r = Math.floor(color.r * 255);
-      const g = Math.floor(color.g * 255);
-      const b = Math.floor(color.b * 255);
-      const stride = i * 4;
-
-      new_data[stride] = r;
-      new_data[stride + 1] = g;
-      new_data[stride + 2] = b;
-      new_data[stride + 3] = 255;
-      i++;
-    }
-    i = i * 4;
-    while (i < 4 * width * height) {
-      new_data[i++] = 0;
-    }
-
+    let new_data = createTextureArray(width, height, flag_data);
     // used the buffer to create a DataTexture
     const flag_texture = new THREE.DataTexture(
       new_data,
