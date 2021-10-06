@@ -519,8 +519,8 @@ export default {
     const instance = await fouloscopie();
     this.token = instance.userInfo.token;
     this.maxCooldownTime = await this.FetchCooldown();
-    FLAG = await this.FetchMap();
     await this.FetchUserPixel();
+    FLAG = await this.FetchMap();
     init();
     this.isMounted = true;
     setInterval(async () => {
