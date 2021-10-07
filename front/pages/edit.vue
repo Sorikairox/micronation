@@ -54,12 +54,12 @@
             justify-between
           "
         >
-            <div>
+            <div class="flex justify-center flex-1">
               <AppButton
                 size="medium"
                 v-on:click="Overlay()"
-                variant="contained"
-                class="bg-primary-dark"
+                class="text-white my-auto"
+                :style="myPixelButtonStyle"
               >
                 Votre pixel: {{ x + 1 }}:{{ y + 1 }}
               </AppButton>
@@ -329,7 +329,7 @@ export default {
   data() {
     return {
       token: undefined,
-      color: "ff0000",
+      color: "#ff0000",
       maxCooldownTime: 5, // min
       lastSubmittedTime: new Date(),
       errorMessage: "",
@@ -341,6 +341,11 @@ export default {
     };
   },
   computed: {
+    myPixelButtonStyle() {
+      return {
+        backgroundColor: this.color
+      }
+    },
     cooldownTime() {
       // return in ms
       const remainingTime =
