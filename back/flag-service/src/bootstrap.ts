@@ -1,6 +1,5 @@
 import { NestFactory } from '@nestjs/core';
 import { v4 } from 'uuid';
-import { JwtExceptionFilter } from './authentication/filters/JwtExceptionFilter';
 import { FlagModule } from './flag/FlagModule';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { FlagService } from './flag/FlagService';
@@ -13,7 +12,6 @@ export async function bootstrap(appListenPort: string | number = '3000') {
   const app = await NestFactory.create(FlagModule.register(process.env.AUTH_BACKEND as AuthBackend));
   app.enableShutdownHooks();
   app.useGlobalPipes(new ValidationPipe());
-  app.useGlobalFilters(new JwtExceptionFilter());
   app.enableCors();
   await app.listen(appListenPort);
   return app;

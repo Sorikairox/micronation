@@ -1,5 +1,7 @@
 import { JwtService } from "../JwtService";
-import jwt, { JsonWebTokenError, TokenExpiredError } from "jsonwebtoken";
+import jwt from "jsonwebtoken";
+import { InvalidJsonWebTokenError } from "../../../authentication/errors/InvalidJsonWebTokenError";
+import { ExpiredJsonWebTokenError } from "../../../authentication/errors/ExpiredJsonWebTokenError";
 
 let secret;
 beforeAll(() => {
@@ -85,7 +87,7 @@ describe('JwtService', () => {
 
     it('throws when token was signed with a different key', async () => {
       const token = jwt.sign({ some: 'data' }, 'not the right key');
-      await expect(jwtService.verify(token)).rejects.toThrow(JsonWebTokenError);
+      await expect(jwtService.verify(token)).rejects.toThrow(InvalidJsonWebTokenError);
     });
 
     it('throws when token has expired', async () => {
@@ -93,7 +95,7 @@ describe('JwtService', () => {
         jti: 'id',
         exp: Math.floor(Date.now() / 1000) - 1, // 1s ago
       }, process.env.JWT_SECRET);
-      await expect(jwtService.verify(token)).rejects.toThrow(TokenExpiredError);
+      await expect(jwtService.verify(token)).rejects.toThrow(ExpiredJsonWebTokenError);
     });
   });
 });

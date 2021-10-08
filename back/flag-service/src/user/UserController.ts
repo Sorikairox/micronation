@@ -1,14 +1,12 @@
-import { BadRequestException, Body, Controller, Post, Put, Req, Request, UseFilters } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Post, Put, Req, Request } from '@nestjs/common';
 import { ChangeNicknameDto } from './dto/ChangeNicknameDto';
 import { ChangePasswordDto } from './dto/ChangePasswordDto';
 import { LoginDto } from './dto/LoginDto';
 import { RegisterDto } from './dto/RegisterDto';
-import { UserExceptionFilter } from './filters/UserExceptionFilter';
 import { UserService } from "./UserService";
 import { Public } from "./decorators/Public";
 
 
-@UseFilters(UserExceptionFilter)
 @Controller({ path: "/user" })
 export class UserController {
   constructor(

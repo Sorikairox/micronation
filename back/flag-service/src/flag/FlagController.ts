@@ -1,38 +1,21 @@
-import {
-  BadRequestException,
-  Body,
-  Controller,
-  Get,
-  InternalServerErrorException,
-  Param,
-  Post,
-  Put,
-} from '@nestjs/common';
+import { Body, Controller, Get, InternalServerErrorException, Param, Post, Put } from '@nestjs/common';
 import { Public } from '../user/decorators/Public';
 import { UserId } from '../user/decorators/UserId';
-import { UserHasNoPixel } from './errors/UserHasNoPixel';
 import { FlagService } from './FlagService';
-import { UserAlreadyOwnAPixelError } from "./errors/UserAlreadyOwnAPixelError";
-import { CooldownTimerHasNotEndedYetError } from "./errors/CooldownTimerHasNotEndedYetError";
 import { parseISO } from 'date-fns';
 
 @Controller('')
 export class FlagController {
-  constructor(private flagService: FlagService) {}
+  constructor(private flagService: FlagService) {
+  }
 
   @Post('pixel')
   async addPixel(
     @UserId() ownerId: string,
     @Body('hexColor') hexColor: string,
   ) {
-    try {
-      const event = await this.flagService.addPixel(ownerId, hexColor);
-      return event;
-    } catch (e) {
-      if (e instanceof UserAlreadyOwnAPixelError) {
-        throw new BadRequestException();
-      }
-    }
+    const event = await this.flagService.addPixel(ownerId, hexColor);
+    return event;
   }
 
   @Put('pixel')
@@ -40,16 +23,8 @@ export class FlagController {
       @UserId() ownerId: string,
       @Body('hexColor') hexColor: string,
   ) {
-    try {
-      const event = await this.flagService.changePixelColor(ownerId, hexColor);
-      return event;
-    } catch (e) {
-      if (e instanceof CooldownTimerHasNotEndedYetError) {
-        throw new BadRequestException('CooldownNotEndedYet');
-      } else if (e instanceof UserHasNoPixel) {
-        throw new BadRequestException('UserHasNoPixel');
-      }
-    }
+    const event = await this.flagService.changePixelColor(ownerId, hexColor);
+    return event;
   }
 
   @Get('pixel')

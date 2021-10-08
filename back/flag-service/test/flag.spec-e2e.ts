@@ -1,4 +1,4 @@
-import { INestApplication } from '@nestjs/common';
+import { HttpStatus, INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { DatabaseClientService } from 'library/database/client/DatabaseClientService';
 import * as DirectusModule from "@directus/sdk";
@@ -72,51 +72,71 @@ describe('Flag (e2e)', () => {
         await app.close();
       });
 
-      it('UserHasNoPixel error /pixel (PUT)', async () => {
-        const res = await request(app.getHttpServer())
-          .put('/pixel')
-          .set('authorization', authToken)
-          .send({
-            hexColor: '#DDDDDD',
+      describe('/pixel', () => {
+        describe('PUT/POST flow', () => {
+          it('PUT UserHasNoPixel error', async () => {
+            const res = await request(app.getHttpServer())
+              .put('/pixel')
+              .set('authorization', authToken)
+              .send({
+                hexColor: '#DDDDDD',
+              });
+            expect(res.status).toEqual(400);
+            expect(res.body.message).toEqual('User has no pixel.');
           });
-        expect(res.status).toEqual(400);
-        expect(res.body.message).toEqual('UserHasNoPixel');
-      });
-      it('/pixel (POST)', async () => {
-        const res = await request(app.getHttpServer())
-          .post('/pixel')
-          .set('authorization', authToken)
-          .send({
-            hexColor: '#FFADAD',
+
+          it('POST success', async () => {
+            const res = await request(app.getHttpServer())
+              .post('/pixel')
+              .set('authorization', authToken)
+              .send({
+                hexColor: '#FFADAD',
+              });
+            expect(res.status).toEqual(201);
+            createdPixel = res.body;
           });
-        expect(res.status).toEqual(201);
-        createdPixel = res.body;
-      });
 
-      it('/pixel (PUT)', async () => {
-        const res = await request(app.getHttpServer())
-          .put('/pixel')
-          .set('authorization', authToken)
-          .send({
-            hexColor: '#DDDDDD',
+          it('PUT success', async () => {
+            const res = await request(app.getHttpServer())
+              .put('/pixel')
+              .set('authorization', authToken)
+              .send({
+                hexColor: '#DDDDDD',
+              });
+            expect(res.status).toEqual(200);
+            modifiedPixel = res.body;
           });
-        expect(res.status).toEqual(200);
-        modifiedPixel = res.body;
-      });
+        });
 
-      it('/pixel (GET)', async () => {
-        const res = await request(app.getHttpServer())
-          .get('/pixel')
-          .set('authorization', authToken);
-        const mypixel = res.body;
+        describe('GET', () => {
+          if (authBackend === AuthBackend.FOULOSCOPIE) {
+            it('Fails on empty request (BadRequest)', async () => {
+              const res = await request(app.getHttpServer())
+                .get('/pixel');
+              const { error, message } = res.body;
 
-        expect(res.status).toEqual(200);
+              expect(res.status).toBe(HttpStatus.BAD_REQUEST);
 
-        expect(mypixel.author).toEqual(userId);
-        expect(mypixel.hexColor).toEqual('#DDDDDD');
-        expect(mypixel.createdAt).toEqual(createdPixel.createdAt);
-        expect(mypixel.lastUpdate).toEqual(modifiedPixel.createdAt);
-        expect(mypixel.indexInFlag).toEqual(1);
+              expect(error).toBe('Missing directus token.');
+              expect(message).toBe('header: Authorization');
+            });
+          }
+
+          it('success', async () => {
+            const res = await request(app.getHttpServer())
+              .get('/pixel')
+              .set('authorization', authToken);
+            const mypixel = res.body;
+
+            expect(res.status).toEqual(200);
+
+            expect(mypixel.author).toEqual(userId);
+            expect(mypixel.hexColor).toEqual('#DDDDDD');
+            expect(mypixel.createdAt).toEqual(createdPixel.createdAt);
+            expect(mypixel.lastUpdate).toEqual(modifiedPixel.createdAt);
+            expect(mypixel.indexInFlag).toEqual(1);
+          });
+        })
       });
 
       it('/flag (GET)', async () => {

@@ -3,14 +3,15 @@ import { UserHasNoPixel } from './errors/UserHasNoPixel';
 import { GetPixelDTO } from './pixel/dto/GetPixelDTO';
 import { Pixel } from './pixel/Pixel';
 import { PixelRepository } from './pixel/PixelRepository';
-import { differenceInMinutes } from 'date-fns';
-import { UserAlreadyOwnAPixelError } from "./errors/UserAlreadyOwnAPixelError";
+import { differenceInMilliseconds } from 'date-fns';
+import { UserAlreadyOwnsAPixelError } from "./errors/UserAlreadyOwnsAPixelError";
 import { CooldownTimerHasNotEndedYetError } from "./errors/CooldownTimerHasNotEndedYetError";
 import { FlagSnapshotService } from './snapshot/SnapshotService';
 
 @Injectable()
 export class FlagService {
-  constructor(private pixelRepository: PixelRepository, private flagSnapshotService: FlagSnapshotService) {}
+  constructor(private pixelRepository: PixelRepository, private flagSnapshotService: FlagSnapshotService) {
+  }
 
 
   async addPixel(ownerId: string, hexColor = '#FFFFFF') {
@@ -19,10 +20,10 @@ export class FlagService {
       action: 'creation',
     });
     if (pixelUserAlreadyOwn) {
-      throw new UserAlreadyOwnAPixelError();
+      throw new UserAlreadyOwnsAPixelError();
     }
     const pixel = new Pixel(ownerId, hexColor);
-    const createdEvent =  await this.pixelRepository.createAndReturn({
+    const createdEvent = await this.pixelRepository.createAndReturn({
       action: 'creation',
       author: ownerId,
       entityId: pixel.pixId,
@@ -39,12 +40,11 @@ export class FlagService {
     if (!lastUserAction) {
       throw new UserHasNoPixel();
     }
-    const difference = differenceInMinutes(new Date(), lastUserAction.createdAt);
-    if (
-      lastUserAction.action === 'update' && difference <
-        Number(process.env.CHANGE_COOLDOWN)
-    ) {
-      throw new CooldownTimerHasNotEndedYetError();
+    const difference = differenceInMilliseconds(new Date(), lastUserAction.createdAt);
+    const changeCooldownInMilliseconds = Number(process.env.CHANGE_COOLDOWN) * 60 * 1000;
+    const remainingTime = changeCooldownInMilliseconds - difference;
+    if (lastUserAction.action === 'update' && remainingTime > 0) {
+      throw new CooldownTimerHasNotEndedYetError(remainingTime);
     }
     const createdEvent = await this.pixelRepository.createAndReturn({
       action: 'update',
