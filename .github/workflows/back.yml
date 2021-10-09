@@ -2,9 +2,8 @@ name: Tenant Service Test
 
 on:
   push:
-    paths:
-      - 'back/**/*'
-      - '.github/workflows/back.yml'
+    branches:
+      - 'main'
   pull_request:
     paths:
       - 'back/**/*'
