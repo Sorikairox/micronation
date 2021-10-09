@@ -1,4 +1,4 @@
-name: Tenant Service Test
+name: Flag Service Test
 
 on:
   push:
