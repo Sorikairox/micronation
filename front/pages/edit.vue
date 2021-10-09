@@ -3,101 +3,78 @@
     <div class="w-screen h-screen bg-grey-light">
       <div
         class="
-          grid
+          flex
           h-full
           grid-rows-2
           pt-24
           space-y-8
-          lg:grid-cols-2 lg:space-x-8
         "
       >
         <div
           id="flagContainer"
           class="
-            flex flex-col
-            justify-center
-            w-3/4
-            mx-auto
+            flex
+            flex-col
+            w-1/2
+            mx-2
+            justify-around
+            mb-2
             bg-white
             rounded-lg
-            sm:mx-4 sm:w-full
+            h-auto
           "
         >
-          <canvas
-            id="flagCanva"
-            class="mx-auto border-2 rounded-md border-grey-dark"
-          />
+          <div>
+            <canvas
+              id="flagCanva"
+              class="mx-auto border-2 rounded-md border-grey-dark"
+            />
+          </div>
+          <div class="bg-white">
+            <div id="zoomContainer" class="w-full mt-4 h-1/2">
+              <canvas
+                id="zoomCanva"
+                class="m-auto border-2 rounded-md border-grey-dark"
+              />
+            </div>
+          </div>
         </div>
         <div
           class="
+            flex-1
             flex flex-col
-            items-center
             px-4
             py-1
-            mx-4
-            mb-auto
+            mr-1
             mt-0
             bg-white
             rounded-lg
+            h-100
+            mb-2
+            justify-between
           "
         >
-          <div
-            class="
-              flex flex-col
-              items-center
-              w-full
-              h-full
-              pb-4
-              mb-4
-              border-b-2
-              sm:flex-row
-              justify-evenly
-              border-grey-base
-            "
-          >
-            <div class="flex flex-col justify-around h-96">
+            <div class="flex justify-center flex-1">
               <AppButton
                 size="medium"
                 v-on:click="Overlay()"
-                variant="contained"
-                class="bg-primary-dark"
+                class="text-white my-auto"
+                :style="myPixelButtonStyle"
               >
                 Votre pixel: {{ x + 1 }}:{{ y + 1 }}
               </AppButton>
+            </div>
+            <div class="flex flex-col justify-around h-96">
+              <chrome-picker style="width: 100%;height: auto" v-model="color" @input="change"></chrome-picker>
               <AppButton
                 size="medium"
                 v-on:click="Finish()"
                 variant="contained"
-                class="bg-primary-dark"
+                class="bg-primary-dark mt-4"
               >
                 Valider
               </AppButton>
             </div>
-            <div
-              class="
-                flex flex-col
-                items-center
-                justify-center
-                w-auto
-                mx-auto
-                sm:w-1/2 sm:mx-0
-              "
-            >
-              <v-color-picker
-                :value="color"
-                :swatches="swatches"
-                show-swatches
-                :elevation="5"
-                @update:color="change"
-              ></v-color-picker>
-            </div>
-          </div>
-          <div id="zoomContainer" class="w-full h-2/6">
-            <canvas
-              id="zoomCanva"
-              class="m-auto border-2 rounded-md border-grey-dark"
-            />
-          </div>
         </div>
       </div>
       <AppAlert
@@ -335,16 +312,24 @@ function getCoordinateFromFlagIndex(i) {
   let y = Math.floor(i / desired_flag_width);
   return { x, y };
 }
+
+function getFlagIndexFromCoordinates(x, y) {
+  return y * desired_flag_width + x;
+}
+
+import { Chrome } from 'vue-color';
+
 export default {
   name: "edit",
   components: {
     AppAlert,
     countdown,
+    'chrome-picker': Chrome,
   },
   data() {
     return {
       token: undefined,
-      color: "ff0000",
+      color: "#ff0000",
       maxCooldownTime: 5, // min
       lastSubmittedTime: new Date(),
       errorMessage: "",
@@ -353,16 +338,14 @@ export default {
       x: ~~(Math.random() * xPixel),
       y: ~~(Math.random() * yPixel),
       isMounted: false,
-      swatches: [
-        ["#FF0000", "#AA0000", "#550000"],
-        ["#FFFF00", "#AAAA00", "#555500"],
-        ["#00FF00", "#00AA00", "#005500"],
-        ["#00FFFF", "#00AAAA", "#005555"],
-        ["#0000FF", "#0000AA", "#000055"],
-      ],
     };
   },
   computed: {
+    myPixelButtonStyle() {
+      return {
+        backgroundColor: this.color
+      }
+    },
     cooldownTime() {
       // return in ms
       const remainingTime =
@@ -541,8 +524,8 @@ export default {
     const instance = await fouloscopie();
     this.token = instance.userInfo.token;
     this.maxCooldownTime = await this.FetchCooldown();
-    FLAG = await this.FetchMap();
     await this.FetchUserPixel();
+    FLAG = await this.FetchMap();
     init();
     this.isMounted = true;
     setInterval(async () => {
@@ -560,4 +543,18 @@ export default {
 };
 </script>
 
-<style></style>
+<style>
+
+
+.vc-chrome-saturation-wrap {
+  padding-bottom: 30% !important;
+}
+
+.vc-alpha {
+  display: none;
+}
+
+.vc-chrome-fields:last-child {
+  display: none;
+}
+</style>

@@ -20,6 +20,7 @@
     "stats-js": "^1.0.1",
     "three": "^0.131.3",
     "vue-awesome-countdown": "^1.1.4",
+    "vue-color": "^2.8.1",
     "zoid": "^9.0.73"
   },
   "devDependencies": {
