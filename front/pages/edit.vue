@@ -38,15 +38,49 @@
             justify-between
           "
         >
-            <div class="flex flex-1 m-4 justify-center">
-              <AppButton
-                size="medium"
-                v-on:click="Overlay()"
-                class="text-white my-auto"
-                :style="myPixelButtonStyle"
-              >
-                Votre pixel: {{ x + 1 }}:{{ y + 1 }}
-              </AppButton>
+            <div class="flex flex-col justify-between flex-1">
+              <div class="flex justify-center">
+                <AppButton v-if="topPixel !== null"
+                  size="medium"
+                  class="text-white my-auto pixelButton"
+                           v-bind:style="{ backgroundColor: topPixel.hexColor }"
+                >
+                  Le pixel de {{topPixel.username}} en {{topPixel.x}} : {{topPixel.y}}
+                </AppButton>
+              </div>
+              <div class="flex justify-between">
+                <AppButton v-if="leftPixel !== null"
+                           size="medium"
+                           class="text-white my-auto pixelButton"
+                           v-bind:style="{ backgroundColor: leftPixel.hexColor }"
+                >
+                  Le pixel de {{leftPixel.username}} en {{leftPixel.x}} : {{leftPixel.y}}
+                </AppButton>
+                <AppButton
+                  size="medium"
+                  v-on:click="Overlay()"
+                  class="text-white my-auto pixelButton"
+                  :style="myPixelButtonStyle"
+                >
+                  Ton pixel en {{ x + 1 }}:{{ y + 1 }}
+                </AppButton>
+                <AppButton v-if="rightPixel !== null"
+                           size="medium"
+                           class="text-white my-auto pixelButton"
+                           v-bind:style="{ backgroundColor: rightPixel.hexColor }"
+                >
+                  Le pixel de {{rightPixel.username}} en {{rightPixel.x}} : {{rightPixel.y}}
+                </AppButton>
+              </div>
+              <div class="flex justify-center">
+                <AppButton v-if="bottomPixel !== null"
+                           size="medium"
+                           class="text-white my-auto pixelButton"
+                           v-bind:style="{ backgroundColor: bottomPixel.hexColor }"
+                >
+                  Le pixel de {{bottomPixel.username}} en {{bottomPixel.x}} : {{bottomPixel.y}}
+                </AppButton>
+              </div>
             </div>
             <hr class="mt-4 border-grey-light">
             <div class="flex flex-col">
@@ -177,14 +211,14 @@ function drawOverlay() {
 
 //Draw a pixel on a coord given (x,y,clr), if changetexture is set to true, change the value on the map
 //You can change the size and the context to draw, default is flag context
-function drawPixel(x, y, clr, changeTexture = false, size = 1, ctx = canvasDrawingContext) {
+function drawPixel(x, y, pixel, changeTexture = false, size = 1, ctx = canvasDrawingContext) {
   if (ctx) {
     let drawWidth = (canvas.width / flagWidth) * size;
     let drawHeight = (canvas.height / flagHeight) * size;
-    ctx.fillStyle = clr;
+    ctx.fillStyle = pixel.hexColor;
     ctx.fillRect(x * drawWidth, y * drawHeight, drawWidth, drawHeight);
     if (changeTexture) {
-      flagPixelMap[x][y] = clr;
+      flagPixelMap[x][y].hexColor = pixel.hexColor;
     }
     ctx.fillStyle = "#ffffff";
   }
@@ -225,7 +259,7 @@ function init() {
 function changeColor(newColor) {
   // console.log("Pixel draw informations :", [newColor, userXPixel, userYPixel]);
   canvasPixelColor = newColor;
-  drawPixel(userXPixel, userYPixel, newColor, true);
+  drawPixel(userXPixel, userYPixel, { hexColor : newColor } , true);
 }
 
 function getCanvas() {
@@ -330,6 +364,11 @@ export default {
   },
   data() {
     return {
+      fouloscopieSdk: null,
+      topPixel: null,
+      leftPixel: null,
+      rightPixel: null,
+      bottomPixel: null,
       token: undefined,
       color: "#ff0000",
       maxCooldownTime: 5, // min
@@ -406,7 +445,7 @@ export default {
             if (!flagPixelMap[x][y]) {
               pixelNumber++;
             }
-            flagPixelMap[x][y] = modifiedPixel.hexColor;
+            flagPixelMap[x][y] = modifiedPixel;
           }
           lastUpdate = new Date();
           set2DSizeFromPixelNumber(pixelNumber);
@@ -436,15 +475,30 @@ export default {
 
           for (let i = 0; i < data.length; i++) {
             const { x, y } = getCoordinateFromFlagIndex(i);
-            NEW_MAP[x][y] = data[i].hexColor;
+            NEW_MAP[x][y] = data[i];
           }
           return NEW_MAP;
         })
         .catch((error) => console.log(error));
     },
+    async setNeighboursInfo() {
+      this.topPixel = await this.getNeighbourPixelIfItExists(this.x, this.y - 1 );
+      this.leftPixel = await this.getNeighbourPixelIfItExists(this.x - 1, this.y);
+      this.rightPixel = await this.getNeighbourPixelIfItExists(this.x + 1, this.y);
+      this.bottomPixel = await this.getNeighbourPixelIfItExists(this.x, this.y + 1 );
+    },
+    async getNeighbourPixelIfItExists(x, y) {
+      if (FLAG[x]?.[y]) {
+        return {
+        ...FLAG[x][y],
+          username: (await this.fouloscopieSdk.api.items('directus_users').readOne(FLAG[x][y].author)).username,
+        }
+      }
+      return null;
+    },
     sendPixel(x, y) {
       //Sending the user pixel with coords, color, timestamp?, userID?
-      const UserPixel = new Pixel(x, y, flagPixelMap[x][y]);
+      const UserPixel = new Pixel(x, y, flagPixelMap[x][y].hexColor);
 
       console.log("Sending: ", UserPixel);
       fetch(`${process.env.apiUrl}/pixel`, {
@@ -521,11 +575,12 @@ export default {
     },
   },
   async mounted() {
-    const instance = await fouloscopie();
-    this.token = instance.userInfo.token;
+    this.fouloscopieSdk = await fouloscopie();
+    this.token = this.fouloscopieSdk.userInfo.token;
     this.maxCooldownTime = await this.FetchCooldown();
     await this.FetchUserPixel();
     flagPixelMap = await this.FetchMap();
+    this.setNeighboursInfo();
     init();
     this.isMounted = true;
     setInterval(async () => {
@@ -555,5 +610,9 @@ export default {
 
 .vc-chrome-fields:last-child {
   display: none;
+}
+
+.pixelButton span {
+  mix-blend-mode: difference;
 }
 </style>
