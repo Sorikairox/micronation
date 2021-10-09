@@ -1,0 +1,49 @@
+name: Tenant Service Test
+
+on:
+  push:
+    branches:
+      - 'main'
+  pull_request:
+    paths:
+      - 'back/**/*'
+      - '.github/workflows/back.yml'
+
+defaults:
+  run:
+    working-directory: back/flag-service
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [14.x]
+        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
+
+    services:
+      mongodb:
+        image: mongo
+        ports:
+          - 27017:27017
+    env:
+      DATABASE_URI: 'mongodb://localhost:27017'
+      DATABASE_NAME: 'micronation'
+      PORT: '3000'
+      CHANGE_COOLDOWN: 5
+      AUTH_BACKEND: 'fouloscopie'
+      EVENTS_PER_SNAPSHOT: 100
+      DIRECTUS_URL: 'directusurl'
+      JWT_SECRET: 'WHATANICESECRET'
+    steps:
+      - uses: actions/checkout@v2
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node-version }}
+      - run: yarn
+      - run: yarn lint
+      - run: yarn test
+      - run: yarn test:integration
+      - run: yarn test:e2e
