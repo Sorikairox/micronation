@@ -6,7 +6,7 @@
           flex
           h-full
           grid-rows-2
-          pt-24
+          pt-16
           space-y-8
         "
       >
