@@ -15,6 +15,7 @@
           class="
             flex-1
             flex flex-col
+            items-center
             w-1/2
             mx-2
             mb-2
@@ -24,14 +25,14 @@
           <div>
             <canvas
               id="flagCanva"
-              class="mx-auto border-2 rounded-md border-grey-dark"
+              class="border-2 rounded-md border-grey-dark"
             />
           </div>
           <div>
             <div id="zoomContainer" class="w-full mt-4 h-1/2">
               <canvas
                 id="zoomCanva"
-                class="m-auto border-2 rounded-md border-grey-dark"
+                class="border-2 rounded-md border-grey-dark"
               />
             </div>
           </div>
