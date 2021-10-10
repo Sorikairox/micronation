@@ -1,0 +1,5 @@
+// Override vuetify's reset rule for vertical scrollbar
+// Use of !important because I can't figure out how to change the css loading order of vuetify vs global css
+html {
+  overflow-y: auto !important;
+}
