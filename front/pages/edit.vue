@@ -13,11 +13,10 @@
         <div
           id="flagContainer"
           class="
-            flex
-            flex-col
+            flex-1
+            flex flex-col
             w-1/2
             mx-2
-            justify-around
             mb-2
             bg-white
             rounded-lg
@@ -41,7 +40,6 @@
         </div>
         <div
           class="
-            flex-1
             flex flex-col
             px-4
             py-1
