@@ -18,8 +18,6 @@
             w-1/2
             mx-2
             mb-2
-            bg-white
-            rounded-lg
             h-auto
           "
         >
@@ -29,7 +27,7 @@
               class="mx-auto border-2 rounded-md border-grey-dark"
             />
           </div>
-          <div class="bg-white">
+          <div>
             <div id="zoomContainer" class="w-full mt-4 h-1/2">
               <canvas
                 id="zoomCanva"
