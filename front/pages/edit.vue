@@ -5,8 +5,10 @@
         class="
           flex flex-col
           sm:flex-row
+          max-w-screen-xl
           h-full
           grid-rows-2
+          mx-auto
           pt-16
         "
       >
@@ -14,16 +16,14 @@
           id="flagContainer"
           class="
             flex-1 sm:self-center
-            flex flex-col
-            items-center
-            sm:m-2
+            m-2
             h-auto
           "
         >
           <div>
             <canvas
               id="flagCanva"
-              class="border-2 rounded-md border-grey-dark"
+              class="w-full border-2 rounded-md border-grey-dark"
             />
           </div>
           <div>
@@ -205,15 +205,9 @@ function initCanvas() {
   container = document.getElementById("flagContainer");
   canvas = document.getElementById("flagCanva");
 
-  WIDTH = container.clientWidth * 0.95;
-  HEIGHT = ~~(WIDTH / 2);
-  if (HEIGHT + 8 > container.clientHeight) {
-    HEIGHT = container.clientHeight * 0.95;
-    WIDTH = HEIGHT * 2;
-  }
+  canvas.width = WIDTH = container.clientWidth;
+  canvas.height = HEIGHT = ~~(WIDTH / 2);
 
-  canvas.height = HEIGHT;
-  canvas.width = WIDTH;
   BoundingBox = canvas.getBoundingClientRect();
   context = canvas.getContext("2d");
 
