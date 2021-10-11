@@ -118,17 +118,17 @@ class Pixel {
 }
 
 //Initialising all the var
-let desired_flag_width = 500;
-let xPixel = desired_flag_width;
-let yPixel;
-let FLAG = new Array(xPixel);
+let desiredFlagWidth = 500;
+let flagWidth = desiredFlagWidth;
+let flagHeight;
+let flagPixels = new Array(flagWidth);
 
-const mouse = new THREE.Vector2();
+const mousePosition = new THREE.Vector2();
 
 //Canvas var
-let container, WIDTH, HEIGHT;
-let canvas, context;
-let BoundingBox;
+let canvasContainer, canvasWidth, canvasHeight;
+let canvas, canvasDrawingContext;
+let canvasBoundingBox;
 
 //Color from the colorPicker
 let canvasPixelColor = "#ff0000";
@@ -141,27 +141,27 @@ let lastUpdate = new Date();
 let pixelNumber = 0;
 
 function set2DSizeFromPixelNumber(length) {
-  xPixel =
-    length > desired_flag_width ? desired_flag_width : length;
-  yPixel =
-    length > desired_flag_width
-      ? Math.ceil(length / desired_flag_width)
+  flagWidth =
+    length > desiredFlagWidth ? desiredFlagWidth : length;
+  flagHeight =
+    length > desiredFlagWidth
+      ? Math.ceil(length / desiredFlagWidth)
       : 1;
 }
 
 //Draw EVERY PIXEL of the map given
-function drawFlag(MAP) {
-  for (let i = 0; i < MAP.length; i++) {
-    for (let j = 0; j < MAP[i].length; j++) {
-      drawPixel(i, j, MAP[i][j]);
+function drawFlag(pixelMap) {
+  for (let i = 0; i < pixelMap.length; i++) {
+    for (let j = 0; j < pixelMap[i].length; j++) {
+      drawPixel(i, j, pixelMap[i][j]);
     }
   }
 }
 
 //Draw an overlay to find the user pixel on the whole flag
 function drawOverlay() {
-  for (let i = 0; i < FLAG.length; i++) {
-    for (let j = 0; j < FLAG[0].length; j++) {
+  for (let i = 0; i < flagPixels.length; i++) {
+    for (let j = 0; j < flagPixels[0].length; j++) {
       if (!(i == userXPixel && j == userYPixel)) {
         drawPixel(i, j, "#090909e0");
       }
@@ -171,14 +171,14 @@ function drawOverlay() {
 
 //Draw a pixel on a coord given (x,y,clr), if changetexture is set to true, change the value on the map
 //You can change the size and the context to draw, default is flag context
-function drawPixel(x, y, clr, changeTexture = false, size = 1, ctx = context) {
+function drawPixel(x, y, clr, changeTexture = false, size = 1, ctx = canvasDrawingContext) {
   if (ctx) {
-    let xDrawSize = (WIDTH / xPixel) * size;
-    let yDrawSize = (HEIGHT / yPixel) * size;
+    let drawWidth = (canvasWidth / flagWidth) * size;
+    let drawHeight = (canvasHeight / flagHeight) * size;
     ctx.fillStyle = clr;
-    ctx.fillRect(x * xDrawSize, y * yDrawSize, xDrawSize + 1, yDrawSize + 1);
+    ctx.fillRect(x * drawWidth, y * drawHeight, drawWidth + 1, drawHeight + 1);
     if (changeTexture) {
-      FLAG[x][y] = clr;
+      flagPixels[x][y] = clr;
     }
     ctx.fillStyle = "#ffffff";
   }
@@ -186,16 +186,16 @@ function drawPixel(x, y, clr, changeTexture = false, size = 1, ctx = context) {
 
 //Initalising the flag canvas
 function initCanvas() {
-  container = document.getElementById("flagContainer");
+  canvasContainer = document.getElementById("flagContainer");
   canvas = document.getElementById("flagCanva");
 
-  canvas.width = WIDTH = container.clientWidth;
-  canvas.height = HEIGHT = ~~(WIDTH / 2);
+  canvas.width = canvasWidth = canvasContainer.clientWidth;
+  canvas.height = canvasHeight = ~~(canvasWidth / 2);
 
-  BoundingBox = canvas.getBoundingClientRect();
-  context = canvas.getContext("2d");
+  canvasBoundingBox = canvas.getBoundingClientRect();
+  canvasDrawingContext = canvas.getContext("2d");
 
-  drawFlag(FLAG);
+  drawFlag(flagPixels);
 }
 
 //Initalising the variables to their value
@@ -226,13 +226,13 @@ function onWindowResize() {
 }
 
 function getCoordinateFromFlagIndex(i) {
-  let x = i % xPixel;
-  let y = Math.floor(i / desired_flag_width);
+  let x = i % flagWidth;
+  let y = Math.floor(i / desiredFlagWidth);
   return { x, y };
 }
 
 function getFlagIndexFromCoordinates(x, y) {
-  return y * desired_flag_width + x;
+  return y * desiredFlagWidth + x;
 }
 
 import { Chrome } from 'vue-color';
@@ -253,8 +253,8 @@ export default {
       errorMessage: "",
       openSuccessEditModal: false,
       openFailedEditModal: false,
-      x: ~~(Math.random() * xPixel),
-      y: ~~(Math.random() * yPixel),
+      x: ~~(Math.random() * flagWidth),
+      y: ~~(Math.random() * flagHeight),
       isMounted: false,
     };
   },
@@ -299,7 +299,7 @@ export default {
     Overlay() {
       drawOverlay();
       setTimeout(() => {
-        drawFlag(FLAG);
+        drawFlag(flagPixels);
       }, 3000);
     },
     async Refresh(ack = false) {
@@ -319,10 +319,10 @@ export default {
             const { x, y } = getCoordinateFromFlagIndex(
               modifiedPixel.indexInFlag
             );
-            if (!FLAG[x][y]) {
+            if (!flagPixels[x][y]) {
               pixelNumber++;
             }
-            FLAG[x][y] = modifiedPixel.hexColor;
+            flagPixels[x][y] = modifiedPixel.hexColor;
           }
           lastUpdate = new Date();
           set2DSizeFromPixelNumber(pixelNumber);
@@ -345,9 +345,9 @@ export default {
 
           set2DSizeFromPixelNumber(data.length);
           pixelNumber = data.length;
-          const NEW_MAP = new Array(xPixel);
+          const NEW_MAP = new Array(flagWidth);
           for (let i = 0; i < NEW_MAP.length; i++) {
-            NEW_MAP[i] = new Array(yPixel);
+            NEW_MAP[i] = new Array(flagHeight);
           }
 
           for (let i = 0; i < data.length; i++) {
@@ -360,7 +360,7 @@ export default {
     },
     sendPixel(x, y) {
       //Sending the user pixel with coords, color, timestamp?, userID?
-      const UserPixel = new Pixel(x, y, FLAG[x][y]);
+      const UserPixel = new Pixel(x, y, flagPixels[x][y]);
 
       console.log("Sending: ", UserPixel);
       fetch(`${process.env.apiUrl}/pixel`, {
@@ -413,8 +413,8 @@ export default {
         .then((data) => {
           console.log("DEBUG - User pixel : ", data);
           // field indexInFlag not in the response of the /pixel endpoint, the back-end has been contacted to discuss this issue
-          this.x = (data.indexInFlag % desired_flag_width) - 1;
-          this.y = ~~(data.indexInFlag / desired_flag_width);
+          this.x = (data.indexInFlag % desiredFlagWidth) - 1;
+          this.y = ~~(data.indexInFlag / desiredFlagWidth);
           this.color = data.hexColor;
           this.lastSubmittedTime = data.lastUpdate;
           console.log("DEBUG - time last updated ", this.lastSubmittedTime);
@@ -441,7 +441,7 @@ export default {
     this.token = instance.userInfo.token;
     this.maxCooldownTime = await this.FetchCooldown();
     await this.FetchUserPixel();
-    FLAG = await this.FetchMap();
+    flagPixels = await this.FetchMap();
     init();
     this.isMounted = true;
     setInterval(async () => {
@@ -459,9 +459,8 @@ export default {
 };
 </script>
 
+
 <style>
-
-
 .vc-chrome-saturation-wrap {
   padding-bottom: 30% !important;
 }
