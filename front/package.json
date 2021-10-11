@@ -27,6 +27,7 @@
     "@nuxtjs/tailwindcss": "^4.0.1",
     "@nuxtjs/vuetify": "^1.12.1",
     "@vue/cli-plugin-eslint": "~4.5.0",
+    "@vue/cli-service": "^4.5.13",
     "@vue/eslint-config-prettier": "^6.0.0",
     "eslint": "^6.7.2",
     "eslint-plugin-prettier": "^3.3.1",

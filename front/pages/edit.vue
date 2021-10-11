@@ -1,60 +1,52 @@
 <template>
   <v-app>
-    <div class="w-screen h-screen bg-grey-light">
+    <div class="min-h-screen bg-grey-light">
       <div
         class="
-          flex
+          flex flex-col
+          md:flex-row
+          max-w-screen-xl
           h-full
           grid-rows-2
-          pt-24
-          space-y-8
+          mx-auto
+          pt-16
         "
       >
         <div
           id="flagContainer"
           class="
-            flex
-            flex-col
-            w-1/2
-            mx-2
-            justify-around
-            mb-2
-            bg-white
-            rounded-lg
+            flex-1 md:self-center
+            m-2 md:mx-4 md:mb-4
             h-auto
           "
         >
           <div>
             <canvas
               id="flagCanva"
-              class="mx-auto border-2 rounded-md border-grey-dark"
+              class="w-full border-2 rounded-md border-grey-dark"
             />
           </div>
-          <div class="bg-white">
+          <div>
             <div id="zoomContainer" class="w-full mt-4 h-1/2">
               <canvas
                 id="zoomCanva"
-                class="m-auto border-2 rounded-md border-grey-dark"
+                class="border-2 rounded-md border-grey-dark"
               />
             </div>
           </div>
         </div>
         <div
           class="
-            flex-1
             flex flex-col
-            px-4
-            py-1
-            mr-1
-            mt-0
+            m-2 md:mx-4 md:mb-4 md:ml-0
+            p-4
             bg-white
             rounded-lg
             h-100
-            mb-2
             justify-between
           "
         >
-            <div class="flex justify-center flex-1">
+            <div class="flex flex-1 m-4 justify-center">
               <AppButton
                 size="medium"
                 v-on:click="Overlay()"
@@ -64,7 +56,9 @@
                 Votre pixel: {{ x + 1 }}:{{ y + 1 }}
               </AppButton>
             </div>
-            <div class="flex flex-col justify-around h-96">
+            <hr class="mt-4 border-grey-light">
+            <div class="flex flex-col">
+              <h1 class="m-4">Modifier la couleur de votre pixel</h1>
               <chrome-picker style="width: 100%;height: auto" v-model="color" @input="change"></chrome-picker>
               <AppButton
                 size="medium"
@@ -211,15 +205,9 @@ function initCanvas() {
   container = document.getElementById("flagContainer");
   canvas = document.getElementById("flagCanva");
 
-  WIDTH = container.clientWidth * 0.95;
-  HEIGHT = ~~(WIDTH / 2);
-  if (HEIGHT + 8 > container.clientHeight) {
-    HEIGHT = container.clientHeight * 0.95;
-    WIDTH = HEIGHT * 2;
-  }
+  canvas.width = WIDTH = container.clientWidth;
+  canvas.height = HEIGHT = ~~(WIDTH / 2);
 
-  canvas.height = HEIGHT;
-  canvas.width = WIDTH;
   BoundingBox = canvas.getBoundingClientRect();
   context = canvas.getContext("2d");
 
