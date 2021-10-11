@@ -156,6 +156,7 @@ function set2DSizeFromPixelNumber(length) {
 
 //Draw EVERY PIXEL of the map given
 function drawFlag(pixelMap) {
+  canvasDrawingContext.fillRect(zoomOriginX, zoomOriginY, canvas.width*zoomScale, canvas.height*zoomScale);
   for (let i = 0; i < pixelMap.length; i++) {
     for (let j = 0; j < pixelMap[i].length; j++) {
       drawPixel(i, j, pixelMap[i][j]);
