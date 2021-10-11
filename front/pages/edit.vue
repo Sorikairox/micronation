@@ -46,7 +46,7 @@
             justify-between
           "
         >
-            <div class="flex justify-center flex-1">
+            <div class="flex flex-1 justify-center">
               <AppButton
                 size="medium"
                 v-on:click="Overlay()"
@@ -56,7 +56,9 @@
                 Votre pixel: {{ x + 1 }}:{{ y + 1 }}
               </AppButton>
             </div>
-            <div class="flex flex-col justify-around h-96">
+            <hr class="border-grey-light">
+            <div class="flex flex-col">
+              <h1 class="m-4">Modifier la couleur de votre pixel</h1>
               <chrome-picker style="width: 100%;height: auto" v-model="color" @input="change"></chrome-picker>
               <AppButton
                 size="medium"
