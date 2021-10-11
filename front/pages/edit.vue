@@ -4,7 +4,7 @@
       <div
         class="
           flex flex-col
-          sm:flex-row
+          md:flex-row
           max-w-screen-xl
           h-full
           grid-rows-2
@@ -15,8 +15,8 @@
         <div
           id="flagContainer"
           class="
-            flex-1 sm:self-center
-            m-2 sm:mx-4
+            flex-1 md:self-center
+            m-2 md:mx-4
             h-auto
           "
         >
@@ -38,7 +38,7 @@
         <div
           class="
             flex flex-col
-            m-2 sm:mx-4 sm:ml-0
+            m-2 md:mx-4 md:ml-0
             p-4
             bg-white
             rounded-lg
