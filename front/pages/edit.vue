@@ -13,7 +13,7 @@
         <div
           id="flagContainer"
           class="
-            flex-1
+            flex-1 sm:self-center
             flex flex-col
             items-center
             sm:m-2
