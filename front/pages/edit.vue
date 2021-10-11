@@ -16,7 +16,7 @@
           id="flagContainer"
           class="
             flex-1 sm:self-center
-            m-2
+            m-2 sm:mx-4
             h-auto
           "
         >
@@ -38,7 +38,7 @@
         <div
           class="
             flex flex-col
-            m-2
+            m-2 sm:mx-4 sm:ml-0
             p-4
             bg-white
             rounded-lg
