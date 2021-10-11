@@ -7,7 +7,6 @@
           h-full
           grid-rows-2
           pt-16
-          space-y-8
         "
       >
         <div
@@ -17,8 +16,7 @@
             flex flex-col
             items-center
             w-1/2
-            mx-2
-            mb-2
+            m-2
             h-auto
           "
         >
@@ -40,14 +38,11 @@
         <div
           class="
             flex flex-col
-            px-4
-            py-1
-            mr-1
-            mt-0
+            m-2
+            p-4
             bg-white
             rounded-lg
             h-100
-            mb-2
             justify-between
           "
         >
