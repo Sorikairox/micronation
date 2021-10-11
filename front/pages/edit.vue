@@ -26,14 +26,6 @@
               class="w-full border-2 rounded-md border-grey-dark"
             />
           </div>
-          <div>
-            <div id="zoomContainer" class="w-full mt-4 h-1/2">
-              <canvas
-                id="zoomCanva"
-                class="border-2 rounded-md border-grey-dark"
-              />
-            </div>
-          </div>
         </div>
         <div
           class="
@@ -136,8 +128,6 @@ const mouse = new THREE.Vector2();
 //Canvas var
 let container, WIDTH, HEIGHT;
 let canvas, context;
-let zoomContainer;
-let zoomCanvas, zoomContext;
 let BoundingBox;
 
 //Color from the colorPicker
@@ -146,11 +136,6 @@ let canvasPixelColor = "#ff0000";
 //the coords of the user's pixel
 let userXPixel = 0;
 let userYPixel = 0;
-
-//offset for centering the zoomCanva
-let Xoffset,
-  Yoffset,
-  zoom = 2;
 
 let lastUpdate = new Date();
 let pixelNumber = 0;
@@ -182,7 +167,6 @@ function drawOverlay() {
       }
     }
   }
-  drawZoom();
 }
 
 //Draw a pixel on a coord given (x,y,clr), if changetexture is set to true, change the value on the map
@@ -214,57 +198,11 @@ function initCanvas() {
   drawFlag(FLAG);
 }
 
-//Initalising the zoom canvas
-function initZoom() {
-  zoomContainer = document.getElementById("zoomContainer");
-  zoomCanvas = document.getElementById("zoomCanva");
-  zoomCanvas.width = zoomContainer.clientWidth / 2;
-  zoomCanvas.height = zoomCanvas.width / 2;
-
-  zoomContext = zoomCanvas.getContext("2d");
-  Xoffset = zoomCanvas.width / (2 * zoom);
-  Yoffset = zoomCanvas.height / (2 * zoom);
-
-  drawZoom();
-}
-
-//Draw the zoom canvas (use the flag canvas and zoom it)
-function drawZoom(
-  x = (userXPixel * WIDTH) / xPixel,
-  y = (userYPixel * HEIGHT) / yPixel
-) {
-  x - Xoffset < 0
-    ? (x = 0)
-    : x + Xoffset > WIDTH
-    ? (x = WIDTH - 2 * Xoffset)
-    : (x -= Xoffset);
-  y - Yoffset < 0
-    ? (y = 0)
-    : y + Yoffset > HEIGHT
-    ? (y = HEIGHT - 2 * Yoffset)
-    : (y -= Yoffset);
-  if (zoomContext) {
-    zoomContext.drawImage(
-      canvas,
-      x,
-      y,
-      zoomCanvas.width / zoom,
-      zoomCanvas.height / zoom,
-      0,
-      0,
-      zoomCanvas.width,
-      zoomCanvas.height
-    );
-  }
-}
-
 //Initalising the variables to their value
 function init() {
   initCanvas();
-  initZoom();
 
   window.addEventListener("resize", onWindowResize);
-  canvas.addEventListener("pointermove", onPointerMove, false);
 }
 
 //Change the color value and draw it to the user pixel
@@ -272,7 +210,6 @@ function changeColor(newColor) {
   // console.log("Pixel draw informations :", [newColor, userXPixel, userYPixel]);
   canvasPixelColor = newColor;
   drawPixel(userXPixel, userYPixel, newColor, true);
-  drawZoom();
 }
 
 function getCanvas() {
@@ -286,13 +223,6 @@ function setUserPixel(x, y) {
 
 function onWindowResize() {
   initCanvas();
-  initZoom();
-}
-
-function onPointerMove(e) {
-  mouse.y = -((e.clientY - BoundingBox.top) / HEIGHT) * 2 + 1;
-  mouse.x = ((e.clientX - BoundingBox.left) / WIDTH) * 2 - 1;
-  drawZoom(~~(((mouse.x + 1) * WIDTH) / 2), ~~(((-mouse.y + 1) * HEIGHT) / 2));
 }
 
 function getCoordinateFromFlagIndex(i) {
@@ -370,7 +300,6 @@ export default {
       drawOverlay();
       setTimeout(() => {
         drawFlag(FLAG);
-        drawZoom();
       }, 3000);
     },
     async Refresh(ack = false) {
@@ -398,7 +327,6 @@ export default {
           lastUpdate = new Date();
           set2DSizeFromPixelNumber(pixelNumber);
           initCanvas();
-          initZoom();
         })
         .catch((err) => console.log(err));
     },
