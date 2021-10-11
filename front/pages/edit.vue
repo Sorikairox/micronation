@@ -121,7 +121,7 @@ class Pixel {
 let desiredFlagWidth = 500;
 let flagWidth = desiredFlagWidth;
 let flagHeight;
-let flagPixels = new Array(flagWidth);
+let flagPixelMap = new Array(flagWidth);
 
 const mousePosition = new THREE.Vector2();
 
@@ -129,6 +129,11 @@ const mousePosition = new THREE.Vector2();
 let canvasContainer, canvasWidth, canvasHeight;
 let canvas, canvasDrawingContext;
 let canvasBoundingBox;
+
+const MIN_ZOOM_LEVEL = 1;
+let zoomScale = 1;
+let zoomOriginX = 0;
+let zoomOriginY = 0;
 
 //Color from the colorPicker
 let canvasPixelColor = "#ff0000";
@@ -160,8 +165,8 @@ function drawFlag(pixelMap) {
 
 //Draw an overlay to find the user pixel on the whole flag
 function drawOverlay() {
-  for (let i = 0; i < flagPixels.length; i++) {
-    for (let j = 0; j < flagPixels[0].length; j++) {
+  for (let i = 0; i < flagPixelMap.length; i++) {
+    for (let j = 0; j < flagPixelMap[0].length; j++) {
       if (!(i == userXPixel && j == userYPixel)) {
         drawPixel(i, j, "#090909e0");
       }
@@ -178,7 +183,7 @@ function drawPixel(x, y, clr, changeTexture = false, size = 1, ctx = canvasDrawi
     ctx.fillStyle = clr;
     ctx.fillRect(x * drawWidth, y * drawHeight, drawWidth + 1, drawHeight + 1);
     if (changeTexture) {
-      flagPixels[x][y] = clr;
+      flagPixelMap[x][y] = clr;
     }
     ctx.fillStyle = "#ffffff";
   }
@@ -195,7 +200,11 @@ function initCanvas() {
   canvasBoundingBox = canvas.getBoundingClientRect();
   canvasDrawingContext = canvas.getContext("2d");
 
-  drawFlag(flagPixels);
+  zoomScale = 1;
+  zoomOriginX = 0;
+  zoomOriginY = 0;
+
+  drawFlag(flagPixelMap);
 }
 
 //Initalising the variables to their value
@@ -203,6 +212,7 @@ function init() {
   initCanvas();
 
   window.addEventListener("resize", onWindowResize);
+  canvas.addEventListener("wheel", onWheel);
 }
 
 //Change the color value and draw it to the user pixel
@@ -223,6 +233,46 @@ function setUserPixel(x, y) {
 
 function onWindowResize() {
   initCanvas();
+}
+
+function onWheel(event) {
+  event.preventDefault();
+
+  const zoomDelta = event.deltaY * -0.01;
+  if (zoomDelta < 0 && zoomScale <= MIN_ZOOM_LEVEL ||
+      zoomDelta > 0 && zoomScale >= getMaxZoomLevel()) {
+    return;
+  }
+
+  const oldZoomScale = zoomScale;
+  zoomScale += zoomDelta;
+  zoomScale = Math.min(Math.max(zoomScale, MIN_ZOOM_LEVEL), getMaxZoomLevel());
+
+  const oldZoomOriginX = zoomOriginX;
+  const oldZoomOriginY = zoomOriginY;
+  const mouseX = event.x - canvas.offsetLeft;
+  const mouseY = event.y - canvas.offsetTop;
+  zoomOriginX += mouseX / oldZoomScale - mouseX / zoomScale;
+  zoomOriginY += mouseY / oldZoomScale - mouseY / zoomScale;
+
+  zoomContext(oldZoomScale, oldZoomOriginX, oldZoomOriginY, zoomScale, zoomOriginX, zoomOriginY);
+
+  console.log(zoomScale, zoomOriginX, zoomOriginX);
+
+  drawFlag(flagPixelMap);
+}
+
+function zoomContext(currentScale, currentOriginX, currentOriginY, newScale, newOriginX, newOriginY, ctx = canvasDrawingContext) {
+  ctx.translate(currentOriginX, currentOriginY);
+
+  const relativeZoomScale = newScale / currentScale;
+  ctx.scale(relativeZoomScale, relativeZoomScale);
+
+  ctx.translate(-newOriginX, -newOriginY);
+}
+
+function getMaxZoomLevel() {
+  return Math.sqrt(flagPixelMap.length);
 }
 
 function getCoordinateFromFlagIndex(i) {
@@ -299,7 +349,7 @@ export default {
     Overlay() {
       drawOverlay();
       setTimeout(() => {
-        drawFlag(flagPixels);
+        drawFlag(flagPixelMap);
       }, 3000);
     },
     async Refresh(ack = false) {
@@ -319,14 +369,14 @@ export default {
             const { x, y } = getCoordinateFromFlagIndex(
               modifiedPixel.indexInFlag
             );
-            if (!flagPixels[x][y]) {
+            if (!flagPixelMap[x][y]) {
               pixelNumber++;
             }
-            flagPixels[x][y] = modifiedPixel.hexColor;
+            flagPixelMap[x][y] = modifiedPixel.hexColor;
           }
           lastUpdate = new Date();
           set2DSizeFromPixelNumber(pixelNumber);
-          initCanvas();
+          drawFlag(flagPixelMap);
         })
         .catch((err) => console.log(err));
     },
@@ -360,7 +410,7 @@ export default {
     },
     sendPixel(x, y) {
       //Sending the user pixel with coords, color, timestamp?, userID?
-      const UserPixel = new Pixel(x, y, flagPixels[x][y]);
+      const UserPixel = new Pixel(x, y, flagPixelMap[x][y]);
 
       console.log("Sending: ", UserPixel);
       fetch(`${process.env.apiUrl}/pixel`, {
@@ -441,7 +491,7 @@ export default {
     this.token = instance.userInfo.token;
     this.maxCooldownTime = await this.FetchCooldown();
     await this.FetchUserPixel();
-    flagPixels = await this.FetchMap();
+    flagPixelMap = await this.FetchMap();
     init();
     this.isMounted = true;
     setInterval(async () => {
