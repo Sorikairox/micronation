@@ -1,9 +1,10 @@
 <template>
   <v-app>
-    <div class="w-screen h-screen bg-grey-light">
+    <div class="min-h-screen bg-grey-light">
       <div
         class="
-          flex
+          flex flex-col
+          sm:flex-row
           h-full
           grid-rows-2
           pt-16
@@ -15,8 +16,7 @@
             flex-1
             flex flex-col
             items-center
-            w-1/2
-            m-2
+            sm:m-2
             h-auto
           "
         >
