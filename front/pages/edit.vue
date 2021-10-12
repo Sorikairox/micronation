@@ -255,12 +255,18 @@ function onWheel(event) {
   const mouseY = event.y - canvas.offsetTop;
   zoomOriginX += mouseX / oldZoomScale - mouseX / zoomScale;
   zoomOriginY += mouseY / oldZoomScale - mouseY / zoomScale;
+  clampCameraPosition();
 
   zoomContext(oldZoomScale, oldZoomOriginX, oldZoomOriginY, zoomScale, zoomOriginX, zoomOriginY);
 
   console.log(zoomScale, zoomOriginX, zoomOriginX);
 
   drawFlag(flagPixelMap);
+}
+
+function clampCameraPosition() {
+  zoomOriginX = Math.min(Math.max(zoomOriginX, 0), canvas.width * (1 - 1 / zoomScale));
+  zoomOriginY = Math.min(Math.max(zoomOriginY, 0), canvas.height * (1 - 1 / zoomScale));
 }
 
 function zoomContext(currentScale, currentOriginX, currentOriginY, newScale, newOriginX, newOriginY, ctx = canvasDrawingContext) {
