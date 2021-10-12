@@ -126,7 +126,7 @@ let flagPixelMap = new Array(flagWidth);
 const mousePosition = new THREE.Vector2();
 
 //Canvas var
-let canvasContainer, canvasWidth, canvasHeight;
+let canvasContainer;
 let canvas, canvasDrawingContext;
 let canvasBoundingBox;
 
@@ -179,10 +179,10 @@ function drawOverlay() {
 //You can change the size and the context to draw, default is flag context
 function drawPixel(x, y, clr, changeTexture = false, size = 1, ctx = canvasDrawingContext) {
   if (ctx) {
-    let drawWidth = (canvasWidth / flagWidth) * size;
-    let drawHeight = (canvasHeight / flagHeight) * size;
+    let drawWidth = (canvas.width / flagWidth) * size;
+    let drawHeight = (canvas.height / flagHeight) * size;
     ctx.fillStyle = clr;
-    ctx.fillRect(x * drawWidth, y * drawHeight, drawWidth + 1, drawHeight + 1);
+    ctx.fillRect(x * drawWidth, y * drawHeight, drawWidth, drawHeight);
     if (changeTexture) {
       flagPixelMap[x][y] = clr;
     }
@@ -195,8 +195,8 @@ function initCanvas() {
   canvasContainer = document.getElementById("flagContainer");
   canvas = document.getElementById("flagCanva");
 
-  canvas.width = canvasWidth = canvasContainer.clientWidth;
-  canvas.height = canvasHeight = ~~(canvasWidth / 2);
+  canvas.width = canvasContainer.clientWidth;
+  canvas.height = ~~(canvas.width / 2);
 
   canvasBoundingBox = canvas.getBoundingClientRect();
   canvasDrawingContext = canvas.getContext("2d");
