@@ -247,7 +247,7 @@ function onWheel(event) {
 
   const oldZoomScale = zoomScale;
   zoomScale += zoomDelta;
-  zoomScale = Math.min(Math.max(zoomScale, MIN_ZOOM_LEVEL), getMaxZoomLevel());
+  clampCameraScale();
 
   const oldZoomOriginX = zoomOriginX;
   const oldZoomOriginY = zoomOriginY;
@@ -262,6 +262,10 @@ function onWheel(event) {
   console.log(zoomScale, zoomOriginX, zoomOriginX);
 
   drawFlag(flagPixelMap);
+}
+
+function clampCameraScale() {
+  zoomScale = Math.min(Math.max(zoomScale, MIN_ZOOM_LEVEL), getMaxZoomLevel());
 }
 
 function clampCameraPosition() {
