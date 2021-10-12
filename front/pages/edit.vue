@@ -26,14 +26,6 @@
               class="w-full border-2 rounded-md border-grey-dark"
             />
           </div>
-          <div>
-            <div id="zoomContainer" class="w-full mt-4 h-1/2">
-              <canvas
-                id="zoomCanva"
-                class="border-2 rounded-md border-grey-dark"
-              />
-            </div>
-          </div>
         </div>
         <div
           class="
@@ -126,19 +118,22 @@ class Pixel {
 }
 
 //Initialising all the var
-let desired_flag_width = 500;
-let xPixel = desired_flag_width;
-let yPixel;
-let FLAG = new Array(xPixel);
+let desiredFlagWidth = 500;
+let flagWidth = desiredFlagWidth;
+let flagHeight;
+let flagPixelMap = new Array(flagWidth);
 
-const mouse = new THREE.Vector2();
+const mousePosition = new THREE.Vector2();
 
 //Canvas var
-let container, WIDTH, HEIGHT;
-let canvas, context;
-let zoomContainer;
-let zoomCanvas, zoomContext;
-let BoundingBox;
+let canvasContainer;
+let canvas, canvasDrawingContext;
+let canvasBoundingBox;
+
+const MIN_ZOOM_LEVEL = 1;
+let zoomScale = 1;
+let zoomOriginX = 0;
+let zoomOriginY = 0;
 
 //Color from the colorPicker
 let canvasPixelColor = "#ff0000";
@@ -147,54 +142,49 @@ let canvasPixelColor = "#ff0000";
 let userXPixel = 0;
 let userYPixel = 0;
 
-//offset for centering the zoomCanva
-let Xoffset,
-  Yoffset,
-  zoom = 2;
-
 let lastUpdate = new Date();
 let pixelNumber = 0;
 
 function set2DSizeFromPixelNumber(length) {
-  xPixel =
-    length > desired_flag_width ? desired_flag_width : length;
-  yPixel =
-    length > desired_flag_width
-      ? Math.ceil(length / desired_flag_width)
+  flagWidth =
+    length > desiredFlagWidth ? desiredFlagWidth : length;
+  flagHeight =
+    length > desiredFlagWidth
+      ? Math.ceil(length / desiredFlagWidth)
       : 1;
 }
 
 //Draw EVERY PIXEL of the map given
-function drawFlag(MAP) {
-  for (let i = 0; i < MAP.length; i++) {
-    for (let j = 0; j < MAP[i].length; j++) {
-      drawPixel(i, j, MAP[i][j]);
+function drawFlag(pixelMap) {
+  canvasDrawingContext.fillRect(zoomOriginX, zoomOriginY, canvas.width*zoomScale, canvas.height*zoomScale);
+  for (let i = 0; i < pixelMap.length; i++) {
+    for (let j = 0; j < pixelMap[i].length; j++) {
+      drawPixel(i, j, pixelMap[i][j]);
     }
   }
 }
 
 //Draw an overlay to find the user pixel on the whole flag
 function drawOverlay() {
-  for (let i = 0; i < FLAG.length; i++) {
-    for (let j = 0; j < FLAG[0].length; j++) {
+  for (let i = 0; i < flagPixelMap.length; i++) {
+    for (let j = 0; j < flagPixelMap[0].length; j++) {
       if (!(i == userXPixel && j == userYPixel)) {
         drawPixel(i, j, "#090909e0");
       }
     }
   }
-  drawZoom();
 }
 
 //Draw a pixel on a coord given (x,y,clr), if changetexture is set to true, change the value on the map
 //You can change the size and the context to draw, default is flag context
-function drawPixel(x, y, clr, changeTexture = false, size = 1, ctx = context) {
+function drawPixel(x, y, clr, changeTexture = false, size = 1, ctx = canvasDrawingContext) {
   if (ctx) {
-    let xDrawSize = (WIDTH / xPixel) * size;
-    let yDrawSize = (HEIGHT / yPixel) * size;
+    let drawWidth = (canvas.width / flagWidth) * size;
+    let drawHeight = (canvas.height / flagHeight) * size;
     ctx.fillStyle = clr;
-    ctx.fillRect(x * xDrawSize, y * yDrawSize, xDrawSize + 1, yDrawSize + 1);
+    ctx.fillRect(x * drawWidth, y * drawHeight, drawWidth, drawHeight);
     if (changeTexture) {
-      FLAG[x][y] = clr;
+      flagPixelMap[x][y] = clr;
     }
     ctx.fillStyle = "#ffffff";
   }
@@ -202,69 +192,28 @@ function drawPixel(x, y, clr, changeTexture = false, size = 1, ctx = context) {
 
 //Initalising the flag canvas
 function initCanvas() {
-  container = document.getElementById("flagContainer");
+  canvasContainer = document.getElementById("flagContainer");
   canvas = document.getElementById("flagCanva");
 
-  canvas.width = WIDTH = container.clientWidth;
-  canvas.height = HEIGHT = ~~(WIDTH / 2);
+  canvas.width = canvasContainer.clientWidth;
+  canvas.height = ~~(canvas.width / 2);
 
-  BoundingBox = canvas.getBoundingClientRect();
-  context = canvas.getContext("2d");
+  canvasBoundingBox = canvas.getBoundingClientRect();
+  canvasDrawingContext = canvas.getContext("2d");
 
-  drawFlag(FLAG);
-}
+  zoomScale = 1;
+  zoomOriginX = 0;
+  zoomOriginY = 0;
 
-//Initalising the zoom canvas
-function initZoom() {
-  zoomContainer = document.getElementById("zoomContainer");
-  zoomCanvas = document.getElementById("zoomCanva");
-  zoomCanvas.width = zoomContainer.clientWidth / 2;
-  zoomCanvas.height = zoomCanvas.width / 2;
-
-  zoomContext = zoomCanvas.getContext("2d");
-  Xoffset = zoomCanvas.width / (2 * zoom);
-  Yoffset = zoomCanvas.height / (2 * zoom);
-
-  drawZoom();
-}
-
-//Draw the zoom canvas (use the flag canvas and zoom it)
-function drawZoom(
-  x = (userXPixel * WIDTH) / xPixel,
-  y = (userYPixel * HEIGHT) / yPixel
-) {
-  x - Xoffset < 0
-    ? (x = 0)
-    : x + Xoffset > WIDTH
-    ? (x = WIDTH - 2 * Xoffset)
-    : (x -= Xoffset);
-  y - Yoffset < 0
-    ? (y = 0)
-    : y + Yoffset > HEIGHT
-    ? (y = HEIGHT - 2 * Yoffset)
-    : (y -= Yoffset);
-  if (zoomContext) {
-    zoomContext.drawImage(
-      canvas,
-      x,
-      y,
-      zoomCanvas.width / zoom,
-      zoomCanvas.height / zoom,
-      0,
-      0,
-      zoomCanvas.width,
-      zoomCanvas.height
-    );
-  }
+  drawFlag(flagPixelMap);
 }
 
 //Initalising the variables to their value
 function init() {
   initCanvas();
-  initZoom();
 
   window.addEventListener("resize", onWindowResize);
-  canvas.addEventListener("pointermove", onPointerMove, false);
+  canvas.addEventListener("wheel", onWheel);
 }
 
 //Change the color value and draw it to the user pixel
@@ -272,7 +221,6 @@ function changeColor(newColor) {
   // console.log("Pixel draw informations :", [newColor, userXPixel, userYPixel]);
   canvasPixelColor = newColor;
   drawPixel(userXPixel, userYPixel, newColor, true);
-  drawZoom();
 }
 
 function getCanvas() {
@@ -286,23 +234,66 @@ function setUserPixel(x, y) {
 
 function onWindowResize() {
   initCanvas();
-  initZoom();
 }
 
-function onPointerMove(e) {
-  mouse.y = -((e.clientY - BoundingBox.top) / HEIGHT) * 2 + 1;
-  mouse.x = ((e.clientX - BoundingBox.left) / WIDTH) * 2 - 1;
-  drawZoom(~~(((mouse.x + 1) * WIDTH) / 2), ~~(((-mouse.y + 1) * HEIGHT) / 2));
+function onWheel(event) {
+  event.preventDefault();
+
+  const zoomDelta = event.deltaY * -0.01;
+  if (zoomDelta < 0 && zoomScale <= MIN_ZOOM_LEVEL ||
+      zoomDelta > 0 && zoomScale >= getMaxZoomLevel()) {
+    return;
+  }
+
+  const oldZoomScale = zoomScale;
+  zoomScale += zoomDelta;
+  clampCameraScale();
+
+  const oldZoomOriginX = zoomOriginX;
+  const oldZoomOriginY = zoomOriginY;
+  const mouseX = event.x - canvas.offsetLeft;
+  const mouseY = event.y - canvas.offsetTop;
+  zoomOriginX += mouseX / oldZoomScale - mouseX / zoomScale;
+  zoomOriginY += mouseY / oldZoomScale - mouseY / zoomScale;
+  clampCameraPosition();
+
+  zoomContext(oldZoomScale, oldZoomOriginX, oldZoomOriginY, zoomScale, zoomOriginX, zoomOriginY);
+
+  console.log(zoomScale, zoomOriginX, zoomOriginX);
+
+  drawFlag(flagPixelMap);
+}
+
+function clampCameraScale() {
+  zoomScale = Math.min(Math.max(zoomScale, MIN_ZOOM_LEVEL), getMaxZoomLevel());
+}
+
+function clampCameraPosition() {
+  zoomOriginX = Math.min(Math.max(zoomOriginX, 0), canvas.width * (1 - 1 / zoomScale));
+  zoomOriginY = Math.min(Math.max(zoomOriginY, 0), canvas.height * (1 - 1 / zoomScale));
+}
+
+function zoomContext(currentScale, currentOriginX, currentOriginY, newScale, newOriginX, newOriginY, ctx = canvasDrawingContext) {
+  ctx.translate(currentOriginX, currentOriginY);
+
+  const relativeZoomScale = newScale / currentScale;
+  ctx.scale(relativeZoomScale, relativeZoomScale);
+
+  ctx.translate(-newOriginX, -newOriginY);
+}
+
+function getMaxZoomLevel() {
+  return Math.sqrt(flagPixelMap.length);
 }
 
 function getCoordinateFromFlagIndex(i) {
-  let x = i % xPixel;
-  let y = Math.floor(i / desired_flag_width);
+  let x = i % flagWidth;
+  let y = Math.floor(i / desiredFlagWidth);
   return { x, y };
 }
 
 function getFlagIndexFromCoordinates(x, y) {
-  return y * desired_flag_width + x;
+  return y * desiredFlagWidth + x;
 }
 
 import { Chrome } from 'vue-color';
@@ -323,8 +314,8 @@ export default {
       errorMessage: "",
       openSuccessEditModal: false,
       openFailedEditModal: false,
-      x: ~~(Math.random() * xPixel),
-      y: ~~(Math.random() * yPixel),
+      x: ~~(Math.random() * flagWidth),
+      y: ~~(Math.random() * flagHeight),
       isMounted: false,
     };
   },
@@ -369,8 +360,7 @@ export default {
     Overlay() {
       drawOverlay();
       setTimeout(() => {
-        drawFlag(FLAG);
-        drawZoom();
+        drawFlag(flagPixelMap);
       }, 3000);
     },
     async Refresh(ack = false) {
@@ -390,15 +380,14 @@ export default {
             const { x, y } = getCoordinateFromFlagIndex(
               modifiedPixel.indexInFlag
             );
-            if (!FLAG[x][y]) {
+            if (!flagPixelMap[x][y]) {
               pixelNumber++;
             }
-            FLAG[x][y] = modifiedPixel.hexColor;
+            flagPixelMap[x][y] = modifiedPixel.hexColor;
           }
           lastUpdate = new Date();
           set2DSizeFromPixelNumber(pixelNumber);
-          initCanvas();
-          initZoom();
+          drawFlag(flagPixelMap);
         })
         .catch((err) => console.log(err));
     },
@@ -417,9 +406,9 @@ export default {
 
           set2DSizeFromPixelNumber(data.length);
           pixelNumber = data.length;
-          const NEW_MAP = new Array(xPixel);
+          const NEW_MAP = new Array(flagWidth);
           for (let i = 0; i < NEW_MAP.length; i++) {
-            NEW_MAP[i] = new Array(yPixel);
+            NEW_MAP[i] = new Array(flagHeight);
           }
 
           for (let i = 0; i < data.length; i++) {
@@ -432,7 +421,7 @@ export default {
     },
     sendPixel(x, y) {
       //Sending the user pixel with coords, color, timestamp?, userID?
-      const UserPixel = new Pixel(x, y, FLAG[x][y]);
+      const UserPixel = new Pixel(x, y, flagPixelMap[x][y]);
 
       console.log("Sending: ", UserPixel);
       fetch(`${process.env.apiUrl}/pixel`, {
@@ -485,8 +474,8 @@ export default {
         .then((data) => {
           console.log("DEBUG - User pixel : ", data);
           // field indexInFlag not in the response of the /pixel endpoint, the back-end has been contacted to discuss this issue
-          this.x = (data.indexInFlag % desired_flag_width) - 1;
-          this.y = ~~(data.indexInFlag / desired_flag_width);
+          this.x = (data.indexInFlag % desiredFlagWidth) - 1;
+          this.y = ~~(data.indexInFlag / desiredFlagWidth);
           this.color = data.hexColor;
           this.lastSubmittedTime = data.lastUpdate;
           console.log("DEBUG - time last updated ", this.lastSubmittedTime);
@@ -513,7 +502,7 @@ export default {
     this.token = instance.userInfo.token;
     this.maxCooldownTime = await this.FetchCooldown();
     await this.FetchUserPixel();
-    FLAG = await this.FetchMap();
+    flagPixelMap = await this.FetchMap();
     init();
     this.isMounted = true;
     setInterval(async () => {
@@ -531,9 +520,8 @@ export default {
 };
 </script>
 
+
 <style>
-
-
 .vc-chrome-saturation-wrap {
   padding-bottom: 30% !important;
 }
