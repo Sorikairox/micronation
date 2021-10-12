@@ -1,6 +1,8 @@
 import { Injectable } from "@nestjs/common";
-import jwt, { JwtPayload } from "jsonwebtoken";
+import jwt, { JsonWebTokenError, JwtPayload, TokenExpiredError } from "jsonwebtoken";
 import { v4 } from "uuid";
+import { ExpiredJsonWebTokenError } from "../../authentication/errors/ExpiredJsonWebTokenError";
+import { InvalidJsonWebTokenError } from "../../authentication/errors/InvalidJsonWebTokenError";
 
 @Injectable()
 export class JwtService {
@@ -24,13 +26,25 @@ export class JwtService {
   }
 
   public async verify<PayloadFormat extends PayloadFormatBaseType>(token: string): Promise<ExtendedJwtPayload<PayloadFormat>> {
-    return await new Promise<ExtendedJwtPayload<PayloadFormat>>((resolve, reject) => {
-      jwt.verify(token, this.secret, (err, decodedPayload) => {
-        if (err) return reject(err);
+    let payload: JwtPayload & PayloadFormat;
+    try {
+      payload = await new Promise<ExtendedJwtPayload<PayloadFormat>>((resolve, reject) => {
+        jwt.verify(token, this.secret, (err, decodedPayload) => {
+          if (err) return reject(err);
 
-        resolve(decodedPayload as ExtendedJwtPayload<PayloadFormat>);
+          resolve(decodedPayload as ExtendedJwtPayload<PayloadFormat>);
+        });
       });
-    });
+    } catch (e) {
+      if (e instanceof TokenExpiredError) {
+        throw new ExpiredJsonWebTokenError();
+      } else if (e instanceof JsonWebTokenError) {
+        throw new InvalidJsonWebTokenError();
+      } else {
+        throw e;
+      }
+    }
+    return payload;
   }
 
   private get secret(): string {

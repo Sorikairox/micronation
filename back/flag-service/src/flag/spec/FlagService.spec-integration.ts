@@ -9,7 +9,7 @@ import { PixelModule } from '../pixel/PixelModule';
 import { PixelRepository } from '../pixel/PixelRepository';
 import { DatabaseEvent } from 'library/database/object/event/DatabaseEvent';
 import { set } from 'date-fns';
-import { UserAlreadyOwnAPixelError } from "../errors/UserAlreadyOwnAPixelError";
+import { UserAlreadyOwnsAPixelError } from "../errors/UserAlreadyOwnsAPixelError";
 import { CooldownTimerHasNotEndedYetError } from "../errors/CooldownTimerHasNotEndedYetError";
 import { FlagSnapshotModule } from '../snapshot/SnapshotModule';
 import { FlagSnapshotRepository } from '../snapshot/SnapshotRepository';
@@ -212,7 +212,7 @@ describe('FlagService', () => {
     it('throw error if owner already own a pixel', async () => {
       await flagService.addPixel('otherownerid', '#DDDDDD');
       await expect(flagService.addPixel('otherownerid')).rejects.toThrow(
-        UserAlreadyOwnAPixelError,
+        UserAlreadyOwnsAPixelError,
       );
     });
   });

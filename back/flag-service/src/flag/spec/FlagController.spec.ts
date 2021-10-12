@@ -1,8 +1,8 @@
 import { UserHasNoPixel } from '../errors/UserHasNoPixel';
 import { FlagController } from '../FlagController';
 import { FlagService } from '../FlagService';
-import { BadRequestException, InternalServerErrorException } from '@nestjs/common';
-import { UserAlreadyOwnAPixelError } from "../errors/UserAlreadyOwnAPixelError";
+import { InternalServerErrorException } from '@nestjs/common';
+import { UserAlreadyOwnsAPixelError } from "../errors/UserAlreadyOwnsAPixelError";
 import { CooldownTimerHasNotEndedYetError } from "../errors/CooldownTimerHasNotEndedYetError";
 
 describe('FlagController', () => {
@@ -42,15 +42,15 @@ describe('FlagController', () => {
         addPixelSpy = jest
           .spyOn(flagService, 'addPixel')
           .mockImplementation(() => {
-            throw new UserAlreadyOwnAPixelError();
+            throw new UserAlreadyOwnsAPixelError();
           });
         res = flagController.addPixel('ownerId', '#ffffff');
       });
       it('call addPixel from service', () => {
         expect(addPixelSpy).toBeCalledTimes(1);
       });
-      it('throw BadRequestException when service throw an UserAlreadyOwnAPixel error', async () => {
-        await expect(res).rejects.toThrow(BadRequestException);
+      it('throws UserAlreadyOwnsAPixelError from service', async () => {
+        await expect(res).rejects.toThrow(UserAlreadyOwnsAPixelError);
       });
     });
   });
@@ -79,15 +79,15 @@ describe('FlagController', () => {
           changePixelColorSpy = jest
             .spyOn(flagService, 'changePixelColor')
             .mockImplementation(() => {
-              throw new CooldownTimerHasNotEndedYetError();
+              throw new CooldownTimerHasNotEndedYetError(1000);
             });
           res = flagController.changePixelColor('ownerId', '#ffffff');
         });
         it('call changePixelColor from service', () => {
           expect(changePixelColorSpy).toBeCalledTimes(1);
         });
-        it('throw BadRequestException', async () => {
-          await expect(res).rejects.toThrow(BadRequestException);
+        it('throws CooldownTimerHasNotEndedYetError from service', async () => {
+          await expect(res).rejects.toThrow(CooldownTimerHasNotEndedYetError);
         });
       });
       describe('service.changePixelColor throw UserHasNoPixel', () => {
@@ -104,8 +104,8 @@ describe('FlagController', () => {
         it('call changePixelColor from service', () => {
           expect(changePixelColorSpy).toBeCalledTimes(1);
         });
-        it('throw BadRequestException', async () => {
-          await expect(res).rejects.toThrow(BadRequestException);
+        it('throws UserHasNoPixel from service', async () => {
+          await expect(res).rejects.toThrow(UserHasNoPixel);
         });
       });
     });
@@ -141,7 +141,7 @@ describe('FlagController', () => {
       it('call getFlag from service', () => {
         expect(getFlagSpy).toBeCalledTimes(1);
       });
-      it('throw InternalServerErrorException when service throw an error', async () => {
+      it('throws InternalServerErrorException when service throw an error', async () => {
         await expect(res).rejects.toThrow(InternalServerErrorException);
       });
     });
@@ -177,7 +177,7 @@ describe('FlagController', () => {
       it('call getFlag from service', () => {
         expect(getFlagAtDateSpy).toBeCalledTimes(1);
       });
-      it('throw InternalServerErrorException when service throw an error', async () => {
+      it('throws InternalServerErrorException when service throw an error', async () => {
         await expect(res).rejects.toThrow(InternalServerErrorException);
       });
     });

@@ -21,12 +21,12 @@ export class UserService {
   async register(email: string, password: string, nickname: string): Promise<User> {
     const existingUserWithEmail = await this.userRepository.findOne({ email: email });
     if (existingUserWithEmail) {
-      throw new EmailAlreadyTakenError();
+      throw new EmailAlreadyTakenError('email', email);
     }
 
     const existingUserWithNickname = await this.userRepository.findOne({ nickname: nickname });
     if (existingUserWithNickname) {
-      throw new NicknameAlreadyTakenError();
+      throw new NicknameAlreadyTakenError('nickname', nickname);
     }
 
     return await this.userRepository.createAndReturn({
@@ -39,11 +39,11 @@ export class UserService {
   async login(email: string, password: string): Promise<{ user: User, jwt: string }> {
     const user = await this.userRepository.findOne({ email: email });
     if (!user) {
-      throw new EmailNotFoundError();
+      throw new EmailNotFoundError('email', email);
     }
 
     if (!await argon2.verify(user.password, password)) {
-      throw new IncorrectPasswordError();
+      throw new IncorrectPasswordError('password');
     }
 
     return {
@@ -63,11 +63,11 @@ export class UserService {
   async changePassword(userId: string | ObjectID, currentPassword: string, newPassword: string): Promise<User> {
     const user = await this.userRepository.findOne({ _id: new ObjectID(userId) });
     if (!user) {
-      throw new UserIdNotFoundError();
+      throw new UserIdNotFoundError(userId);
     }
 
     if (!await argon2.verify(user.password, currentPassword)) {
-      throw new IncorrectPasswordError();
+      throw new IncorrectPasswordError('currentPassword');
     }
 
     return await this.userRepository.updateAndReturnOne(
@@ -79,16 +79,16 @@ export class UserService {
   async changeNickname(userId: string | ObjectID, password: string, newNickname: string): Promise<User> {
     const user = await this.userRepository.findOne({ _id: new ObjectID(userId) });
     if (!user) {
-      throw new UserIdNotFoundError();
+      throw new UserIdNotFoundError(userId);
     }
 
     if (!await argon2.verify(user.password, password)) {
-      throw new IncorrectPasswordError();
+      throw new IncorrectPasswordError('password');
     }
 
     const existingUserWithNickname = await this.userRepository.findOne({ nickname: newNickname });
     if (existingUserWithNickname) {
-      throw new NicknameAlreadyTakenError();
+      throw new NicknameAlreadyTakenError('newNickname', newNickname);
     }
 
     return await this.userRepository.updateAndReturnOne(
