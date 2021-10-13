@@ -37,6 +37,7 @@ export default {
     // https://go.nuxtjs.dev/tailwindcss
     "@nuxtjs/vuetify",
     "@nuxtjs/tailwindcss",
+    ["@nuxtjs/dotenv", { systemvars: true }],
   ],
 
   // Modules: https://go.nuxtjs.dev/config-modules
