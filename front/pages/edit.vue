@@ -157,7 +157,7 @@
           <li>Tu peux voir les pseudos, la couleur et les coordonnées x:y de tes voisins directs.
           </li>
           <li>Si tu cliques sur le bouton avec tes coordonnées et ton nom, ta zone sera mise en évidence</li>
-          <li><a href="https://discord.gg/NTCwY6Cv">Élabores un plan sur discord pour dessiner un <strike>pén</strike>...un soleil en cliquant ici</a></li>
+          <li><a target="_blanks" href="https://discord.gg/NTCwY6Cv">Élabores un plan sur discord pour dessiner un <strike>pén</strike>...un soleil en cliquant ici</a></li>
         </ul>
       </div></AppAlert
       >
