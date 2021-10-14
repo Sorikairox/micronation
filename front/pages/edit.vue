@@ -20,7 +20,7 @@
             h-auto
           "
         >
-          <div>
+          <div class="mt-2">
             <canvas
               id="flagCanva"
               class="w-full border-2 rounded-md border-grey-dark"
@@ -30,6 +30,7 @@
         <div
           class="
             flex flex-col
+            mx-auto
             m-2 md:mx-4 md:mb-4 md:ml-0
             p-4
             bg-white
@@ -37,15 +38,31 @@
             h-100
             justify-between
           "
+          style="max-width: 500px"
         >
-            <div class="flex flex-col justify-between flex-1">
+
+          <div class="flex-col justify-between flex-1 flex sm:hidden">
+            <div>Voisin de gauche : <span v-if="leftPixel">[{{leftPixel.x + 1}}:{{leftPixel.y + 1}}] {{leftPixel.username}} </span><span v-else>Pas de voisin</span></div>
+            <div>Voisin du haut : <span v-if="topPixel">[{{topPixel.x + 1}}:{{topPixel.y + 1}}] {{topPixel.username}} </span><span v-else>Pas de voisin</span></div>
+            <div>Voisin de droite : <span v-if="rightPixel">[{{rightPixel.x + 1}}:{{rightPixel.y + 1}}] {{rightPixel.username}}</span><span v-else>Pas de voisin</span></div>
+            <div>Voisin du bas : <span v-if="bottomPixel">[{{bottomPixel.x + 1}}:{{bottomPixel.y + 1}}] {{bottomPixel.username}} </span><span v-else>Pas de voisin</span></div>
+            <AppButton
+              size="medium"
+              v-on:click="Overlay()"
+              class="text-white my-auto mx-auto pixelButton"
+              :style="myPixelButtonStyle"
+            >
+              [{{ x + 1 }}:{{ y + 1 }}] Toi
+            </AppButton>
+          </div>
+          <div class="flex-col justify-between flex-1 hidden sm:flex">
               <div class="flex justify-center">
                 <AppButton v-if="topPixel !== null"
                   size="medium"
                   class="text-white my-auto pixelButton"
                            v-bind:style="{ backgroundColor: topPixel.hexColor }"
                 >
-                  Le pixel de {{topPixel.username}} en {{topPixel.x}} : {{topPixel.y}}
+                  [{{topPixel.x + 1}}:{{topPixel.y + 1}}] {{topPixel.username}}
                 </AppButton>
               </div>
               <div class="flex justify-between">
@@ -54,7 +71,7 @@
                            class="text-white my-auto pixelButton"
                            v-bind:style="{ backgroundColor: leftPixel.hexColor }"
                 >
-                  Le pixel de {{leftPixel.username}} en {{leftPixel.x}} : {{leftPixel.y}}
+                   [{{leftPixel.x + 1}}:{{leftPixel.y + 1}}] {{leftPixel.username}}
                 </AppButton>
                 <AppButton
                   size="medium"
@@ -62,14 +79,14 @@
                   class="text-white my-auto pixelButton"
                   :style="myPixelButtonStyle"
                 >
-                  Ton pixel en {{ x + 1 }}:{{ y + 1 }}
+                  [{{ x + 1 }}:{{ y + 1 }}] Toi
                 </AppButton>
                 <AppButton v-if="rightPixel !== null"
                            size="medium"
                            class="text-white my-auto pixelButton"
                            v-bind:style="{ backgroundColor: rightPixel.hexColor }"
                 >
-                  Le pixel de {{rightPixel.username}} en {{rightPixel.x}} : {{rightPixel.y}}
+                  [{{rightPixel.x + 1}}:{{rightPixel.y + 1}}] {{rightPixel.username}}
                 </AppButton>
               </div>
               <div class="flex justify-center">
@@ -78,13 +95,13 @@
                            class="text-white my-auto pixelButton"
                            v-bind:style="{ backgroundColor: bottomPixel.hexColor }"
                 >
-                  Le pixel de {{bottomPixel.username}} en {{bottomPixel.x}} : {{bottomPixel.y}}
+                  [{{bottomPixel.x + 1}}:{{bottomPixel.y + 1}}] {{bottomPixel.username}}
                 </AppButton>
               </div>
             </div>
-            <hr class="mt-4 border-grey-light">
-            <div class="flex flex-col">
-              <h1 class="m-4">Modifier la couleur de votre pixel</h1>
+            <hr class="mt-1 border-grey-light">
+            <div class="flex flex-col text-center">
+              <h1 class="m-4">Modifies la couleur de ton pixel ci-dessous</h1>
               <chrome-picker style="width: 100%;height: auto" v-model="color" @input="change"></chrome-picker>
               <AppButton
                 size="medium"
@@ -102,7 +119,7 @@
         variant="error"
         @close="closeCooldownModal"
         :open="openFailedEditModal"
-        >La date de dernière modification de votre pixel est trop récente,
+        >La date de dernière modification de ton pixel est trop récente,
         veuillez patienter ! <br />
         Temps restant :
         <countdown
@@ -128,6 +145,21 @@
         @close="closeSuccessfulModal"
         :open="openSuccessEditModal"
         >La couleur a été changée avec succès !</AppAlert
+      >
+      <AppAlert
+        variant="info"
+        @close="showHelp = false"
+        :open="showHelp"
+      ><div>
+        <ul>
+          <li> Le drapeau est divisé en autant de zone de tailles égales qu'il y a de joueurs. + de joueurs = + de zones un peu plus petite</li>
+          <li> Chaque joueur controle la couleur de sa zone. Tu ne peux modifier la couleur de ta zone que 1 fois toutes les {{ maxCooldownTime }} minutes</li>
+          <li>Tu peux voir les pseudos, la couleur et les coordonnées x:y de tes voisins directs.
+          </li>
+          <li>Si tu cliques sur le bouton avec tes coordonnées et ton nom, ta zone sera mise en évidence</li>
+          <li><a href="https://discord.gg/NTCwY6Cv">Élabores un plan sur discord pour dessiner un <strike>pén</strike>...un soleil en cliquant ici</a></li>
+        </ul>
+      </div></AppAlert
       >
     </div>
   </v-app>
@@ -349,10 +381,6 @@ function getCoordinateFromFlagIndex(i) {
   return { x, y };
 }
 
-function getFlagIndexFromCoordinates(x, y) {
-  return y * desiredFlagWidth + x;
-}
-
 import { Chrome } from 'vue-color';
 
 export default {
@@ -364,6 +392,7 @@ export default {
   },
   data() {
     return {
+      showHelp: true,
       fouloscopieSdk: null,
       topPixel: null,
       leftPixel: null,
@@ -450,6 +479,7 @@ export default {
           lastUpdate = new Date();
           set2DSizeFromPixelNumber(pixelNumber);
           drawFlag(flagPixelMap);
+          this.setNeighboursInfo();
         })
         .catch((err) => console.log(err));
     },
@@ -486,12 +516,15 @@ export default {
       this.leftPixel = await this.getNeighbourPixelIfItExists(this.x - 1, this.y);
       this.rightPixel = await this.getNeighbourPixelIfItExists(this.x + 1, this.y);
       this.bottomPixel = await this.getNeighbourPixelIfItExists(this.x, this.y + 1 );
+      console.log(this.leftPixel);
     },
     async getNeighbourPixelIfItExists(x, y) {
-      if (FLAG[x]?.[y]) {
+      if (flagPixelMap[x]?.[y]) {
         return {
-        ...FLAG[x][y],
-          username: (await this.fouloscopieSdk.api.items('directus_users').readOne(FLAG[x][y].author)).username,
+          ...flagPixelMap[x][y],
+          x,
+          y,
+          username: (await this.fouloscopieSdk.getUser(flagPixelMap[x][y].author)).last_name,
         }
       }
       return null;
@@ -583,7 +616,7 @@ export default {
     this.setNeighboursInfo();
     init();
     this.isMounted = true;
-    setInterval(async () => {
+    this.intervalId = setInterval(async () => {
       await this.Refresh();
     }, 30000)
   },
@@ -594,6 +627,9 @@ export default {
     if (!token) {
       redirect({ name: "index" });
     }
+  },
+  beforeDestroy() {
+    clearInterval(this.intervalId);
   },
 };
 </script>
@@ -614,5 +650,23 @@ export default {
 
 .pixelButton span {
   mix-blend-mode: difference;
+}
+
+.vc-checkerboard {
+  display: none;
+}
+
+.vc-chrome-active-color {
+  z-index: 0 !important;
+}
+
+.pixelButton {
+  max-width: 200px;
+  height: 100%;
+}
+
+.pixelButton span {
+  text-overflow: ellipsis;
+  overflow: hidden;
 }
 </style>
