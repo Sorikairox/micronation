@@ -10,17 +10,19 @@
           grid-rows-2
           mx-auto
           pt-16
+          items-center
+          md:items-stretch
         "
       >
         <div
           id="flagContainer"
           class="
             flex-1 md:self-center
-            m-2 md:mx-4 md:mb-4
+            m-2 md:m-4
             h-auto
           "
         >
-          <div class="mt-2">
+          <div>
             <canvas
               id="flagCanva"
               class="w-full border-2 rounded-md border-grey-dark"
@@ -30,7 +32,6 @@
         <div
           class="
             flex flex-col
-            mx-auto
             m-2 md:mx-4 md:mb-4 md:ml-0
             p-4
             bg-white
@@ -41,7 +42,7 @@
           style="max-width: 500px"
         >
 
-          <div class="flex-col justify-between flex-1 flex sm:hidden">
+          <div class="flex-col justify-between flex-1 flex md:hidden">
             <div>Voisin de gauche : <span v-if="leftPixel">[{{leftPixel.x + 1}}:{{leftPixel.y + 1}}] {{leftPixel.username}} </span><span v-else>Pas de voisin</span></div>
             <div>Voisin du haut : <span v-if="topPixel">[{{topPixel.x + 1}}:{{topPixel.y + 1}}] {{topPixel.username}} </span><span v-else>Pas de voisin</span></div>
             <div>Voisin de droite : <span v-if="rightPixel">[{{rightPixel.x + 1}}:{{rightPixel.y + 1}}] {{rightPixel.username}}</span><span v-else>Pas de voisin</span></div>
@@ -55,9 +56,9 @@
               [{{ x + 1 }}:{{ y + 1 }}] Toi
             </AppButton>
           </div>
-          <div class="flex-col justify-between flex-1 hidden sm:flex">
+          <div class="flex-col justify-between flex-1 hidden md:flex">
               <div class="flex justify-center">
-                <AppButton v-if="topPixel !== null"
+                <AppButton v-if="topPixel"
                   size="medium"
                   class="text-white my-auto pixelButton"
                            v-bind:style="{ backgroundColor: topPixel.hexColor }"
@@ -66,7 +67,7 @@
                 </AppButton>
               </div>
               <div class="flex justify-between">
-                <AppButton v-if="leftPixel !== null"
+                <AppButton v-if="leftPixel"
                            size="medium"
                            class="text-white my-auto pixelButton"
                            v-bind:style="{ backgroundColor: leftPixel.hexColor }"
@@ -81,7 +82,7 @@
                 >
                   [{{ x + 1 }}:{{ y + 1 }}] Toi
                 </AppButton>
-                <AppButton v-if="rightPixel !== null"
+                <AppButton v-if="rightPixel"
                            size="medium"
                            class="text-white my-auto pixelButton"
                            v-bind:style="{ backgroundColor: rightPixel.hexColor }"
@@ -90,7 +91,7 @@
                 </AppButton>
               </div>
               <div class="flex justify-center">
-                <AppButton v-if="bottomPixel !== null"
+                <AppButton v-if="bottomPixel"
                            size="medium"
                            class="text-white my-auto pixelButton"
                            v-bind:style="{ backgroundColor: bottomPixel.hexColor }"
@@ -120,7 +121,7 @@
         @close="closeCooldownModal"
         :open="openFailedEditModal"
         >La date de dernière modification de ton pixel est trop récente,
-        veuillez patienter ! <br />
+        merci de patienter ! <br />
         Temps restant :
         <countdown
           :time="this.cooldownTime"
@@ -148,7 +149,7 @@
       >
       <AppAlert
         variant="info"
-        @close="showHelp = false"
+        @close="closeHelpModal"
         :open="showHelp"
       ><div>
         <ul>
@@ -157,7 +158,7 @@
           <li>Tu peux voir les pseudos, la couleur et les coordonnées x:y de tes voisins directs.
           </li>
           <li>Si tu cliques sur le bouton avec tes coordonnées et ton nom, ta zone sera mise en évidence</li>
-          <li><a target="_blanks" href="https://discord.gg/NTCwY6Cv">Élabores un plan sur discord pour dessiner un <strike>pén</strike>...un soleil en cliquant ici</a></li>
+          <li><a target="_blank" href="https://discord.gg/NTCwY6Cv">Élabores un plan sur discord pour dessiner un <strike>pén</strike>...un soleil en cliquant ici.</a></li>
         </ul>
       </div></AppAlert
       >
@@ -327,8 +328,11 @@ function onWheel(event) {
   cameraPositionX += mouseX / oldCameraZoom - mouseX / cameraZoom;
   cameraPositionY += mouseY / oldCameraZoom - mouseY / cameraZoom;
 
+<<<<<<< HEAD
   zoomAndTranslateContext(oldCameraZoom, oldCameraPositionX, oldCameraPositionY, cameraZoom, cameraPositionX, cameraPositionY);
 
+=======
+>>>>>>> fix(help): do not display help everytime
   drawFlag(flagPixelMap);
 }
 
@@ -392,6 +396,7 @@ export default {
   },
   data() {
     return {
+      doNotShow: false,
       showHelp: true,
       fouloscopieSdk: null,
       topPixel: null,
@@ -432,6 +437,10 @@ export default {
     },
   },
   methods: {
+    closeHelpModal() {
+      this.showHelp = false;
+      localStorage.setItem('showHelp', 'false');
+    },
     closeCooldownModal() {
       this.openFailedEditModal = false;
     },
@@ -608,6 +617,7 @@ export default {
     },
   },
   async mounted() {
+    this.showHelp = localStorage.getItem('showHelp') !== 'false';
     this.fouloscopieSdk = await fouloscopie();
     this.token = this.fouloscopieSdk.userInfo.token;
     this.maxCooldownTime = await this.FetchCooldown();
@@ -616,7 +626,7 @@ export default {
     this.setNeighboursInfo();
     init();
     this.isMounted = true;
-    this.intervalId = setInterval(async () => {
+    this.flagRefreshIntervalId = setInterval(async () => {
       await this.Refresh();
     }, 30000)
   },
@@ -629,7 +639,7 @@ export default {
     }
   },
   beforeDestroy() {
-    clearInterval(this.intervalId);
+    clearInterval(this.flagRefreshIntervalId);
   },
 };
 </script>
@@ -656,7 +666,7 @@ export default {
   display: none;
 }
 
-.vc-chrome-active-color {
+.vc-chrome-active-color, .vc-hue-picker {
   z-index: 0 !important;
 }
 
