@@ -154,7 +154,7 @@
         :open="showHelp"
       ><div>
         <ul>
-          <li> Le drapeau est divisé en autant de zone de tailles égales qu'il y a de joueurs. + de joueurs = + de zones un peu plus petite</li>
+          <li> Le drapeau est divisé en autant de zone de tailles égales qu'il y a de joueurs. + de joueurs = + de zones un peu plus petites</li>
           <li> Chaque joueur controle la couleur de sa zone. Tu ne peux modifier la couleur de ta zone que 1 fois toutes les {{ maxCooldownTime }} minutes</li>
           <li>Tu peux voir les pseudos, la couleur et les coordonnées x:y de tes voisins directs.
           </li>
