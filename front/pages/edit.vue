@@ -51,7 +51,7 @@
             <AppButton
               size="medium"
               v-on:click="Overlay()"
-              class="text-white my-auto mx-auto pixelButton"
+              class="my-auto mx-auto pixelButton"
               :style="myPixelButtonStyle"
             >
               [{{ x + 1 }}:{{ y + 1 }}] Toi
@@ -78,7 +78,7 @@
                 <AppButton
                   size="medium"
                   v-on:click="Overlay()"
-                  class="text-white my-auto pixelButton"
+                  class="my-auto pixelButton"
                   :style="myPixelButtonStyle"
                 >
                   [{{ x + 1 }}:{{ y + 1 }}] Toi
@@ -386,6 +386,13 @@ function getCoordinateFromFlagIndex(i) {
   return { x, y };
 }
 
+const hex2rgb = (hex) => {
+  const r = parseInt(hex.slice(1, 3), 16)
+  const g = parseInt(hex.slice(3, 5), 16)
+  const b = parseInt(hex.slice(5, 7), 16)
+  return {r, g, b};
+}
+
 import { Chrome } from 'vue-color';
 
 export default {
@@ -418,9 +425,15 @@ export default {
   },
   computed: {
     myPixelButtonStyle() {
+      const {r, g, b} = hex2rgb(this.color);
+      const brightness = Math.round(((r * 299) +
+        (g * 587) +
+        (b * 114)) / 1000);
+      const textColour = (brightness > 125) ? 'black' : 'white';
       return {
-        backgroundColor: this.color
-      }
+        backgroundColor: this.color,
+        color: textColour
+      };
     },
     cooldownTime() {
       // return in ms
@@ -659,8 +672,11 @@ export default {
   display: none;
 }
 
-.pixelButton span {
-  mix-blend-mode: difference;
+:root {
+  --light: 20;
+  /* the threshold at which colors are considered "light." Range: integers from 0 to 100,
+recommended 50 - 70 */
+  --threshold: 60;
 }
 
 .vc-checkerboard {
@@ -674,6 +690,8 @@ export default {
 .pixelButton {
   max-width: 200px;
   height: 100%;
+  --switch: calc((var(--light) - var(--threshold)) * -100%);
+  color: hsl(0, 0%, var(--switch));
 }
 
 .pixelButton span {
