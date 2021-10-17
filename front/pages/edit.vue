@@ -131,9 +131,9 @@ let canvas, canvasDrawingContext;
 let canvasBoundingBox;
 
 const MIN_ZOOM_LEVEL = 1;
-let zoomScale = 1;
-let zoomOriginX = 0;
-let zoomOriginY = 0;
+let cameraZoom = 1;
+let cameraPositionX = 0;
+let cameraPositionY = 0;
 
 //Color from the colorPicker
 let canvasPixelColor = "#ff0000";
@@ -156,7 +156,7 @@ function set2DSizeFromPixelNumber(length) {
 
 //Draw EVERY PIXEL of the map given
 function drawFlag(pixelMap) {
-  canvasDrawingContext.fillRect(zoomOriginX, zoomOriginY, canvas.width*zoomScale, canvas.height*zoomScale);
+  canvasDrawingContext.fillRect(cameraPositionX, cameraPositionY, canvas.width*cameraZoom, canvas.height*cameraZoom);
   for (let i = 0; i < pixelMap.length; i++) {
     for (let j = 0; j < pixelMap[i].length; j++) {
       drawPixel(i, j, pixelMap[i][j]);
@@ -201,9 +201,9 @@ function initCanvas() {
   canvasBoundingBox = canvas.getBoundingClientRect();
   canvasDrawingContext = canvas.getContext("2d");
 
-  zoomScale = 1;
-  zoomOriginX = 0;
-  zoomOriginY = 0;
+  cameraZoom = 1;
+  cameraPositionX = 0;
+  cameraPositionY = 0;
 
   drawFlag(flagPixelMap);
 }
@@ -245,25 +245,25 @@ function onWheel(event) {
   event.preventDefault();
 
   const zoomDelta = event.deltaY * -0.01;
-  if (zoomDelta < 0 && zoomScale <= MIN_ZOOM_LEVEL ||
-      zoomDelta > 0 && zoomScale >= getMaxZoomLevel()) {
+  if (zoomDelta < 0 && cameraZoom <= MIN_ZOOM_LEVEL ||
+      zoomDelta > 0 && cameraZoom >= getMaxZoomLevel()) {
     return;
   }
 
-  const oldZoomScale = zoomScale;
-  zoomScale += zoomDelta;
+  const oldCameraZoom = cameraZoom;
+  cameraZoom += zoomDelta;
   clampCameraScale();
 
-  const oldZoomOriginX = zoomOriginX;
-  const oldZoomOriginY = zoomOriginY;
+  const oldCameraPositionX = cameraPositionX;
+  const oldCameraPositionY = cameraPositionY;
   const mouseX = event.x - canvas.offsetLeft;
   const mouseY = event.y - canvas.offsetTop;
-  zoomOriginX += mouseX / oldZoomScale - mouseX / zoomScale;
-  zoomOriginY += mouseY / oldZoomScale - mouseY / zoomScale;
+  cameraPositionX += mouseX / oldCameraZoom - mouseX / cameraZoom;
+  cameraPositionY += mouseY / oldCameraZoom - mouseY / cameraZoom;
 
-  zoomContext(oldZoomScale, oldZoomOriginX, oldZoomOriginY, zoomScale, zoomOriginX, zoomOriginY);
+  zoomAndTranslateContext(oldCameraZoom, oldCameraPositionX, oldCameraPositionY, cameraZoom, cameraPositionX, cameraPositionY);
 
-  console.log(zoomScale, zoomOriginX, zoomOriginX);
+  console.log(cameraZoom, cameraPositionX, cameraPositionX);
 
   drawFlag(flagPixelMap);
 }
@@ -277,15 +277,15 @@ function onMouseDown(e) {
 }
 function onMouseMove(e) {
   if (isMoving) {
-    const oldZoomOriginX = zoomOriginX;
-    const oldZoomOriginY = zoomOriginY;
-    zoomOriginX += (mouseDragX - e.clientX) / zoomScale;
-    zoomOriginY += (mouseDragY - e.clientY) / zoomScale;
+    const oldCameraPositionX = cameraPositionX;
+    const oldCameraPositionY = cameraPositionY;
+    cameraPositionX += (mouseDragX - e.clientX) / cameraZoom;
+    cameraPositionY += (mouseDragY - e.clientY) / cameraZoom;
 
     mouseDragX = e.clientX;
     mouseDragY = e.clientY;
 
-    zoomContext(zoomScale, oldZoomOriginX, oldZoomOriginY, zoomScale, zoomOriginX, zoomOriginY);
+    zoomAndTranslateContext(cameraZoom, oldCameraPositionX, oldCameraPositionY, cameraZoom, cameraPositionX, cameraPositionY);
 
     drawFlag(flagPixelMap);
   }
@@ -295,16 +295,16 @@ function onMouseUp() {
 }
 
 function clampCameraScale() {
-  zoomScale = Math.min(Math.max(zoomScale, MIN_ZOOM_LEVEL), getMaxZoomLevel());
+  cameraZoom = Math.min(Math.max(cameraZoom, MIN_ZOOM_LEVEL), getMaxZoomLevel());
 }
 
-function zoomContext(currentScale, currentOriginX, currentOriginY, newScale, newOriginX, newOriginY, ctx = canvasDrawingContext) {
-  ctx.translate(currentOriginX, currentOriginY);
+function zoomAndTranslateContext(currentZoom, currentPositionX, currentPositionY, newScale, newPositionX, newPositionY, ctx = canvasDrawingContext) {
+  ctx.translate(currentPositionX, currentPositionY);
 
-  const relativeZoomScale = newScale / currentScale;
-  ctx.scale(relativeZoomScale, relativeZoomScale);
+  const relativeZoom = newScale / currentZoom;
+  ctx.scale(relativeZoom, relativeZoom);
 
-  ctx.translate(-newOriginX, -newOriginY);
+  ctx.translate(-newPositionX, -newPositionY);
 }
 
 function getMaxZoomLevel() {
