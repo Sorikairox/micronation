@@ -158,7 +158,7 @@
           <li> Chaque joueur controle la couleur de sa zone. Tu ne peux modifier la couleur de ta zone que 1 fois toutes les {{ maxCooldownTime }} minutes</li>
           <li>Tu peux voir les pseudos, la couleur et les coordonnées x:y de tes voisins directs.
           </li>
-          <li>Si tu cliques sur le bouton avec tes coordonnées et ton nom, ta zone sera mise en évidence</li>
+          <li>Si tu cliques sur le bouton avec tes coordonnées et ton nom, ta zone sera mise en évidence.</li>
           <li><a target="_blank" href="https://discord.gg/NTCwY6Cv">Élabores un plan sur discord pour dessiner un <strike>pén</strike>...un soleil en cliquant ici.</a></li>
         </ul>
       </div></AppAlert
@@ -328,12 +328,7 @@ function onWheel(event) {
   const mouseY = event.y - canvas.offsetTop;
   cameraPositionX += mouseX / oldCameraZoom - mouseX / cameraZoom;
   cameraPositionY += mouseY / oldCameraZoom - mouseY / cameraZoom;
-
-<<<<<<< HEAD
   zoomAndTranslateContext(oldCameraZoom, oldCameraPositionX, oldCameraPositionY, cameraZoom, cameraPositionX, cameraPositionY);
-
-=======
->>>>>>> fix(help): do not display help everytime
   drawFlag(flagPixelMap);
 }
 
