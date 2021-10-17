@@ -63,7 +63,7 @@
                 <AppButton v-if="topPixel"
                   size="medium"
                   class="text-white my-auto pixelButton"
-                           v-bind:style="{ backgroundColor: topPixel.hexColor }"
+                  :style="topPixelButtonStyle"
                 >
                   [{{topPixel.x + 1}}:{{topPixel.y + 1}}] {{topPixel.username}}
                 </AppButton>
@@ -72,7 +72,7 @@
                 <AppButton v-if="leftPixel"
                            size="medium"
                            class="text-white my-auto pixelButton"
-                           v-bind:style="{ backgroundColor: leftPixel.hexColor }"
+                           :style="leftPixelButtonStyle"
                 >
                    [{{leftPixel.x + 1}}:{{leftPixel.y + 1}}] {{leftPixel.username}}
                 </AppButton>
@@ -87,7 +87,7 @@
                 <AppButton v-if="rightPixel"
                            size="medium"
                            class="text-white my-auto pixelButton"
-                           v-bind:style="{ backgroundColor: rightPixel.hexColor }"
+                           :style="rightPixelButtonStyle"
                 >
                   [{{rightPixel.x + 1}}:{{rightPixel.y + 1}}] {{rightPixel.username}}
                 </AppButton>
@@ -96,7 +96,7 @@
                 <AppButton v-if="bottomPixel"
                            size="medium"
                            class="text-white my-auto pixelButton"
-                           v-bind:style="{ backgroundColor: bottomPixel.hexColor }"
+                           :style="bottomPixelButtonStyle"
                 >
                   [{{bottomPixel.x + 1}}:{{bottomPixel.y + 1}}] {{bottomPixel.username}}
                 </AppButton>
@@ -389,6 +389,18 @@ const hex2rgb = (hex) => {
   return {r, g, b};
 }
 
+const getStyle = (color) => {
+    const {r, g, b} = hex2rgb(color);
+    const brightness = Math.round(((r * 299) +
+      (g * 587) +
+      (b * 114)) / 1000);
+    const textColour = (brightness > 125) ? 'black' : 'white';
+    return {
+      backgroundColor: color,
+      color: textColour
+    };
+}
+
 import { Chrome } from 'vue-color';
 
 export default {
@@ -421,15 +433,19 @@ export default {
   },
   computed: {
     myPixelButtonStyle() {
-      const {r, g, b} = hex2rgb(this.color);
-      const brightness = Math.round(((r * 299) +
-        (g * 587) +
-        (b * 114)) / 1000);
-      const textColour = (brightness > 125) ? 'black' : 'white';
-      return {
-        backgroundColor: this.color,
-        color: textColour
-      };
+      return getStyle(this.color);
+    },
+    topPixelButtonStyle() {
+      return getStyle(this.topPixel?.hexColor);
+    },
+    bottomPixelButtonStyle() {
+      return getStyle(this.bottomPixel?.hexColor);
+    },
+    leftPixelButtonStyle() {
+      return getStyle(this.leftPixel?.hexColor);
+    },
+    rightPixelButtonStyle() {
+      return getStyle(this.rightPixel?.hexColor);
     },
     cooldownTime() {
       // return in ms
@@ -668,13 +684,6 @@ export default {
   display: none;
 }
 
-:root {
-  --light: 20;
-  /* the threshold at which colors are considered "light." Range: integers from 0 to 100,
-recommended 50 - 70 */
-  --threshold: 60;
-}
-
 .vc-checkerboard {
   display: none;
 }
@@ -686,8 +695,6 @@ recommended 50 - 70 */
 .pixelButton {
   max-width: 200px;
   height: 100%;
-  --switch: calc((var(--light) - var(--threshold)) * -100%);
-  color: hsl(0, 0%, var(--switch));
 }
 
 .pixelButton span {
