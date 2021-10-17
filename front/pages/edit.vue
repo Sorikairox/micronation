@@ -213,7 +213,12 @@ function init() {
   initCanvas();
 
   window.addEventListener("resize", onWindowResize);
+
   canvas.addEventListener("wheel", onWheel);
+
+  canvas.addEventListener("mousedown", onMouseDown);
+  window.addEventListener("mousemove", onMouseMove);
+  window.addEventListener("mouseup", onMouseUp);
 }
 
 //Change the color value and draw it to the user pixel
@@ -262,6 +267,32 @@ function onWheel(event) {
   console.log(zoomScale, zoomOriginX, zoomOriginX);
 
   drawFlag(flagPixelMap);
+}
+
+let isMoving = false;
+let mouseDragX, mouseDragY;
+function onMouseDown(e) {
+  isMoving = true;
+  mouseDragX = e.clientX;
+  mouseDragY = e.clientY;
+}
+function onMouseMove(e) {
+  if (isMoving) {
+    const oldZoomOriginX = zoomOriginX;
+    const oldZoomOriginY = zoomOriginY;
+    zoomOriginX += (mouseDragX - e.clientX) / zoomScale;
+    zoomOriginY += (mouseDragY - e.clientY) / zoomScale;
+
+    mouseDragX = e.clientX;
+    mouseDragY = e.clientY;
+
+    zoomContext(zoomScale, oldZoomOriginX, oldZoomOriginY, zoomScale, zoomOriginX, zoomOriginY);
+
+    drawFlag(flagPixelMap);
+  }
+}
+function onMouseUp() {
+  isMoving = false;
 }
 
 function clampCameraScale() {
