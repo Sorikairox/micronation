@@ -678,7 +678,7 @@ recommended 50 - 70 */
   display: none;
 }
 
-.vc-chrome-active-color, .vc-hue-picker {
+.vc-chrome-active-color, .vc-hue-picker, .vc-hue-pointer {
   z-index: 0 !important;
 }
 
