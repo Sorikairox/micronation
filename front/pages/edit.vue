@@ -263,8 +263,6 @@ function onWheel(event) {
 
   zoomAndTranslateContext(oldCameraZoom, oldCameraPositionX, oldCameraPositionY, cameraZoom, cameraPositionX, cameraPositionY);
 
-  console.log(cameraZoom, cameraPositionX, cameraPositionX);
-
   drawFlag(flagPixelMap);
 }
 
