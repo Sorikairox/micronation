@@ -18,6 +18,7 @@
           id="flagContainer"
           class="
             flex-1 md:self-center
+            self-stretch
             m-2 md:m-4
             h-auto
           "
