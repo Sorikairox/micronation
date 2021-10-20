@@ -4953,10 +4953,10 @@ forwarded@0.2.0:
   resolved "https://registry.yarnpkg.com/forwarded/-/forwarded-0.2.0.tgz#2269936428aad4c15c7ebe9779a84bf0b2a81811"
   integrity sha512-buRG0fpBtRHSTCOASe6hD258tEubFoRLb4ZNA6NxMVHNw2gOcwHo9wyablzMzOA5z9xA9L1KNjk/Nt6MT9aYow==
 
-fouloscopie@^2.3.0:
-  version "2.3.0"
-  resolved "https://registry.yarnpkg.com/fouloscopie/-/fouloscopie-2.3.0.tgz#8756cb8ecc33196a68e572c04651779d74200fc6"
-  integrity sha512-zhzfts2kcoo2l34U+xcGjSj3PrQQXH7qk+kuhILXZqBMeA43xz61Lkja6RMwU0h+QL2UGp0QHETkQyami4CPzg==
+fouloscopie@^2.3.1:
+  version "2.3.1"
+  resolved "https://registry.yarnpkg.com/fouloscopie/-/fouloscopie-2.3.1.tgz#46ef9dd89aa8906b9120ee34eefa33d4f31d0f75"
+  integrity sha512-Ph4eUgBclEe6TfNm2TWjU6jfmbrrTSM7ggcJKsa2ki3Csn1CbEIquMQ0dbo4XWa4vgsWHq5mZYlX54T2tm08Sw==
   dependencies:
     "@directus/sdk" "^9.0.0-rc.95"
     zoid "9.0.40"
