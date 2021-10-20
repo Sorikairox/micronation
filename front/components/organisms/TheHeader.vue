@@ -8,15 +8,6 @@
         :to="{ name: 'edit' }"
         size="medium"
         variant="contained"
-        class="hidden bg-primary-dark lg:block"
-      >
-        Editer le drapeau
-      </AppButton>
-
-      <AppButton
-        :to="{ name: 'edit' }"
-        size="medium"
-        variant="contained"
         class="bg-primary-dark lg:hidden"
       >
         <AppFlagIcon />
@@ -24,6 +15,15 @@
       <AppButton class="hidden lg:block" :to="{ name: 'index' }"
         >Accueil</AppButton
       >
+      <AppButton
+        :to="{ name: 'edit' }"
+        size="medium"
+        variant="contained"
+        class="hidden bg-primary-dark lg:block"
+      >
+        Editer le drapeau
+      </AppButton>
+
       <AppButton class="lg:hidden" :to="{ name: 'index' }"
         ><AppIconHome
       /></AppButton>
