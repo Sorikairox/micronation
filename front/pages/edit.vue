@@ -392,23 +392,33 @@ function mapCoordinatesToTargetRatioRectangleDistribution(pixelCount, targetRati
 
   let currentX = 0;
   let currentY = 1;
+
+  function mapIndexToColumn(index) {
+    const x = currentX;
+    const y = index - currentX * currentY;
+    map[index] = {x, y};
+
+    if (y >= currentY - 1) {
+      currentX++;
+    }
+  }
+
+  function mapIndexToRow(index) {
+    const x = index - currentX * currentY;
+    const y = currentY;
+    map[index] = {x, y};
+
+    if (x >= currentX - 1) {
+      currentY++;
+    }
+  }
+
   for (let i = 0; i < pixelCount; i++) {
-    if (Math.floor(currentX * targetRatio) <= currentY - 1) { // Make a column
-      const x = currentX;
-      const y = i - currentX * currentY;
-      map[i] = {x, y};
-
-      if (y >= currentY - 1) {
-        currentX++;
-      }
-    } else { // Make a row
-      const x = i - currentX * currentY;
-      const y = currentY;
-      map[i] = {x, y};
-
-      if (x >= currentX - 1) {
-        currentY++;
-      }
+    const hasEnoughRows = Math.floor(currentX * targetRatio) <= currentY - 1;
+    if (hasEnoughRows) {
+      mapIndexToColumn(i);
+    } else {
+      mapIndexToRow(i);
     }
   }
 
