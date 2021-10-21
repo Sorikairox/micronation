@@ -169,10 +169,14 @@
 </template>
 
 <script>
-import * as THREE from "three";
 import fouloscopie from "fouloscopie";
 import AppAlert from "~/components/organisms/AppAlert";
 import countdown from "@chenfengyuan/vue-countdown";
+import {
+  DESIRED_FLAG_RATIO,
+  getFlagResolutionFromIndexToCoordinateMap,
+  mapCoordinatesToTargetRatioRectangleDistribution
+} from "../js/ratio-rectangle-distribution";
 
 class Pixel {
   constructor(x, y, color) {
@@ -187,12 +191,10 @@ class Pixel {
 }
 
 //Initialising all the var
-let desiredFlagWidth = 500;
-let flagWidth = desiredFlagWidth;
-let flagHeight;
+let flagWidth, flagHeight;
+let flagPixels = [];
+let flagIndexToCoordinateCache = [];
 let flagPixelMap = new Array(flagWidth);
-
-const mousePosition = new THREE.Vector2();
 
 //Canvas var
 let canvasContainer;
@@ -212,15 +214,19 @@ let userXPixel = 0;
 let userYPixel = 0;
 
 let lastUpdate = new Date();
-let pixelNumber = 0;
 
-function set2DSizeFromPixelNumber(length) {
-  flagWidth =
-    length > desiredFlagWidth ? desiredFlagWidth : length;
-  flagHeight =
-    length > desiredFlagWidth
-      ? Math.ceil(length / desiredFlagWidth)
-      : 1;
+function initializeFlagResolution() {
+  flagIndexToCoordinateCache = mapCoordinatesToTargetRatioRectangleDistribution(flagPixels.length, DESIRED_FLAG_RATIO);
+
+  const resolution = getFlagResolutionFromIndexToCoordinateMap(flagIndexToCoordinateCache);
+  const hasChanged = flagWidth !== resolution.width || flagHeight !== resolution.height;
+  flagWidth = resolution.width;
+  flagHeight = resolution.height;
+
+  if (hasChanged) {
+    console.log(`flag resolution updated to ${flagWidth}x${flagHeight}`);
+  }
+  return hasChanged;
 }
 
 //Draw EVERY PIXEL of the map given
@@ -376,10 +382,13 @@ function getMaxZoomLevel() {
   return Math.sqrt(flagPixelMap.length);
 }
 
-function getCoordinateFromFlagIndex(i) {
-  let x = i % flagWidth;
-  let y = Math.floor(i / desiredFlagWidth);
-  return { x, y };
+function getCoordinateFromFlagIndex(index) {
+  if (flagIndexToCoordinateCache[index]) {
+    return flagIndexToCoordinateCache[index];
+  } else {
+    console.error('no entry for index', index, flagIndexToCoordinateCache);
+    return { x: -1, y: -1 };
+  }
 }
 
 const hex2rgb = (hex) => {
@@ -501,20 +510,29 @@ export default {
         },
       })
         .then((response) => response.json())
-        .then((data) => {
-          for (const modifiedPixel of data) {
-            const { x, y } = getCoordinateFromFlagIndex(
-              modifiedPixel.indexInFlag
-            );
-            if (!flagPixelMap[x][y]) {
-              pixelNumber++;
+        .then((modifiedPixels) => {
+          if (modifiedPixels.length > 0) {
+            for (const modifiedPixel of modifiedPixels) {
+              flagPixels[modifiedPixel.indexInFlag - 1] = modifiedPixel;
             }
-            flagPixelMap[x][y] = modifiedPixel;
+
+            const hasChanged = initializeFlagResolution();
+
+            for (const modifiedPixel of modifiedPixels) {
+              const { x, y } = getCoordinateFromFlagIndex(modifiedPixel.indexInFlag - 1);
+              flagPixelMap[x][y] = modifiedPixel;
+              if (!hasChanged) {
+                drawPixel(x, y, modifiedPixel);
+              }
+            }
+
+            lastUpdate = new Date();
+            this.setNeighboursInfo();
+
+            if (hasChanged) {
+              drawFlag();
+            }
           }
-          lastUpdate = new Date();
-          set2DSizeFromPixelNumber(pixelNumber);
-          drawFlag(flagPixelMap);
-          this.setNeighboursInfo();
         })
         .catch((err) => console.log(err));
     },
@@ -531,8 +549,12 @@ export default {
         .then((data) => {
           console.log("DEBUG - New map array : ", data);
 
-          set2DSizeFromPixelNumber(data.length);
-          pixelNumber = data.length;
+          flagPixels = [];
+          for (const pixel of data) {
+            flagPixels[pixel.indexInFlag - 1] = pixel;
+          }
+          initializeFlagResolution();
+
           const NEW_MAP = new Array(flagWidth);
           for (let i = 0; i < NEW_MAP.length; i++) {
             NEW_MAP[i] = new Array(flagHeight);
@@ -617,13 +639,13 @@ export default {
       })
         .then((response) => response.json())
         .then((data) => {
-          console.log("DEBUG - User pixel : ", data);
-          // field indexInFlag not in the response of the /pixel endpoint, the back-end has been contacted to discuss this issue
-          this.x = (data.indexInFlag % desiredFlagWidth) - 1;
-          this.y = ~~(data.indexInFlag / desiredFlagWidth);
+          console.debug("User pixel : ", data);
+          const userPixelCoordinates = getCoordinateFromFlagIndex(data.indexInFlag - 1);
+          this.x = userPixelCoordinates.x;
+          this.y = userPixelCoordinates.y;
           this.color = data.hexColor;
           this.lastSubmittedTime = data.lastUpdate;
-          console.log("DEBUG - time last updated ", this.lastSubmittedTime);
+          console.debug("time last updated ", this.lastSubmittedTime);
           setUserPixel(this.x, this.y);
           changeColor(this.color);
         })
@@ -647,8 +669,8 @@ export default {
     this.fouloscopieSdk = await fouloscopie();
     this.token = this.fouloscopieSdk.userInfo.token;
     this.maxCooldownTime = await this.FetchCooldown();
-    await this.FetchUserPixel();
     flagPixelMap = await this.FetchMap();
+    await this.FetchUserPixel();
     this.setNeighboursInfo();
     init();
     this.isMounted = true;
