@@ -189,7 +189,7 @@ class Pixel {
 //Initialising all the var
 let desiredFlagWidth = 500;
 const desiredFlagRatio = 1/2;
-let flagPixelData = [];
+let flagPixels = [];
 let flagIndexToCoordinateCache = [];
 let flagWidth = desiredFlagWidth;
 let flagHeight;
@@ -219,7 +219,7 @@ let lastUpdate = new Date();
 function initializeFlagResolution() {
   const previousWidth = flagWidth, previousHeight = flagHeight;
 
-  flagIndexToCoordinateCache = mapCoordinatesToTargetRatioRectangleDistribution(flagPixelData.length, desiredFlagRatio);
+  flagIndexToCoordinateCache = mapCoordinatesToTargetRatioRectangleDistribution(flagPixels.length, desiredFlagRatio);
   flagWidth = flagHeight = 0;
   for(let i = 0; i < flagIndexToCoordinateCache.length; i++){
     flagWidth = Math.max(flagWidth, flagIndexToCoordinateCache[i].x + 1);
@@ -556,13 +556,13 @@ export default {
         .then((modifiedPixels) => {
           if (modifiedPixels.length > 0) {
             for (const modifiedPixel of modifiedPixels) {
-              flagPixelData[modifiedPixel.indexInFlag] = modifiedPixel;
+              flagPixels[modifiedPixel.indexInFlag - 1] = modifiedPixel;
             }
 
             const hasChanged = initializeFlagResolution();
 
             for (const modifiedPixel of modifiedPixels) {
-              const { x, y } = getCoordinateFromFlagIndex(modifiedPixel.indexInFlag);
+              const { x, y } = getCoordinateFromFlagIndex(modifiedPixel.indexInFlag - 1);
               flagPixelMap[x][y] = modifiedPixel;
               if (!hasChanged) {
                 drawPixel(x, y, modifiedPixel);
@@ -592,7 +592,10 @@ export default {
         .then((data) => {
           console.log("DEBUG - New map array : ", data);
 
-          flagPixelData = data;
+          flagPixels = [];
+          for (const pixel of data) {
+            flagPixels[pixel.indexInFlag - 1] = pixel;
+          }
           initializeFlagResolution();
 
           const NEW_MAP = new Array(flagWidth);
@@ -680,7 +683,7 @@ export default {
         .then((response) => response.json())
         .then((data) => {
           console.debug("User pixel : ", data);
-          const userPixelCoordinates = getCoordinateFromFlagIndex(data.indexInFlag);
+          const userPixelCoordinates = getCoordinateFromFlagIndex(data.indexInFlag - 1);
           this.x = userPixelCoordinates.x;
           this.y = userPixelCoordinates.y;
           this.color = data.hexColor;
