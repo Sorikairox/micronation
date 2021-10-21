@@ -679,13 +679,13 @@ export default {
       })
         .then((response) => response.json())
         .then((data) => {
-          console.log("DEBUG - User pixel : ", data);
-          // field indexInFlag not in the response of the /pixel endpoint, the back-end has been contacted to discuss this issue
-          this.x = (data.indexInFlag % desiredFlagWidth) - 1;
-          this.y = ~~(data.indexInFlag / desiredFlagWidth);
+          console.debug("User pixel : ", data);
+          const userPixelCoordinates = getCoordinateFromFlagIndex(data.indexInFlag);
+          this.x = userPixelCoordinates.x;
+          this.y = userPixelCoordinates.y;
           this.color = data.hexColor;
           this.lastSubmittedTime = data.lastUpdate;
-          console.log("DEBUG - time last updated ", this.lastSubmittedTime);
+          console.debug("time last updated ", this.lastSubmittedTime);
           setUserPixel(this.x, this.y);
           changeColor(this.color);
         })
@@ -709,8 +709,8 @@ export default {
     this.fouloscopieSdk = await fouloscopie();
     this.token = this.fouloscopieSdk.userInfo.token;
     this.maxCooldownTime = await this.FetchCooldown();
-    await this.FetchUserPixel();
     flagPixelMap = await this.FetchMap();
+    await this.FetchUserPixel();
     this.setNeighboursInfo();
     init();
     this.isMounted = true;
