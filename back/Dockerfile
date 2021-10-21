@@ -19,7 +19,7 @@ WORKDIR /usr/src/app
 
 COPY ./package.json .
 COPY ./flag-service/package.json ./flag-service/package.json
-COPY ./library ./library
+COPY --from=development /usr/src/app/library ./library
 
 RUN yarn --only=production
 
