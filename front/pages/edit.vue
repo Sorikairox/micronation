@@ -169,7 +169,6 @@
 </template>
 
 <script>
-import * as THREE from "three";
 import fouloscopie from "fouloscopie";
 import AppAlert from "~/components/organisms/AppAlert";
 import countdown from "@chenfengyuan/vue-countdown";
@@ -187,15 +186,11 @@ class Pixel {
 }
 
 //Initialising all the var
-let desiredFlagWidth = 500;
 const desiredFlagRatio = 1/2;
+let flagWidth, flagHeight;
 let flagPixels = [];
 let flagIndexToCoordinateCache = [];
-let flagWidth = desiredFlagWidth;
-let flagHeight;
 let flagPixelMap = new Array(flagWidth);
-
-const mousePosition = new THREE.Vector2();
 
 //Canvas var
 let canvasContainer;
