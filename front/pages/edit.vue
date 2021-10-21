@@ -172,6 +172,11 @@
 import fouloscopie from "fouloscopie";
 import AppAlert from "~/components/organisms/AppAlert";
 import countdown from "@chenfengyuan/vue-countdown";
+import {
+  DESIRED_FLAG_RATIO,
+  getFlagResolutionFromIndexToCoordinateMap,
+  mapCoordinatesToTargetRatioRectangleDistribution
+} from "../js/ratio-rectangle-distribution";
 
 class Pixel {
   constructor(x, y, color) {
@@ -186,7 +191,6 @@ class Pixel {
 }
 
 //Initialising all the var
-const desiredFlagRatio = 1/2;
 let flagWidth, flagHeight;
 let flagPixels = [];
 let flagIndexToCoordinateCache = [];
@@ -212,20 +216,16 @@ let userYPixel = 0;
 let lastUpdate = new Date();
 
 function initializeFlagResolution() {
-  const previousWidth = flagWidth, previousHeight = flagHeight;
+  flagIndexToCoordinateCache = mapCoordinatesToTargetRatioRectangleDistribution(flagPixels.length, DESIRED_FLAG_RATIO);
 
-  flagIndexToCoordinateCache = mapCoordinatesToTargetRatioRectangleDistribution(flagPixels.length, desiredFlagRatio);
-  flagWidth = flagHeight = 0;
-  for(let i = 0; i < flagIndexToCoordinateCache.length; i++){
-    flagWidth = Math.max(flagWidth, flagIndexToCoordinateCache[i].x + 1);
-    flagHeight = Math.max(flagHeight, flagIndexToCoordinateCache[i].y + 1);
-  }
-  const hasChanged = flagWidth !== previousWidth || flagHeight !== previousHeight;
+  const resolution = getFlagResolutionFromIndexToCoordinateMap(flagIndexToCoordinateCache);
+  const hasChanged = flagWidth !== resolution.width || flagHeight !== resolution.height;
+  flagWidth = resolution.width;
+  flagHeight = resolution.height;
 
   if (hasChanged) {
     console.log(`flag resolution updated to ${flagWidth}x${flagHeight}`);
   }
-
   return hasChanged;
 }
 
@@ -380,44 +380,6 @@ function zoomAndTranslateContext(currentZoom, currentPositionX, currentPositionY
 
 function getMaxZoomLevel() {
   return Math.sqrt(flagPixelMap.length);
-}
-
-function mapCoordinatesToTargetRatioRectangleDistribution(pixelCount, targetRatio) {
-  const map = [];
-
-  let currentX = 0;
-  let currentY = 1;
-
-  function mapIndexToColumn(index) {
-    const x = currentX;
-    const y = index - currentX * currentY;
-    map[index] = {x, y};
-
-    if (y >= currentY - 1) {
-      currentX++;
-    }
-  }
-
-  function mapIndexToRow(index) {
-    const x = index - currentX * currentY;
-    const y = currentY;
-    map[index] = {x, y};
-
-    if (x >= currentX - 1) {
-      currentY++;
-    }
-  }
-
-  for (let i = 0; i < pixelCount; i++) {
-    const hasEnoughRows = Math.floor(currentX * targetRatio) <= currentY - 1;
-    if (hasEnoughRows) {
-      mapIndexToColumn(i);
-    } else {
-      mapIndexToRow(i);
-    }
-  }
-
-  return map;
 }
 
 function getCoordinateFromFlagIndex(index) {

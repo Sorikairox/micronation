@@ -11,8 +11,12 @@
 <script>
 import * as THREE from "three";
 import { OrbitControls } from "@/components/OrbitControl.js";
+import {
+  DESIRED_FLAG_RATIO,
+  getFlagResolutionFromIndexToCoordinateMap,
+  mapCoordinatesToTargetRatioRectangleDistribution
+} from "../js/ratio-rectangle-distribution";
 
-let desired_flag_width = 500;
 
 async function getFlag() {
   const response = await fetch(`${process.env.apiUrl}/flag`, {
@@ -25,17 +29,11 @@ async function getFlag() {
 
   return response.json();
 }
+
+let flagIndexToCoordinateCache = [];
 function computeTextureWidthAndHeightFromFlag(flag) {
-  let width;
-  let height;
-  if (flag.length < desired_flag_width) {
-    height = 1;
-    width = flag.length;
-  } else {
-    width = desired_flag_width;
-    height = ~~(flag.length / desired_flag_width) + 1;
-  }
-  return { width, height }
+  flagIndexToCoordinateCache = mapCoordinatesToTargetRatioRectangleDistribution(flag.length, DESIRED_FLAG_RATIO);
+  return getFlagResolutionFromIndexToCoordinateMap(flagIndexToCoordinateCache);
 }
 
 function createTextureArray(width, height, flag_data) {
@@ -48,7 +46,10 @@ function createTextureArray(width, height, flag_data) {
     const r = Math.floor(color.r * 255);
     const g = Math.floor(color.g * 255);
     const b = Math.floor(color.b * 255);
-    const stride = i * 4;
+
+    const pixel2DCoordinates = flagIndexToCoordinateCache[i];
+    const textureIndex = pixel2DCoordinates.x + pixel2DCoordinates.y * width;
+    const stride = textureIndex * 4;
 
     textureArray[stride] = r;
     textureArray[stride + 1] = g;
