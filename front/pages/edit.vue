@@ -188,6 +188,8 @@ class Pixel {
 
 //Initialising all the var
 let desiredFlagWidth = 500;
+const desiredFlagRatio = 1/2;
+let flagIndexToCoordinateCache = [];
 let flagWidth = desiredFlagWidth;
 let flagHeight;
 let flagPixelMap = new Array(flagWidth);
@@ -214,13 +216,14 @@ let userYPixel = 0;
 let lastUpdate = new Date();
 let pixelNumber = 0;
 
-function set2DSizeFromPixelNumber(length) {
-  flagWidth =
-    length > desiredFlagWidth ? desiredFlagWidth : length;
-  flagHeight =
-    length > desiredFlagWidth
-      ? Math.ceil(length / desiredFlagWidth)
-      : 1;
+function initializeFlagResolution(pixelCount) {
+  flagIndexToCoordinateCache = mapCoordinatesToTargetRatioRectangleDistribution(pixelCount, desiredFlagRatio);
+  flagWidth = flagHeight = 0;
+  for(let i = 0; i < flagIndexToCoordinateCache.length; i++){
+    flagWidth = Math.max(flagWidth, flagIndexToCoordinateCache[i].x + 1);
+    flagHeight = Math.max(flagHeight, flagIndexToCoordinateCache[i].y + 1);
+  }
+  console.log(`flag set to ${flagWidth}x${flagHeight}`)
 }
 
 //Draw EVERY PIXEL of the map given
@@ -376,10 +379,41 @@ function getMaxZoomLevel() {
   return Math.sqrt(flagPixelMap.length);
 }
 
-function getCoordinateFromFlagIndex(i) {
-  let x = i % flagWidth;
-  let y = Math.floor(i / desiredFlagWidth);
-  return { x, y };
+function mapCoordinatesToTargetRatioRectangleDistribution(pixelCount, targetRatio) {
+  const map = [];
+
+  let currentX = 0;
+  let currentY = 1;
+  for (let i = 0; i < pixelCount; i++) {
+    if (Math.floor(currentX * targetRatio) <= currentY - 1) { // Make a column
+      const x = currentX;
+      const y = i - currentX * currentY;
+      map[i] = {x, y};
+
+      if (y >= currentY - 1) {
+        currentX++;
+      }
+    } else { // Make a row
+      const x = i - currentX * currentY;
+      const y = currentY;
+      map[i] = {x, y};
+
+      if (x >= currentX - 1) {
+        currentY++;
+      }
+    }
+  }
+
+  return map;
+}
+
+function getCoordinateFromFlagIndex(index) {
+  if (flagIndexToCoordinateCache[index]) {
+    return flagIndexToCoordinateCache[index];
+  } else {
+    console.error('no entry for index', index, flagIndexToCoordinateCache);
+    return { x: -1, y: -1 };
+  }
 }
 
 const hex2rgb = (hex) => {
@@ -512,7 +546,7 @@ export default {
             flagPixelMap[x][y] = modifiedPixel;
           }
           lastUpdate = new Date();
-          set2DSizeFromPixelNumber(pixelNumber);
+          initializeFlagResolution(pixelNumber);
           drawFlag(flagPixelMap);
           this.setNeighboursInfo();
         })
@@ -531,7 +565,7 @@ export default {
         .then((data) => {
           console.log("DEBUG - New map array : ", data);
 
-          set2DSizeFromPixelNumber(data.length);
+          initializeFlagResolution(data.length);
           pixelNumber = data.length;
           const NEW_MAP = new Array(flagWidth);
           for (let i = 0; i < NEW_MAP.length; i++) {
