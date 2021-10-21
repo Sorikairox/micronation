@@ -189,6 +189,7 @@ class Pixel {
 //Initialising all the var
 let desiredFlagWidth = 500;
 const desiredFlagRatio = 1/2;
+let flagPixelData = [];
 let flagIndexToCoordinateCache = [];
 let flagWidth = desiredFlagWidth;
 let flagHeight;
@@ -214,16 +215,23 @@ let userXPixel = 0;
 let userYPixel = 0;
 
 let lastUpdate = new Date();
-let pixelNumber = 0;
 
-function initializeFlagResolution(pixelCount) {
-  flagIndexToCoordinateCache = mapCoordinatesToTargetRatioRectangleDistribution(pixelCount, desiredFlagRatio);
+function initializeFlagResolution() {
+  const previousWidth = flagWidth, previousHeight = flagHeight;
+
+  flagIndexToCoordinateCache = mapCoordinatesToTargetRatioRectangleDistribution(flagPixelData.length, desiredFlagRatio);
   flagWidth = flagHeight = 0;
   for(let i = 0; i < flagIndexToCoordinateCache.length; i++){
     flagWidth = Math.max(flagWidth, flagIndexToCoordinateCache[i].x + 1);
     flagHeight = Math.max(flagHeight, flagIndexToCoordinateCache[i].y + 1);
   }
-  console.log(`flag set to ${flagWidth}x${flagHeight}`)
+  const hasChanged = flagWidth !== previousWidth || flagHeight !== previousHeight;
+
+  if (hasChanged) {
+    console.log(`flag resolution updated to ${flagWidth}x${flagHeight}`);
+  }
+
+  return hasChanged;
 }
 
 //Draw EVERY PIXEL of the map given
@@ -535,20 +543,29 @@ export default {
         },
       })
         .then((response) => response.json())
-        .then((data) => {
-          for (const modifiedPixel of data) {
-            const { x, y } = getCoordinateFromFlagIndex(
-              modifiedPixel.indexInFlag
-            );
-            if (!flagPixelMap[x][y]) {
-              pixelNumber++;
+        .then((modifiedPixels) => {
+          if (modifiedPixels.length > 0) {
+            for (const modifiedPixel of modifiedPixels) {
+              flagPixelData[modifiedPixel.indexInFlag] = modifiedPixel;
             }
-            flagPixelMap[x][y] = modifiedPixel;
+
+            const hasChanged = initializeFlagResolution();
+
+            for (const modifiedPixel of modifiedPixels) {
+              const { x, y } = getCoordinateFromFlagIndex(modifiedPixel.indexInFlag);
+              flagPixelMap[x][y] = modifiedPixel;
+              if (!hasChanged) {
+                drawPixel(x, y, modifiedPixel);
+              }
+            }
+
+            lastUpdate = new Date();
+            this.setNeighboursInfo();
+
+            if (hasChanged) {
+              drawFlag();
+            }
           }
-          lastUpdate = new Date();
-          initializeFlagResolution(pixelNumber);
-          drawFlag(flagPixelMap);
-          this.setNeighboursInfo();
         })
         .catch((err) => console.log(err));
     },
@@ -565,8 +582,9 @@ export default {
         .then((data) => {
           console.log("DEBUG - New map array : ", data);
 
-          initializeFlagResolution(data.length);
-          pixelNumber = data.length;
+          flagPixelData = data;
+          initializeFlagResolution();
+
           const NEW_MAP = new Array(flagWidth);
           for (let i = 0; i < NEW_MAP.length; i++) {
             NEW_MAP[i] = new Array(flagHeight);
