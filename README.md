@@ -6,7 +6,7 @@ To run micronation, you will need :
 
 - [NodeJS](https://nodejs.org/en/) >= 14.17.3
 - [Yarn](https://classic.yarnpkg.com/lang/en/) 1.21 as your package manager
-- A [MongoDB](https://www.mongodb.com/) database for data storage running on port 27018 for test and 27017 for usual app run (this will be in a .env file soon)
+- A [MongoDB](https://www.mongodb.com/) database for data storage
 
 ## Installation
 
