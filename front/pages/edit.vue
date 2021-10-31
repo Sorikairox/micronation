@@ -24,6 +24,7 @@
             self-stretch
             m-2 md:m-4
             h-auto
+            cursor-move
           "
         >
           <div>
@@ -45,7 +46,14 @@
           "
           style="max-width: 500px"
         >
-          <div @click="showHelp = true" class="mr-0 ml-auto"><img src="https://img.icons8.com/ios/50/000000/help.png"/></div>
+          <div class="mr-0 mr-0 flex">  <AppButton
+            size="small"
+            v-on:click="Overlay()"
+            class="ml-0 mr-auto bg-positive-base"
+          >
+           Où est mon pixel ?
+          </AppButton>
+            <img class="cursor-pointer" @click="showHelp = true" src="https://img.icons8.com/ios/50/000000/help.png"/></div>
 
           <div class="flex-col justify-between flex-1 flex md:hidden">
             <div>Voisin de gauche : <span v-if="leftPixel">[{{leftPixel.x + 1}}:{{leftPixel.y + 1}}] {{leftPixel.username}} </span><span v-else>Pas de voisin</span></div>
