@@ -46,30 +46,24 @@
           "
           style="max-width: 500px"
         >
-          <div class="mr-0 mr-0 flex">  <AppButton
-            size="small"
-            v-on:click="Overlay()"
-            class="ml-0 mr-auto bg-positive-base"
-          >
-           Où est ma zone ?
-          </AppButton>
-            <img class="cursor-pointer" @click="showHelp = true" src="https://img.icons8.com/ios/50/000000/help.png"/></div>
+          <div class="mr-0 flex">
+            <img class="cursor-pointer ml-auto mr-0" @click="showHelp = true" src="https://img.icons8.com/ios/50/000000/help.png"/>
+          </div>
 
-          <div class="flex-col justify-between flex-1 flex md:hidden">
+          <div class="flex-col justify-between flex-1 flex">
             <div>Voisin de gauche : <span v-if="leftPixel">[{{leftPixel.x + 1}}:{{leftPixel.y + 1}}] {{leftPixel.username}} </span><span v-else>Pas de voisin</span></div>
             <div>Voisin du haut : <span v-if="topPixel">[{{topPixel.x + 1}}:{{topPixel.y + 1}}] {{topPixel.username}} </span><span v-else>Pas de voisin</span></div>
             <div>Voisin de droite : <span v-if="rightPixel">[{{rightPixel.x + 1}}:{{rightPixel.y + 1}}] {{rightPixel.username}}</span><span v-else>Pas de voisin</span></div>
             <div>Voisin du bas : <span v-if="bottomPixel">[{{bottomPixel.x + 1}}:{{bottomPixel.y + 1}}] {{bottomPixel.username}} </span><span v-else>Pas de voisin</span></div>
             <AppButton
-              size="medium"
+              size="small"
               v-on:click="Overlay()"
-              class="my-auto mx-auto pixelButton"
-              :style="myPixelButtonStyle"
+              class="my-auto bg-positive-base"
             >
-              [{{ x + 1 }}:{{ y + 1 }}] Toi
+              Où est ma zone ?
             </AppButton>
           </div>
-          <div class="flex-col justify-between flex-1 hidden md:flex">
+          <div class="flex-col justify-between flex-1 hidden">
               <div class="flex justify-center">
                 <AppButton v-if="topPixel"
                   size="medium"
