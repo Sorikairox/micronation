@@ -106,13 +106,20 @@
             <div class="flex flex-col text-center">
               <h1 class="m-4">Modifies la couleur de ton pixel ci-dessous</h1>
               <chrome-picker style="width: 100%;height: auto" v-model="color" @input="change"></chrome-picker>
-              <AppButton
-                size="medium"
-                v-on:click="Finish()"
-                variant="contained"
-                class="bg-primary-dark mt-4"
+              <AppButton v-if="!requesting"
+                         size="medium"
+                         v-on:click="Finish()"
+                         variant="contained"
+                         class="bg-primary-dark mt-4"
               >
                 Valider
+              </AppButton>
+              <AppButton v-if="requesting"
+                         size="medium"
+                         variant="contained"
+                         class="bg-primary-dark mt-4"
+              >
+                <div class="loader"></div>
               </AppButton>
             </div>
         </div>
@@ -434,6 +441,7 @@ export default {
       x: ~~(Math.random() * flagWidth),
       y: ~~(Math.random() * flagHeight),
       isMounted: false,
+      requesting: false,
     };
   },
   computed: {
@@ -576,12 +584,12 @@ export default {
       }
       return null;
     },
-    sendPixel(x, y) {
+    async sendPixel(x, y) {
       //Sending the user pixel with coords, color, timestamp?, userID?
       const UserPixel = new Pixel(x, y, flagPixelMap[x][y].hexColor);
-
+      this.requesting = true;
       // console.log("Sending: ", UserPixel);
-      fetch(`${process.env.apiUrl}/pixel`, {
+      await fetch(`${process.env.apiUrl}/pixel`, {
         method: "PUT",
         crossDomain: true,
         headers: {
@@ -615,6 +623,7 @@ export default {
           }
         })
         // .catch((error) => console.log(error));
+      this.requesting = false;
     },
     async FetchUserPixelAndMap() {
       // console.log("Fetching user pixel");
@@ -712,5 +721,19 @@ export default {
 .pixelButton span {
   text-overflow: ellipsis;
   overflow: hidden;
+}
+
+.loader {
+  border: 4px solid #f3f3f3; /* Light grey */
+  border-top: 4px solid #3498db; /* Blue */
+  border-radius: 50%;
+  width: 25px;
+  height: 25px;
+  animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 </style>
