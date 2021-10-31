@@ -1,5 +1,8 @@
 <template>
   <v-app>
+    <div v-if="!isMounted" class="min-h-screen w-100 absolute flex items-center top-0 bottom-0 left-0 right-0 bg-white z-50">
+      <div class="big-loader m-auto"></div>
+    </div>
     <div class="min-h-screen bg-grey-light">
       <div
         class="
@@ -442,6 +445,7 @@ export default {
       y: ~~(Math.random() * flagHeight),
       isMounted: false,
       requesting: false,
+      loading: false,
     };
   },
   computed: {
@@ -729,6 +733,16 @@ export default {
   border-radius: 50%;
   width: 25px;
   height: 25px;
+  animation: spin 2s linear infinite;
+}
+
+
+.big-loader {
+  border: 13px solid #f3f3f3; /* Light grey */
+  border-top: 13px solid #3498db; /* Blue */
+  border-radius: 50%;
+  width: 100px;
+  height: 100px;
   animation: spin 2s linear infinite;
 }
 
