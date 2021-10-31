@@ -604,9 +604,9 @@ export default {
       })
         .then((response) => response.json())
         .then((data) => {
-          if (data.statusCode && data.statusCode != 200) {
+          if (data.retryAfter) {
             this.openFailedEditModal = true;
-            this.errorMessage = data?.message;
+            this.errorMessage = 'CooldownNotEndedYet';
             /*fetch(`${process.env.apiUrl}/cooldown`, {
               method: "GET",
               crossDomain: true,
