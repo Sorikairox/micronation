@@ -7,7 +7,7 @@
       <div :class="AlertHeaderClass">
         <span class="flex flex-row items-center space-x-1"
           ><AppInfoIcon />
-          <h6>{{ isInfo ? "Info" : "Erreur" }}</h6>
+          <h6>{{ isInfo ? "Comment ça marche ?" : "Erreur" }}</h6>
         </span>
         <AppDismissIcon class="cursor-pointer" @click="closeModal" />
       </div>

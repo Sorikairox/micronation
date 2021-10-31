@@ -51,7 +51,7 @@
             v-on:click="Overlay()"
             class="ml-0 mr-auto bg-positive-base"
           >
-           Où est mon pixel ?
+           Où est ma zone ?
           </AppButton>
             <img class="cursor-pointer" @click="showHelp = true" src="https://img.icons8.com/ios/50/000000/help.png"/></div>
 
@@ -172,13 +172,15 @@
         @close="closeHelpModal"
         :open="showHelp"
       ><div>
+        <p>Vous allez prendre part à une expérience de dessin collectif. L’objectif de cette expérience est de produire le drapeau d’une micronation virtuelle !
+          <a href="https://www.youtube.com/watch?v=ehmyaX0lJew">(Il est vivement recommandé de regarder la vidéo de Dirty Biology avant pour mieux comprendre de quoi il s’agit).</a></p>
+        <p>Voici les règles du jeu : </p>
         <ul>
-          <li> Le drapeau est divisé en autant de zone de tailles égales qu'il y a de joueurs. + de joueurs = + de zones un peu plus petites</li>
-          <li> Chaque joueur controle la couleur de sa zone. Tu ne peux modifier la couleur de ta zone que 1 fois toutes les {{ maxCooldownTime }} minutes</li>
-          <li>Tu peux voir les pseudos, la couleur et les coordonnées x:y de tes voisins directs.
-          </li>
-          <li>Si tu cliques sur le bouton avec tes coordonnées et ton nom, ta zone sera mise en évidence.</li>
-          <li><a target="_blank" href="https://discord.gg/2FQEZZx">Élabores un plan sur discord pour dessiner un <strike>pén</strike>...un soleil en cliquant ici.</a></li>
+          <li>(1) Chaque participant contrôle la couleur d’une seule zone du drapeau. Plus il y a de monde, plus les zones individuelles seront petites ! </li>
+          <li>(2) Cliquez sur le bouton "Où est ma zone" pour visualiser la zone qui vous a été attribuée. Elle sera indiquée en surbrillance.</li>
+          <li>(3) Vous pouvez modifier la couleur de votre zone comme vous le souhaitez, mais seulement une fois toutes les
+            {{ maxCooldownTime }} minutes et uniquement pour votre zone.</li>
+          <li><a target="_blank" href="https://discord.gg/2FQEZZx">Élabores un plan sur discord avec tes voisins en cliquant ici.</a></li>
         </ul>
       </div></AppAlert
       >
