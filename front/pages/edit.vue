@@ -251,6 +251,8 @@ function drawOverlay() {
     for (let j = 0; j < flagPixelMap[0].length; j++) {
       if (!(i == userXPixel && j == userYPixel)) {
         drawPixel(i, j, { hexColor : "#090909e0" });
+      } else {
+        drawPixel(i, j, { hexColor : "#00ff16" });
       }
       }
     }
