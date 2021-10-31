@@ -222,10 +222,6 @@ function initializeFlagResolution() {
   const hasChanged = flagWidth !== resolution.width || flagHeight !== resolution.height;
   flagWidth = resolution.width;
   flagHeight = resolution.height;
-
-  if (hasChanged) {
-    // console.log(`flag resolution updated to ${flagWidth}x${flagHeight}`);
-  }
   return hasChanged;
 }
 
@@ -461,13 +457,6 @@ export default {
       const remainingTime =
         this.maxCooldownTime * 60000 -
         (new Date() - new Date(this.lastSubmittedTime));
-      // console.log("DEBUG - Informations : ", [
-        new Date(),
-        new Date(this.lastSubmittedTime),
-        this.maxCooldownTime,
-        new Date() - new Date(this.lastSubmittedTime),
-        remainingTime,
-      ]);
       return remainingTime;
     },
   },
