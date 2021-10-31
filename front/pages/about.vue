@@ -14,7 +14,7 @@
           <li>Ashpie (back, front) <a target="_blank" href="//ashpie.com/"><img src="https://img.icons8.com/color/25/000000/domain--v1.png"/></a></li>
           <li>Jérémy - Altab (front) <a target="_blank" href="//altab.tech/"><img src="https://img.icons8.com/color/25/000000/domain--v1.png"/></a></li>
           <li>Jordan Béziaud - Altab (front) <a target="_blank" href="//altab.tech/"><img src="https://img.icons8.com/color/25/000000/domain--v1.png"/></a></li>
-          <li>Thomas (back, front) - Fyndl <a target="_blank" href="//twitter.com/NSorikairo"><img src="https://img.icons8.com/color/25/000000/twitter--v1.png"/></a> <a target="_blank" href="https://www.linkedin.com/in/thomascruveilher/"><img src="https://img.icons8.com/color/25/000000/linkedin.png"/></a></li>
+          <li>Thomas - Fyndl (back, front) <a target="_blank" href="//twitter.com/NSorikairo"><img src="https://img.icons8.com/color/25/000000/twitter--v1.png"/></a> <a target="_blank" href="https://www.linkedin.com/in/thomascruveilher/"><img src="https://img.icons8.com/color/25/000000/linkedin.png"/></a></li>
           <li>Tif (front) <a target="_blank" href="//www.linkedin.com/in/tifaine-larroque"><img src="https://img.icons8.com/color/25/000000/linkedin.png"/></a></li>
         </ul>
       </div>
