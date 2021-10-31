@@ -65,6 +65,7 @@ function createTextureArray(width, height, flag_data) {
 }
 
 
+let ID = null;
 export default {
   name: "index",
   data() {
@@ -560,7 +561,7 @@ export default {
     }
 
     function animate(now) {
-       requestAnimationFrame(animate);
+      ID = requestAnimationFrame(animate);
       simulate(now);
       render();
     }
@@ -592,12 +593,14 @@ export default {
 
       renderer.render(scene, camera);
     }
-
     init();
     this.$nuxt.$on("FlagClick", () => {
       this.$router.push({ name: "edit" });
     });
   },
+  beforeDestroy() {
+    cancelAnimationFrame(ID);
+  }
 };
 </script>
 
