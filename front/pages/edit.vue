@@ -224,7 +224,7 @@ function initializeFlagResolution() {
   flagHeight = resolution.height;
 
   if (hasChanged) {
-    console.log(`flag resolution updated to ${flagWidth}x${flagHeight}`);
+    // console.log(`flag resolution updated to ${flagWidth}x${flagHeight}`);
   }
   return hasChanged;
 }
@@ -298,7 +298,7 @@ function init() {
 
 //Change the color value and draw it to the user pixel
 function changeColor(newColor) {
-  // console.log("Pixel draw informations :", [newColor, userXPixel, userYPixel]);
+  // // console.log("Pixel draw informations :", [newColor, userXPixel, userYPixel]);
   canvasPixelColor = newColor;
   drawPixel(userXPixel, userYPixel, { hexColor : newColor } , true);
 }
@@ -461,7 +461,7 @@ export default {
       const remainingTime =
         this.maxCooldownTime * 60000 -
         (new Date() - new Date(this.lastSubmittedTime));
-      console.log("DEBUG - Informations : ", [
+      // console.log("DEBUG - Informations : ", [
         new Date(),
         new Date(this.lastSubmittedTime),
         this.maxCooldownTime,
@@ -499,8 +499,8 @@ export default {
       }, 3000);
     },
     async Refresh(ack = false) {
-      console.log("REFRESH", ack);
-      console.log("Fetching the flag size");
+      // console.log("REFRESH", ack);
+      // console.log("Fetching the flag size");
 
       await fetch(`${process.env.apiUrl}/flag/after/${lastUpdate.toISOString()}`, {
         method: "GET",
@@ -534,10 +534,10 @@ export default {
             }
           }
         })
-        .catch((err) => console.log(err));
+        // .catch((err) => console.log(err));
     },
     async FetchMap() {
-      console.log("Fetching the whole map");
+      // console.log("Fetching the whole map");
       return await fetch(`${process.env.apiUrl}/flag`, {
         method: "GET",
         crossDomain: true,
@@ -547,7 +547,7 @@ export default {
       })
         .then((response) => response.json())
         .then((data) => {
-          console.log("DEBUG - New map array : ", data);
+          // console.log("DEBUG - New map array : ", data);
 
           flagPixels = [];
           for (const pixel of data) {
@@ -564,17 +564,17 @@ export default {
             const { x, y } = getCoordinateFromFlagIndex(i);
             NEW_MAP[x][y] = data[i];
           }
-          console.log('new map');
+          // console.log('new map');
           return NEW_MAP;
         })
-        .catch((error) => console.log(error));
+        // .catch((error) => console.log(error));
     },
     async setNeighboursInfo() {
       this.topPixel = await this.getNeighbourPixelIfItExists(this.x, this.y - 1 );
       this.leftPixel = await this.getNeighbourPixelIfItExists(this.x - 1, this.y);
       this.rightPixel = await this.getNeighbourPixelIfItExists(this.x + 1, this.y);
       this.bottomPixel = await this.getNeighbourPixelIfItExists(this.x, this.y + 1 );
-      console.log(this.leftPixel);
+      // console.log(this.leftPixel);
     },
     async getNeighbourPixelIfItExists(x, y) {
       if (flagPixelMap[x]?.[y]) {
@@ -591,7 +591,7 @@ export default {
       //Sending the user pixel with coords, color, timestamp?, userID?
       const UserPixel = new Pixel(x, y, flagPixelMap[x][y].hexColor);
 
-      console.log("Sending: ", UserPixel);
+      // console.log("Sending: ", UserPixel);
       fetch(`${process.env.apiUrl}/pixel`, {
         method: "PUT",
         crossDomain: true,
@@ -619,16 +619,16 @@ export default {
               .then((data) => {
                 this.maxCooldownTime = data.cooldown;
               })
-              .catch((err) => console.log(err));*/
+              // .catch((err) => console.log(err));*/
           } else {
             this.openSuccessEditModal = true;
             this.FetchUserPixelAndMap();
           }
         })
-        .catch((error) => console.log(error));
+        // .catch((error) => console.log(error));
     },
     async FetchUserPixelAndMap() {
-      console.log("Fetching user pixel");
+      // console.log("Fetching user pixel");
       await fetch(`${process.env.apiUrl}/pixel`, {
         method: "GET",
         crossDomain: true,
@@ -649,9 +649,9 @@ export default {
           console.debug("time last updated ", this.lastSubmittedTime);
           setUserPixel(this.x, this.y);
           changeColor(this.color);
-          console.log('here');
+          // console.log('here');
         })
-        .catch((error) => console.log(error));
+        // .catch((error) => console.log(error));
     },
     async FetchCooldown() {
       const res = await fetch(`${process.env.apiUrl}/cooldown`, {
@@ -682,7 +682,7 @@ export default {
   async middleware({ redirect }) {
     const instance = await fouloscopie();
     const token = instance.userInfo.token;
-    // console.log("DEBUG - userToken : ", token);
+    // // console.log("DEBUG - userToken : ", token);
     if (!token) {
       redirect({ name: "index" });
     }
