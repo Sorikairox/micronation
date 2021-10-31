@@ -564,6 +564,7 @@ export default {
             const { x, y } = getCoordinateFromFlagIndex(i);
             NEW_MAP[x][y] = data[i];
           }
+          console.log('new map');
           return NEW_MAP;
         })
         .catch((error) => console.log(error));
@@ -621,13 +622,12 @@ export default {
               .catch((err) => console.log(err));*/
           } else {
             this.openSuccessEditModal = true;
-            this.FetchUserPixel();
-            this.FetchMap();
+            this.FetchUserPixelAndMap();
           }
         })
         .catch((error) => console.log(error));
     },
-    async FetchUserPixel() {
+    async FetchUserPixelAndMap() {
       console.log("Fetching user pixel");
       await fetch(`${process.env.apiUrl}/pixel`, {
         method: "GET",
@@ -638,8 +638,9 @@ export default {
         },
       })
         .then((response) => response.json())
-        .then((data) => {
+        .then(async (data) => {
           console.debug("User pixel : ", data);
+          flagPixelMap = await this.FetchMap();
           const userPixelCoordinates = getCoordinateFromFlagIndex(data.indexInFlag - 1);
           this.x = userPixelCoordinates.x;
           this.y = userPixelCoordinates.y;
@@ -648,6 +649,7 @@ export default {
           console.debug("time last updated ", this.lastSubmittedTime);
           setUserPixel(this.x, this.y);
           changeColor(this.color);
+          console.log('here');
         })
         .catch((error) => console.log(error));
     },
@@ -669,8 +671,7 @@ export default {
     this.fouloscopieSdk = await fouloscopie();
     this.token = this.fouloscopieSdk.userInfo.token;
     this.maxCooldownTime = await this.FetchCooldown();
-    await this.FetchUserPixel();
-    flagPixelMap = await this.FetchMap();
+    await this.FetchUserPixelAndMap();
     this.setNeighboursInfo();
     init();
     this.isMounted = true;
