@@ -91,4 +91,8 @@ export default {
 };
 </script>
 
-<style></style>
+<style>
+#db-icon {
+  max-width: 40px;
+}
+</style>
