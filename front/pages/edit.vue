@@ -46,15 +46,16 @@
           "
           style="max-width: 500px"
         >
-          <div class="mr-0 flex">
-            <img class="cursor-pointer ml-auto mr-0" @click="showHelp = true" src="https://img.icons8.com/ios/50/000000/help.png"/>
-          </div>
+          <div class="flex-col flex-1 flex relative">
+            <img class="cursor-pointer w-8 absolute right-0 top-0" @click="showHelp = true" src="https://img.icons8.com/ios/50/000000/help.png" alt="Help icon">
 
-          <div class="flex-col justify-between flex-1 flex">
-            <div>Voisin de gauche : <span v-if="leftPixel">[{{leftPixel.x + 1}}:{{leftPixel.y + 1}}] {{leftPixel.username}} </span><span v-else>Pas de voisin</span></div>
-            <div>Voisin du haut : <span v-if="topPixel">[{{topPixel.x + 1}}:{{topPixel.y + 1}}] {{topPixel.username}} </span><span v-else>Pas de voisin</span></div>
-            <div>Voisin de droite : <span v-if="rightPixel">[{{rightPixel.x + 1}}:{{rightPixel.y + 1}}] {{rightPixel.username}}</span><span v-else>Pas de voisin</span></div>
-            <div>Voisin du bas : <span v-if="bottomPixel">[{{bottomPixel.x + 1}}:{{bottomPixel.y + 1}}] {{bottomPixel.username}} </span><span v-else>Pas de voisin</span></div>
+            <div class="pr-10">
+              <div>Voisin de gauche : <span v-if="leftPixel">[{{leftPixel.x + 1}}:{{leftPixel.y + 1}}] {{leftPixel.username}} </span><span v-else>Pas de voisin</span></div>
+              <div>Voisin du haut : <span v-if="topPixel">[{{topPixel.x + 1}}:{{topPixel.y + 1}}] {{topPixel.username}} </span><span v-else>Pas de voisin</span></div>
+              <div>Voisin de droite : <span v-if="rightPixel">[{{rightPixel.x + 1}}:{{rightPixel.y + 1}}] {{rightPixel.username}}</span><span v-else>Pas de voisin</span></div>
+              <div>Voisin du bas : <span v-if="bottomPixel">[{{bottomPixel.x + 1}}:{{bottomPixel.y + 1}}] {{bottomPixel.username}} </span><span v-else>Pas de voisin</span></div>
+            </div>
+
             <AppButton
               size="small"
               v-on:click="Overlay()"
