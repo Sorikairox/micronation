@@ -61,7 +61,7 @@
               v-on:click="Overlay()"
               class="mt-2 bg-positive-base"
             >
-              Où est ma zone ?
+              Où est ma zone [{{ x + 1 }}:{{ y + 1 }}] ?
             </AppButton>
           </div>
           <div class="flex-col justify-between flex-1 hidden">
