@@ -170,13 +170,13 @@
         <p>Vous allez prendre part à une expérience de dessin collectif. L’objectif de cette expérience est de produire le drapeau d’une micronation virtuelle !
           <a href="https://www.youtube.com/watch?v=ehmyaX0lJew">(Il est vivement recommandé de regarder la vidéo de Dirty Biology avant pour mieux comprendre de quoi il s’agit).</a></p>
         <p>Voici les règles du jeu : </p>
-        <ul>
+        <ol>
           <li>(1) Chaque participant contrôle la couleur d’une seule zone du drapeau. Plus il y a de monde, plus les zones individuelles seront petites ! </li>
           <li>(2) Cliquez sur le bouton "Où est ma zone" pour visualiser la zone qui vous a été attribuée. Elle sera indiquée en surbrillance.</li>
           <li>(3) Vous pouvez modifier la couleur de votre zone comme vous le souhaitez, mais seulement une fois toutes les
             {{ maxCooldownTime }} minutes et uniquement pour votre zone.</li>
           <li><a target="_blank" href="https://discord.gg/2FQEZZx">Élabores un plan sur discord avec tes voisins en cliquant ici.</a></li>
-        </ul>
+        </ol>
       </div></AppAlert
       >
     </div>
