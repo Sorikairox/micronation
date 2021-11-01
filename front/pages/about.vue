@@ -11,7 +11,7 @@
           Le développement de ce concept a été fait durant l'été-automne 2021, et il est le résultat du travail de ces personnes talentueuses :<br><br>
         </p>
         <ul class="body-1">
-          <li>Ashpie (back, front) <a target="_blank" href="//ashpie.com/"><img src="https://img.icons8.com/color/25/000000/domain--v1.png"/></a></li>
+          <li>ashpie (back, front) <a target="_blank" href="//ashpie.com/"><img src="https://img.icons8.com/color/25/000000/domain--v1.png"/></a></li>
           <li>Jérémy - Altab (front) <a target="_blank" href="//altab.tech/"><img src="https://img.icons8.com/color/25/000000/domain--v1.png"/></a></li>
           <li>Jordan Béziaud - Altab (front) <a target="_blank" href="//altab.tech/"><img src="https://img.icons8.com/color/25/000000/domain--v1.png"/></a></li>
           <li>Thomas - Fyndl (back, front) <a target="_blank" href="//twitter.com/NSorikairo"><img src="https://img.icons8.com/color/25/000000/twitter--v1.png"/></a> <a target="_blank" href="https://www.linkedin.com/in/thomascruveilher/"><img src="https://img.icons8.com/color/25/000000/linkedin.png"/></a></li>

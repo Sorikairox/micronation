@@ -8,11 +8,11 @@
         class="
           flex flex-col
           md:flex-row
-          max-w-screen-xl
+          max-w-screen-2xl
           h-full
           grid-rows-2
           mx-auto
-          pt-16
+          pt-14
           items-center
           md:items-stretch
         "
@@ -37,7 +37,7 @@
         <div
           class="
             flex flex-col
-            m-2 md:mx-4 md:mb-4 md:ml-0
+            m-2 md:m-4 md:ml-0
             p-4
             bg-white
             rounded-lg
@@ -46,19 +46,20 @@
           "
           style="max-width: 500px"
         >
-          <div class="mr-0 flex">
-            <img class="cursor-pointer ml-auto mr-0" @click="showHelp = true" src="https://img.icons8.com/ios/50/000000/help.png"/>
-          </div>
+          <div class="flex-col flex-1 flex justify-center relative">
+            <img class="cursor-pointer w-8 absolute right-0 top-0" @click="showHelp = true" src="https://img.icons8.com/ios/50/000000/help.png" alt="Help icon">
 
-          <div class="flex-col justify-between flex-1 flex">
-            <div>Voisin de gauche : <span v-if="leftPixel">[{{leftPixel.x + 1}}:{{leftPixel.y + 1}}] {{leftPixel.username}} </span><span v-else>Pas de voisin</span></div>
-            <div>Voisin du haut : <span v-if="topPixel">[{{topPixel.x + 1}}:{{topPixel.y + 1}}] {{topPixel.username}} </span><span v-else>Pas de voisin</span></div>
-            <div>Voisin de droite : <span v-if="rightPixel">[{{rightPixel.x + 1}}:{{rightPixel.y + 1}}] {{rightPixel.username}}</span><span v-else>Pas de voisin</span></div>
-            <div>Voisin du bas : <span v-if="bottomPixel">[{{bottomPixel.x + 1}}:{{bottomPixel.y + 1}}] {{bottomPixel.username}} </span><span v-else>Pas de voisin</span></div>
+            <div class="pr-10">
+              <div>Voisin de gauche : <span v-if="leftPixel">[{{leftPixel.x + 1}}:{{leftPixel.y + 1}}] {{leftPixel.username}} </span><span v-else>Pas de voisin</span></div>
+              <div>Voisin du haut : <span v-if="topPixel">[{{topPixel.x + 1}}:{{topPixel.y + 1}}] {{topPixel.username}} </span><span v-else>Pas de voisin</span></div>
+              <div>Voisin de droite : <span v-if="rightPixel">[{{rightPixel.x + 1}}:{{rightPixel.y + 1}}] {{rightPixel.username}}</span><span v-else>Pas de voisin</span></div>
+              <div>Voisin du bas : <span v-if="bottomPixel">[{{bottomPixel.x + 1}}:{{bottomPixel.y + 1}}] {{bottomPixel.username}} </span><span v-else>Pas de voisin</span></div>
+            </div>
+
             <AppButton
               size="small"
               v-on:click="Overlay()"
-              class="my-auto bg-positive-base"
+              class="mt-2 bg-positive-base"
             >
               Où est ma zone ?
             </AppButton>
@@ -109,7 +110,7 @@
             </div>
             <hr class="mt-1 border-grey-light">
             <div class="flex flex-col text-center">
-              <h1 class="m-4">Modifies la couleur de ton pixel ci-dessous</h1>
+              <h1 class="m-4">Modifies la couleur de ta zone ci-dessous</h1>
               <chrome-picker style="width: 100%;height: auto" v-model="color" @input="change"></chrome-picker>
               <AppButton v-if="!requesting"
                          size="medium"
@@ -134,7 +135,7 @@
         variant="error"
         @close="closeCooldownModal"
         :open="openFailedEditModal"
-        >La date de dernière modification de ton pixel est trop récente,
+        >La date de dernière modification de ta zone est trop récente,
         merci de patienter ! <br />
         Temps restant :
         <countdown
@@ -169,13 +170,13 @@
         <p>Vous allez prendre part à une expérience de dessin collectif. L’objectif de cette expérience est de produire le drapeau d’une micronation virtuelle !
           <a href="https://www.youtube.com/watch?v=ehmyaX0lJew">(Il est vivement recommandé de regarder la vidéo de Dirty Biology avant pour mieux comprendre de quoi il s’agit).</a></p>
         <p>Voici les règles du jeu : </p>
-        <ul>
+        <ol>
           <li>(1) Chaque participant contrôle la couleur d’une seule zone du drapeau. Plus il y a de monde, plus les zones individuelles seront petites ! </li>
-          <li>(2) Cliquez sur le bouton "Où est ma zone" pour visualiser la zone qui vous a été attribuée. Elle sera indiquée en surbrillance.</li>
+          <li>(2) Cliquez sur le bouton "Où est ma zone ?" pour visualiser la zone qui vous a été attribuée. Elle sera indiquée en surbrillance.</li>
           <li>(3) Vous pouvez modifier la couleur de votre zone comme vous le souhaitez, mais seulement une fois toutes les
             {{ maxCooldownTime }} minutes et uniquement pour votre zone.</li>
           <li><a target="_blank" href="https://discord.gg/2FQEZZx">Élabores un plan sur discord avec tes voisins en cliquant ici.</a></li>
-        </ul>
+        </ol>
       </div></AppAlert
       >
     </div>
