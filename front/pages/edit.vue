@@ -559,7 +559,9 @@ export default {
 
           flagPixels = [];
           for (const pixel of data) {
-            flagPixels[pixel.indexInFlag - 1] = pixel;
+            if (pixel) {
+              flagPixels[pixel.indexInFlag - 1] = pixel;
+            }
           }
           initializeFlagResolution();
 
