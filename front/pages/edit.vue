@@ -572,6 +572,10 @@ export default {
 
           for (let i = 0; i < data.length; i++) {
             const { x, y } = getCoordinateFromFlagIndex(i);
+            if (!NEW_MAP[x]) {
+              NEW_MAP[x] = [];
+              console.warn(`no row for x=${x}`)
+            }
             NEW_MAP[x][y] = data[i];
           }
           // console.log('new map');
