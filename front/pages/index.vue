@@ -42,20 +42,26 @@ function createTextureArray(width, height, flag_data) {
   let i = 0;
 
   while (i < flag_data.length) {
-    const color = new THREE.Color(flag_data[i].hexColor);
-    const r = Math.floor(color.r * 255);
-    const g = Math.floor(color.g * 255);
-    const b = Math.floor(color.b * 255);
-
     const pixel2DCoordinates = flagIndexToCoordinateCache[i];
     const textureIndex = pixel2DCoordinates.x + pixel2DCoordinates.y * width;
     const stride = textureIndex * 4;
+    if (flag_data[i]) {
+      const color = new THREE.Color(flag_data[i].hexColor);
+      const r = Math.floor(color.r * 255);
+      const g = Math.floor(color.g * 255);
+      const b = Math.floor(color.b * 255);
 
-    textureArray[stride] = r;
-    textureArray[stride + 1] = g;
-    textureArray[stride + 2] = b;
-    textureArray[stride + 3] = 255;
-    i++;
+      textureArray[stride] = r;
+      textureArray[stride + 1] = g;
+      textureArray[stride + 2] = b;
+      textureArray[stride + 3] = 255;
+      i++;
+    } else {
+      textureArray[stride] = 0;
+      textureArray[stride + 1] = 0;
+      textureArray[stride + 2] = 0;
+      textureArray[stride + 3] = 0;
+    }
   }
   i = i * 4;
   while (i < 4 * width * height) {
