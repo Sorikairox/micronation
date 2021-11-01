@@ -558,7 +558,7 @@ export default {
           // console.log("DEBUG - New map array : ", data);
 
           data = data.filter(p => !!p)
-            .sort((a, b) => (a.indexInflag < b.indexInFlag ? 1 : -1));
+            .sort((a, b) => (a.indexInflag - b.indexInFlag));
 
           flagPixels = data;
           initializeFlagResolution();
