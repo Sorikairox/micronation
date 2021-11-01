@@ -542,7 +542,7 @@ export default {
             this.setNeighboursInfo();
 
             if (hasChanged) {
-              drawFlag();
+              drawFlag(flagPixelMap);
             }
           }
         })
