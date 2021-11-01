@@ -25,13 +25,13 @@
         variant="contained"
         class="hidden bg-primary-dark lg:block"
       >
-        Editer le drapeau
+        Éditer le drapeau
       </AppButton>
 
       <AppButton class="lg:hidden" :to="{ name: 'about' }">
         <AppInfoIcon />
       </AppButton>
-      <AppButton class="hidden lg:block" :to="{ name: 'about' }">A propos</AppButton>
+      <AppButton class="hidden lg:block" :to="{ name: 'about' }">À propos</AppButton>
     </div>
     <!-- <div v-if="loggedIn" class="flex justify-end">
       <AppButton icon="left" variant="contained" class="bg-primary-dark"
