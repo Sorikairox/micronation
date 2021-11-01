@@ -12,7 +12,7 @@
           h-full
           grid-rows-2
           mx-auto
-          pt-16
+          pt-14
           items-center
           md:items-stretch
         "
@@ -37,7 +37,7 @@
         <div
           class="
             flex flex-col
-            m-2 md:mx-4 md:mb-4 md:ml-0
+            m-2 md:m-4 md:ml-0
             p-4
             bg-white
             rounded-lg
