@@ -535,7 +535,8 @@ export default {
             const hasChanged = initializeFlagResolution();
 
             for (const modifiedPixel of modifiedPixels) {
-              const { x, y } = getCoordinateFromFlagIndex(modifiedPixel.indexInFlag - 1);
+              const localIndex = indexInFlagToLocalIndexMap[modifiedPixel.indexInFlag];
+              const { x, y } = getCoordinateFromFlagIndex(localIndex);
               if (!flagPixelMap[x]) {
                 flagPixelMap[x] = [];
                 console.warn(`There was no row on x=${x}`);
@@ -667,7 +668,7 @@ export default {
         .then(async (data) => {
           console.debug("User pixel : ", data);
           flagPixelMap = await this.FetchMap();
-          const userPixelCoordinates = getCoordinateFromFlagIndex(data.indexInFlag - 1);
+          const userPixelCoordinates = getCoordinateFromFlagIndex(indexInFlagToLocalIndexMap[data.indexInFlag]);
           this.x = userPixelCoordinates.x;
           this.y = userPixelCoordinates.y;
           this.color = data.hexColor;
