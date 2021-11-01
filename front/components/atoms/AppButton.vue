@@ -8,15 +8,9 @@
     :rel="href ? 'noreferrer noopener' : undefined"
     @click="to ? '' : $emit('click', $event)"
   >
-    <span v-if="icon === 'left'">
-      <slot name="icon"></slot>
-    </span>
-    <span :class="typoButton">
-      <slot></slot>
-    </span>
-    <span v-if="icon === 'right'">
-      <slot name="icon"></slot>
-    </span>
+    <slot name="icon" v-if="icon === 'left'"></slot>
+    <slot :class="typoButton"></slot>
+    <slot name="icon" v-if="icon === 'right'"></slot>
   </component>
 </template>
 
