@@ -3,13 +3,14 @@
     class="flex items-center justify-between w-full py-2 bg-white shadow-md sm:grid sm:grid-cols-2 px-7"
   >
     <div class="flex flex-row items-center justify-start space-x-8">
-      <AppIconHome />
+      <img id="db-icon" src="~/assets/icon-dirtybiology.jpeg" alt="Dirtybiology logo">
+
       <AppButton class="lg:hidden" :to="{ name: 'index' }"
-      >  <svg width="24" height="24" class="fill-current">
-        <path
-          d="M12 5.69L17 10.19V18H15V12H9V18H7V10.19L12 5.69ZM12 3L2 12H5V20H11V14H13V20H19V12H22L12 3Z"
-        />
-      </svg></AppButton>
+      >
+        <AppHomeIcon />
+      </AppButton>
+      <AppButton class="hidden lg:block" :to="{ name: 'index' }">Accueil</AppButton>
+
       <AppButton
         :to="{ name: 'edit' }"
         size="medium"
@@ -18,9 +19,6 @@
       >
         <AppFlagIcon />
       </AppButton>
-      <AppButton class="hidden lg:block" :to="{ name: 'index' }"
-        >Accueil</AppButton
-      >
       <AppButton
         :to="{ name: 'edit' }"
         size="medium"
@@ -30,12 +28,10 @@
         Editer le drapeau
       </AppButton>
 
-      <AppButton class="hidden lg:block" :to="{ name: 'about' }"
-        >A propos</AppButton
-      >
-      <AppButton class="lg:hidden" :to="{ name: 'about' }"
-        ><AppPersonIcon
-      /></AppButton>
+      <AppButton class="lg:hidden" :to="{ name: 'about' }">
+        <AppInfoIcon />
+      </AppButton>
+      <AppButton class="hidden lg:block" :to="{ name: 'about' }">A propos</AppButton>
     </div>
     <!-- <div v-if="loggedIn" class="flex justify-end">
       <AppButton icon="left" variant="contained" class="bg-primary-dark"
@@ -68,17 +64,17 @@
 
 <script>
 import AppButton from "../atoms/AppButton.vue";
-import AppIconHome from "../atoms/icons/AppHomeIcon.vue";
-import AppPersonIcon from "../atoms/icons/AppPersonIcon.vue";
+import AppHomeIcon from "../atoms/icons/AppHomeIcon.vue";
+import AppInfoIcon from "../atoms/icons/AppInfoIcon.vue";
 import AppLogInIcon from "../atoms/icons/AppLogInIcon.vue";
 import AppRegisterIcon from "../atoms/icons/AppRegisterIcon.vue";
 import AppFlagIcon from "../atoms/icons/AppFlagIcon.vue";
 
 export default {
   components: {
-    AppIconHome,
+    AppHomeIcon,
     AppButton,
-    AppPersonIcon,
+    AppInfoIcon,
     AppLogInIcon,
     AppRegisterIcon,
     AppFlagIcon,
