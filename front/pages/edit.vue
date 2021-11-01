@@ -528,6 +528,10 @@ export default {
 
             for (const modifiedPixel of modifiedPixels) {
               const { x, y } = getCoordinateFromFlagIndex(modifiedPixel.indexInFlag - 1);
+              if (!flagPixelMap[x]) {
+                flagPixelMap[x] = [];
+                console.warn(`There was no row on x=${x}`);
+              }
               flagPixelMap[x][y] = modifiedPixel;
               if (!hasChanged) {
                 drawPixel(x, y, modifiedPixel);
