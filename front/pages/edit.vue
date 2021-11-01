@@ -110,7 +110,7 @@
             </div>
             <hr class="mt-1 border-grey-light">
             <div class="flex flex-col text-center">
-              <h1 class="m-4">Modifies la couleur de ton pixel ci-dessous</h1>
+              <h1 class="m-4">Modifies la couleur de ta zone ci-dessous</h1>
               <chrome-picker style="width: 100%;height: auto" v-model="color" @input="change"></chrome-picker>
               <AppButton v-if="!requesting"
                          size="medium"
@@ -135,7 +135,7 @@
         variant="error"
         @close="closeCooldownModal"
         :open="openFailedEditModal"
-        >La date de dernière modification de ton pixel est trop récente,
+        >La date de dernière modification de ta zone est trop récente,
         merci de patienter ! <br />
         Temps restant :
         <countdown
