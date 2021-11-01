@@ -230,6 +230,8 @@ let userYPixel = 0;
 
 let lastUpdate = new Date();
 
+let indexInFlagToLocalIndexMap = {};
+
 function initializeFlagResolution() {
   flagIndexToCoordinateCache = mapCoordinatesToTargetRatioRectangleDistribution(flagPixels.length, DESIRED_FLAG_RATIO);
 
@@ -521,7 +523,13 @@ export default {
         .then((modifiedPixels) => {
           if (modifiedPixels.length > 0) {
             for (const modifiedPixel of modifiedPixels) {
-              flagPixels[modifiedPixel.indexInFlag - 1] = modifiedPixel;
+              const localIndex = indexInFlagToLocalIndexMap[modifiedPixel.indexInFlag];
+              if (!localIndex) {
+                flagPixels.push(modifiedPixel);
+                indexInFlagToLocalIndexMap[modifiedPixel.indexInFlag] = flagPixels.length - 1;
+              } else {
+                flagPixels[localIndex] = modifiedPixel;
+              }
             }
 
             const hasChanged = initializeFlagResolution();
@@ -573,6 +581,7 @@ export default {
           }
 
           for (let i = 0; i < data.length; i++) {
+            indexInFlagToLocalIndexMap[data[i].indexInFlag] = i;
             const { x, y } = getCoordinateFromFlagIndex(i);
             if (!NEW_MAP[x]) {
               NEW_MAP[x] = [];
