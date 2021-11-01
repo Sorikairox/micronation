@@ -27,7 +27,10 @@ async function getFlag() {
     },
   });
 
-  return response.json();
+  let data = await response.json();
+  data = data.filter(p => !!p)
+    .sort((a, b) => (a.indexInflag - b.indexInFlag));
+  return data;
 }
 
 let flagIndexToCoordinateCache = [];
