@@ -100,12 +100,6 @@ export class PixelRepository extends DatabaseRepository<DatabaseEvent<Pixel>> {
           pixelDetails: {
             $mergeObjects: '$data',
           },
-          lastUpdate: {
-            $last: '$createdAt',
-          },
-          createdAt: {
-            $first: '$createdAt',
-          },
           author: {
             $last: '$author',
           },
@@ -117,8 +111,6 @@ export class PixelRepository extends DatabaseRepository<DatabaseEvent<Pixel>> {
             $mergeObjects: [
               {
                 entityId: '$_id',
-                lastUpdate: '$lastUpdate',
-                createdAt: '$createdAt',
                 author: '$author',
               },
               '$pixelDetails',
@@ -130,9 +122,7 @@ export class PixelRepository extends DatabaseRepository<DatabaseEvent<Pixel>> {
         $project: {
           entityId: 1,
           hexColor: 1,
-          lastUpdate: 1,
           author: 1,
-          createdAt: 1,
           indexInFlag: 1,
         },
       },

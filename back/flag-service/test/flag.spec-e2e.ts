@@ -132,8 +132,6 @@ describe('Flag (e2e)', () => {
 
             expect(mypixel.author).toEqual(userId);
             expect(mypixel.hexColor).toEqual('#DDDDDD');
-            expect(mypixel.createdAt).toEqual(createdPixel.createdAt);
-            expect(mypixel.lastUpdate).toEqual(modifiedPixel.createdAt);
             expect(mypixel.indexInFlag).toEqual(1);
           });
         })
@@ -149,8 +147,6 @@ describe('Flag (e2e)', () => {
 
         expect(firstPixel.author).toEqual(userId);
         expect(firstPixel.hexColor).toEqual('#DDDDDD');
-        expect(firstPixel.createdAt).toEqual(createdPixel.createdAt);
-        expect(firstPixel.lastUpdate).toEqual(modifiedPixel.createdAt);
       });
       it('/cooldown (GET)', async () => {
         const res = await request(app.getHttpServer())

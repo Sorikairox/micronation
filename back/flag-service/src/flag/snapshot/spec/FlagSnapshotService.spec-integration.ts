@@ -108,7 +108,7 @@ describe('FlagSnapshotService', () => {
         await flagSnapshotService.createSnapShot(9);
         const snapshot = await flagSnapshotRepository.findLast({});
         expect(snapshot.lastEventId).toEqual(9);
-        expect(snapshot.pixels).toEqual(createdPixels);
+        expect(snapshot.pixels).toEqual(createdPixels.map(p => ({ author: p.author, hexColor: p.hexColor, entityId: p.entityId, indexInFlag: p.indexInFlag })));
       });
     });
     describe('with previous snapshot', () => {
@@ -122,7 +122,7 @@ describe('FlagSnapshotService', () => {
         await flagSnapshotService.createSnapShot(35);
         const snapshot = await flagSnapshotRepository.findLast({});
         expect(snapshot.lastEventId).toEqual(35);
-        expect(snapshot.pixels).toEqual(createdPixels);
+        expect(snapshot.pixels).toEqual(createdPixels.map(p => ({ author: p.author, hexColor: p.hexColor, entityId: p.entityId, indexInFlag: p.indexInFlag })));
       });
     });
   });
