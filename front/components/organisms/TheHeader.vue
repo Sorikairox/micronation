@@ -5,33 +5,25 @@
     <div class="flex flex-row items-center justify-start space-x-8">
       <img id="db-icon" src="~/assets/icon-dirtybiology.jpeg" alt="Dirtybiology logo">
 
-      <AppButton class="lg:hidden" :to="{ name: 'index' }"
-      >
-        <AppHomeIcon />
+      <AppButton :to="{ name: 'index' }">
+        <template v-slot:icon><AppHomeIcon /></template>
+        <span class="hidden lg:block">Accueil</span>
       </AppButton>
-      <AppButton class="hidden lg:block" :to="{ name: 'index' }">Accueil</AppButton>
 
       <AppButton
         :to="{ name: 'edit' }"
         size="medium"
         variant="contained"
-        class="bg-primary-dark lg:hidden"
+        class="bg-primary-dark"
       >
-        <AppFlagIcon />
-      </AppButton>
-      <AppButton
-        :to="{ name: 'edit' }"
-        size="medium"
-        variant="contained"
-        class="hidden bg-primary-dark lg:block"
-      >
-        Éditer le drapeau
+        <template v-slot:icon><AppFlagIcon /></template>
+        <span class="hidden lg:block">Éditer le drapeau</span>
       </AppButton>
 
-      <AppButton class="lg:hidden" :to="{ name: 'about' }">
-        <AppInfoIcon />
+      <AppButton :to="{ name: 'about' }">
+        <template v-slot:icon><AppInfoIcon /></template>
+        <span class="hidden lg:block">À propos</span>
       </AppButton>
-      <AppButton class="hidden lg:block" :to="{ name: 'about' }">À propos</AppButton>
     </div>
     <!-- <div v-if="loggedIn" class="flex justify-end">
       <AppButton icon="left" variant="contained" class="bg-primary-dark"
