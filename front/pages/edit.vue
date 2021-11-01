@@ -46,7 +46,7 @@
           "
           style="max-width: 500px"
         >
-          <div class="flex-col flex-1 flex relative">
+          <div class="flex-col flex-1 flex justify-center relative">
             <img class="cursor-pointer w-8 absolute right-0 top-0" @click="showHelp = true" src="https://img.icons8.com/ios/50/000000/help.png" alt="Help icon">
 
             <div class="pr-10">
@@ -59,7 +59,7 @@
             <AppButton
               size="small"
               v-on:click="Overlay()"
-              class="my-auto bg-positive-base"
+              class="mt-2 bg-positive-base"
             >
               Où est ma zone ?
             </AppButton>
