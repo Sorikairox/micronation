@@ -266,7 +266,7 @@ function drawOverlay() {
 //Draw a pixel on a coord given (x,y,clr), if changetexture is set to true, change the value on the map
 //You can change the size and the context to draw, default is flag context
 function drawPixel(x, y, pixel, changeTexture = false, size = 1, ctx = canvasDrawingContext) {
-  if (ctx && pixel.hexColor) {
+  if (ctx && pixel?.hexColor) {
     let drawWidth = (canvas.width / flagWidth) * size;
     let drawHeight = (canvas.height / flagHeight) * size;
     ctx.fillStyle = pixel.hexColor;
@@ -557,12 +557,10 @@ export default {
         .then((data) => {
           // console.log("DEBUG - New map array : ", data);
 
-          flagPixels = [];
-          for (const pixel of data) {
-            if (pixel) {
-              flagPixels[pixel.indexInFlag - 1] = pixel;
-            }
-          }
+          data = data.filter(p => !!p)
+            .sort((a, b) => (a.indexInflag < b.indexInFlag ? 1 : -1));
+
+          flagPixels = data;
           initializeFlagResolution();
 
           const NEW_MAP = new Array(flagWidth);
