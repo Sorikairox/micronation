@@ -6,8 +6,8 @@
       <img id="db-icon" src="~/assets/icon-dirtybiology.jpeg" alt="Dirtybiology logo">
 
       <AppButton :to="{ name: 'index' }">
-        <template v-slot:icon><AppHomeIcon /></template>
-        <span class="hidden lg:block whitespace-nowrap">Accueil</span>
+        <template v-slot:icon><AppFlagIcon /></template>
+        <span class="hidden lg:block whitespace-nowrap">Drapeau</span>
       </AppButton>
 
       <AppButton
@@ -16,7 +16,7 @@
         variant="contained"
         class="bg-primary-dark"
       >
-        <template v-slot:icon><AppFlagIcon /></template>
+        <template v-slot:icon><AppCreateIcon /></template>
         <span class="hidden lg:block whitespace-nowrap">Éditer le drapeau</span>
       </AppButton>
 
@@ -56,15 +56,15 @@
 
 <script>
 import AppButton from "../atoms/AppButton.vue";
-import AppHomeIcon from "../atoms/icons/AppHomeIcon.vue";
 import AppInfoIcon from "../atoms/icons/AppInfoIcon.vue";
 import AppLogInIcon from "../atoms/icons/AppLogInIcon.vue";
 import AppRegisterIcon from "../atoms/icons/AppRegisterIcon.vue";
 import AppFlagIcon from "../atoms/icons/AppFlagIcon.vue";
+import AppCreateIcon from "../atoms/icons/AppCreateIcon";
 
 export default {
   components: {
-    AppHomeIcon,
+    AppCreateIcon,
     AppButton,
     AppInfoIcon,
     AppLogInIcon,
