@@ -8,7 +8,7 @@
         class="
           flex flex-col
           md:flex-row
-          max-w-screen-xl
+          max-w-screen-2xl
           h-full
           grid-rows-2
           mx-auto
