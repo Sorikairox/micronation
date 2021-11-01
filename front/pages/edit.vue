@@ -64,7 +64,7 @@
             <AppButton
               size="small"
               v-on:click="Overlay()"
-              class="mt-2 bg-positive-base"
+              class="my-2 bg-positive-base"
             >
               <template v-slot:icon><AppPlaceIcon/></template>
               Où est ma zone [{{ x + 1 }}:{{ y + 1 }}] ?
