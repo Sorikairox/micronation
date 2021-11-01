@@ -55,13 +55,13 @@ function createTextureArray(width, height, flag_data) {
       textureArray[stride + 1] = g;
       textureArray[stride + 2] = b;
       textureArray[stride + 3] = 255;
-      i++;
     } else {
       textureArray[stride] = 0;
       textureArray[stride + 1] = 0;
       textureArray[stride + 2] = 0;
       textureArray[stride + 3] = 0;
     }
+    i++;
   }
   i = i * 4;
   while (i < 4 * width * height) {
