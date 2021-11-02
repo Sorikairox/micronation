@@ -237,6 +237,62 @@ describe('FlagService', () => {
         expect(pixel.hexColor).toEqual('#DDDDDD');
       });
     })
+    describe('user has several pixel', () => {
+      it('return latest pixel', async () => {
+        await flagService.addPixel(
+          'randomId',
+          '#DDDDDD',
+        );
+        await dbClientService
+          .getDb()
+          .collection(pixelRepository.getCollectionName())
+          .insertMany([
+            {
+              action: 'creation',
+              author: 'randomId',
+              entityId: 'c35a2bf6-18a6-4fd5-933b-f81faf1015ff',
+              data: {
+                ownerId: 'otherownerid',
+                hexColor: '#BBBBBB',
+                pixId: 'c35a2bf6-18a6-4fd5-933b-f81faf1015ff',
+                indexInFlag: 10,
+              },
+              eventId: 10,
+              createdAt: set(new Date(), {
+                year: 2021,
+                month: 7,
+                date: 9,
+                hours: 23,
+                minutes: 10,
+                seconds: 0,
+              }),
+            },
+            {
+              action: 'creation',
+              author: 'randomId',
+              entityId: 'c35a2bf6-18a6-4fd5-933b-f81faf1015ff',
+              data: {
+                ownerId: 'otherownerid',
+                hexColor: '#CCCCCC',
+                pixId: 'c35a2bf6-18a6-4fd5-933b-f81faf1015ff',
+                indexInFlag: 12,
+              },
+              eventId: 15,
+              createdAt: set(new Date(), {
+                year: 2021,
+                month: 7,
+                date: 9,
+                hours: 23,
+                minutes: 10,
+                seconds: 0,
+              }),
+            }]);
+        const pixel = await flagService.getOrCreateUserPixel('randomId');
+        expect(pixel.author).toEqual('randomId');
+        expect(pixel.hexColor).toEqual('#CCCCCC');
+        expect(pixel.indexInFlag).toEqual(12);
+      });
+    })
   });
 
   describe('changePixelColor', () => {
