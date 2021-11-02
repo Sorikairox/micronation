@@ -476,7 +476,7 @@ export default {
     cooldownTime() {
       // return in ms
       const remainingTime =
-        this.maxCooldownTime * 60000 -
+        this.maxCooldownTime -
         (new Date() - new Date(this.lastSubmittedTime));
       return remainingTime;
     },
@@ -634,6 +634,8 @@ export default {
           if (data.retryAfter) {
             this.openFailedEditModal = true;
             this.errorMessage = 'CooldownNotEndedYet';
+            this.lastSubmittedTime = new Date();
+            this.maxCooldownTime = data.retryAfter;
             /*fetch(`${process.env.apiUrl}/cooldown`, {
               method: "GET",
               crossDomain: true,
