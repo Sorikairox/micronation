@@ -96,6 +96,16 @@ describe('Flag (e2e)', () => {
             createdPixel = res.body;
           });
 
+          it('PUT fail with bad color', async () => {
+            const res = await request(app.getHttpServer())
+              .put('/pixel')
+              .set('authorization', authToken)
+              .send({
+                hexColor: 'badcolor',
+              });
+            expect(res.status).toEqual(400);
+          });
+
           it('PUT success', async () => {
             const res = await request(app.getHttpServer())
               .put('/pixel')

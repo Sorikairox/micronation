@@ -1,8 +1,21 @@
-import { Body, Controller, Get, InternalServerErrorException, Param, Post, Put } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Get,
+  InternalServerErrorException,
+  Param,
+  Post,
+  Put,
+  Res
+} from '@nestjs/common';
+import { Response } from 'express';
 import { Public } from '../user/decorators/Public';
 import { UserId } from '../user/decorators/UserId';
 import { FlagService } from './FlagService';
 import { parseISO } from 'date-fns';
+
+const hexColorPattern: RegExp = /^#[0-9a-f]{6}$/i;
 
 @Controller('')
 export class FlagController {
@@ -14,6 +27,9 @@ export class FlagController {
     @UserId() ownerId: string,
     @Body('hexColor') hexColor: string,
   ) {
+    if (!hexColorPattern.test(hexColor)) {
+      throw new BadRequestException('wrongColorFormat');
+    }
     const event = await this.flagService.addPixel(ownerId, hexColor);
     return event;
   }
@@ -21,8 +37,11 @@ export class FlagController {
   @Put('pixel')
   async changePixelColor(
       @UserId() ownerId: string,
-      @Body('hexColor') hexColor: string,
+      @Body('hexColor') hexColor: string
   ) {
+    if (!hexColorPattern.test(hexColor)) {
+      throw new BadRequestException('wrongColorFormat');
+    }
     const event = await this.flagService.changePixelColor(ownerId, hexColor);
     return event;
   }
