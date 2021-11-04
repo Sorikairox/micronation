@@ -7,7 +7,7 @@
 
       <AppButton :to="{ name: 'index' }">
         <template v-slot:icon><AppFlagIcon /></template>
-        <span class="hidden lg:block whitespace-nowrap">Drapeau</span>
+        <span class="hidden md:block whitespace-nowrap">Drapeau</span>
       </AppButton>
 
       <AppButton
@@ -17,12 +17,12 @@
         class="bg-primary-dark"
       >
         <template v-slot:icon><AppCreateIcon /></template>
-        <span class="hidden lg:block whitespace-nowrap">Éditer le drapeau</span>
+        <span class="hidden md:block whitespace-nowrap">Éditer le drapeau</span>
       </AppButton>
 
       <AppButton :to="{ name: 'about' }">
         <template v-slot:icon><AppInfoIcon /></template>
-        <span class="hidden lg:block whitespace-nowrap">À propos</span>
+        <span class="hidden md:block whitespace-nowrap">À propos</span>
       </AppButton>
     </div>
     <!-- <div v-if="loggedIn" class="flex justify-end">
