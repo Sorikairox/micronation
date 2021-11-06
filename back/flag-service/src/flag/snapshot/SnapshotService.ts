@@ -8,7 +8,7 @@ export class FlagSnapshotService {
   constructor(private snapshotRepository: FlagSnapshotRepository, private configService: ConfigService, private pixelRepository: PixelRepository) {}
 
   async getLatestSnapshot() {
-    return this.snapshotRepository.findLast({});
+    return this.snapshotRepository.findLastByDate({});
   }
 
   createSnapshotIfEventIdMeetThreshold(eventId: number) {
@@ -18,7 +18,7 @@ export class FlagSnapshotService {
   }
 
   async createSnapShot(eventId: number) {
-    const lastSnapshot = await this.snapshotRepository.findLast({});
+    const lastSnapshot = await this.snapshotRepository.findLastByDate({});
     if (!lastSnapshot) {
       const arrayPixel = await this.pixelRepository.getPixelsUntilEventId(eventId);
       return this.snapshotRepository.createAndReturn({ lastEventId: eventId, pixels: arrayPixel });

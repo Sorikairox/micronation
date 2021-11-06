@@ -36,10 +36,10 @@ export class FlagService {
   }
 
   async changePixelColor(ownerId: string, pixelId: string, hexColor: string) {
-    const lastUserAction = await this.pixelRepository.findLast({
+    const lastUserAction = await this.pixelRepository.findLastByDate({
       author: ownerId,
     });
-    const lastPixelEvent = await this.pixelRepository.findLast({
+    const lastPixelEvent = await this.pixelRepository.findLastByDate({
       entityId: pixelId,
     });
     if (!lastPixelEvent) {
@@ -90,13 +90,13 @@ export class FlagService {
   }
 
   async getOrCreateUserPixel(userId: string) {
-    const pixelUserAlreadyOwn = await this.pixelRepository.findOne({
+    let userPixel = await this.pixelRepository.findLastByEventId({
       author: userId,
       action: 'creation',
     });
-    if (!pixelUserAlreadyOwn) {
-      await this.addPixel(userId);
+    if (!userPixel) {
+      userPixel = await this.addPixel(userId);
     }
-    return this.pixelRepository.getUserPixel(userId);
+    return this.pixelRepository.getPixelById(userPixel.entityId);
   }
 }

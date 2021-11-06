@@ -227,7 +227,7 @@ describe('FlagService', () => {
       });
     });
     describe('user has pixel', () => {
-      it('return pixel', async () => {
+      it('return own pixel when user did not modify any other pixel', async () => {
         await flagService.addPixel(
           'randomId',
           '#DDDDDD',
@@ -236,6 +236,21 @@ describe('FlagService', () => {
         expect(pixel.author).toEqual('randomId');
         expect(pixel.hexColor).toEqual('#DDDDDD');
       });
+      it('return own pixel even when user did modify another pixel', async () => {
+        const myPixel = await flagService.addPixel(
+          'randomId',
+          '#DDDDDD',
+        );
+        const otherPixel = await flagService.addPixel(
+          'anotherRandomId',
+          '#DDDDDD',
+        );
+        await flagService.changePixelColor('randomId', otherPixel.entityId, '#FFFFFF');
+        const pixel = await flagService.getOrCreateUserPixel('randomId');
+        expect(pixel.author).toEqual('randomId');
+        expect(pixel.entityId).toEqual(myPixel.entityId);
+        expect(pixel.hexColor).toEqual('#DDDDDD');
+      })
     })
     describe('user has several pixel', () => {
       it('return latest pixel', async () => {
