@@ -1,3 +1,4 @@
+import { ChangePixelColorDTO } from '../dto/ChangePixelColor';
 import { UserHasNoPixel } from '../errors/UserHasNoPixel';
 import { FlagController } from '../FlagController';
 import { FlagService } from '../FlagService';
@@ -59,10 +60,11 @@ describe('FlagController', () => {
       let changePixelColorSpy;
       let res;
       beforeAll(async () => {
+        const data: ChangePixelColorDTO = new ChangePixelColorDTO('#FFFFFF', 'pixelId');
         changePixelColorSpy = jest
           .spyOn(flagService, 'changePixelColor')
           .mockReturnValue({ modified: true } as any);
-        res = await flagController.changePixelColor('ownerId', '#DDDDDD');
+        res = await flagController.changePixelColor('ownerId', data);
       });
       it('call changePixelColor from service', () => {
         expect(changePixelColorSpy).toBeCalledTimes(1);
@@ -76,12 +78,13 @@ describe('FlagController', () => {
         let changePixelColorSpy;
         let res;
         beforeAll(async () => {
+          const data: ChangePixelColorDTO = new ChangePixelColorDTO('#FFFFFF', 'pixelId');
           changePixelColorSpy = jest
             .spyOn(flagService, 'changePixelColor')
             .mockImplementation(() => {
               throw new CooldownTimerHasNotEndedYetError(1000);
             });
-          res = flagController.changePixelColor('ownerId', '#ffffff');
+          res = flagController.changePixelColor('ownerId', data);
         });
         it('call changePixelColor from service', () => {
           expect(changePixelColorSpy).toBeCalledTimes(1);
@@ -94,12 +97,13 @@ describe('FlagController', () => {
         let changePixelColorSpy;
         let res;
         beforeAll(async () => {
+          const data: ChangePixelColorDTO = new ChangePixelColorDTO('#FFFFFF', 'pixelId');
           changePixelColorSpy = jest
             .spyOn(flagService, 'changePixelColor')
             .mockImplementation(() => {
               throw new UserHasNoPixel();
             });
-          res = flagController.changePixelColor('ownerId', '#ffffff');
+          res = flagController.changePixelColor('ownerId', data);
         });
         it('call changePixelColor from service', () => {
           expect(changePixelColorSpy).toBeCalledTimes(1);

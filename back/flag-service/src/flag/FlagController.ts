@@ -12,6 +12,7 @@ import {
 import { Response } from 'express';
 import { Public } from '../user/decorators/Public';
 import { UserId } from '../user/decorators/UserId';
+import { ChangePixelColorDTO } from './dto/ChangePixelColor';
 import { FlagService } from './FlagService';
 import { parseISO } from 'date-fns';
 
@@ -37,12 +38,12 @@ export class FlagController {
   @Put('pixel')
   async changePixelColor(
       @UserId() ownerId: string,
-      @Body('hexColor') hexColor: string
+      @Body() changeColorDTO: ChangePixelColorDTO
   ) {
-    if (!hexColorPattern.test(hexColor)) {
+    if (!hexColorPattern.test(changeColorDTO.hexColor)) {
       throw new BadRequestException('wrongColorFormat');
     }
-    const event = await this.flagService.changePixelColor(ownerId, hexColor);
+    const event = await this.flagService.changePixelColor(ownerId, changeColorDTO.hexColor);
     return event;
   }
 
