@@ -31,7 +31,12 @@
             <canvas
               id="flagCanva"
               class="w-full border-2 rounded-md border-grey-dark"
+              @mousemove="updateHoveredPixel"
+              @click="selectPixelToEdit"
             />
+          </div>
+          <div>
+            [{{ hoveredPixelPosition.x + 1 }}:{{ hoveredPixelPosition.y + 1 }}]
           </div>
         </div>
         <div
@@ -116,7 +121,7 @@
             </div>
             <hr class="mt-1 border-grey-light">
             <div class="flex flex-col text-center">
-              <h1 class="m-4">Modifies la couleur de ta zone ci-dessous</h1>
+              <h1 class="m-4" v-if="editedPixel">Modifies la couleur de la zone [{{ editedPixel.x + 1 }}:{{ editedPixel.y + 1 }}]</h1>
               <chrome-picker style="width: 100%;height: auto" v-model="color" @input="change"></chrome-picker>
               <AppButton v-if="!requesting"
                          size="medium"
@@ -312,16 +317,16 @@ function init() {
 
   canvas.addEventListener("wheel", onWheel);
 
-  canvas.addEventListener("mousedown", onMouseDown);
-  window.addEventListener("mousemove", onMouseMove);
-  window.addEventListener("mouseup", onMouseUp);
+  canvas.addEventListener("mousedown", initFlagDrag);
+  window.addEventListener("mousemove", dragFlag);
+  window.addEventListener("mouseup", endFlagDrag);
 }
 
 //Change the color value and draw it to the user pixel
-function changeColor(newColor) {
+function changeColor(x, y, newColor) {
   // // console.log("Pixel draw informations :", [newColor, userXPixel, userYPixel]);
   canvasPixelColor = newColor;
-  drawPixel(userXPixel, userYPixel, { hexColor : newColor } , true);
+  drawPixel(x, y, { hexColor : newColor } , true);
 }
 
 function getCanvas() {
@@ -360,15 +365,15 @@ function onWheel(event) {
   drawFlag(flagPixelMap);
 }
 
-let isMoving = false;
+let isDraggingFlag = false;
 let mouseDragX, mouseDragY;
-function onMouseDown(e) {
-  isMoving = true;
+function initFlagDrag(e) {
+  isDraggingFlag = true;
   mouseDragX = e.clientX;
   mouseDragY = e.clientY;
 }
-function onMouseMove(e) {
-  if (isMoving) {
+function dragFlag(e) {
+  if (isDraggingFlag) {
     const oldCameraPositionX = cameraPositionX;
     const oldCameraPositionY = cameraPositionY;
     cameraPositionX += (mouseDragX - e.clientX) / cameraZoom;
@@ -382,8 +387,8 @@ function onMouseMove(e) {
     drawFlag(flagPixelMap);
   }
 }
-function onMouseUp() {
-  isMoving = false;
+function endFlagDrag() {
+  isDraggingFlag = false;
 }
 
 function clampCameraScale() {
@@ -470,6 +475,12 @@ export default {
       isMounted: false,
       requesting: false,
       loading: false,
+      hoveredPixelPosition: {
+        x: 0,
+        y: 0,
+      },
+      hoveredPixel: null,
+      editedPixel: null,
     };
   },
   computed: {
@@ -510,7 +521,7 @@ export default {
     change(newColorObject) {
       this.color = newColorObject.hex;
       if (this.isMounted) {
-        changeColor(this.color);
+        changeColor(this.editedPixel.x, this.editedPixel.y, this.color);
       }
     },
     Finish() {
@@ -692,7 +703,11 @@ export default {
           this.lastSubmittedTime = data.lastUpdate;
           console.debug("time last updated ", this.lastSubmittedTime);
           setUserPixel(this.x, this.y);
-          changeColor(this.color);
+          changeColor(this.x, this.y, this.color);
+          this.editedPixel = {
+            ...userPixelCoordinates,
+            ...data,
+          };
           // console.log('here');
         })
         // .catch((error) => console.log(error));
@@ -708,6 +723,29 @@ export default {
       });
       const body = await res.json();
       return body.cooldown;
+    },
+    updateHoveredPixel(e) {
+      let drawWidth = canvas.width / flagWidth;
+      let drawHeight = canvas.height / flagHeight;
+
+      console.log(cameraZoom);
+      this.hoveredPixelPosition = {
+        x: Math.floor((cameraPositionX + e.offsetX / cameraZoom) / drawWidth),
+        y: Math.floor((cameraPositionY + e.offsetY / cameraZoom) / drawHeight),
+      };
+
+      this.hoveredPixel = flagPixelMap[this.hoveredPixelPosition.x]?.[this.hoveredPixelPosition.y] || null;
+    },
+    selectPixelToEdit() {
+      if (this.hoveredPixel) {
+        changeColor(this.editedPixel.x, this.editedPixel.y, this.editedPixel.hexColor);
+
+        this.editedPixel = {
+          ...this.hoveredPixelPosition,
+          ...this.hoveredPixel,
+        };
+        this.color = this.editedPixel.hexColor;
+      }
     },
   },
   async mounted() {
