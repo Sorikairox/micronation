@@ -117,6 +117,27 @@ describe('Flag (e2e)', () => {
             });
           }
 
+          it(`PUT fails with empty id`, async () => {
+            const res = await request(app.getHttpServer())
+              .put('/pixel')
+              .set('authorization', authToken)
+              .send({
+                hexColor: "#FFFFFF",
+              });
+            expect(res.status).toEqual(400);
+          });
+
+          it(`PUT fails with null for pixelId`, async () => {
+            const res = await request(app.getHttpServer())
+              .put('/pixel')
+              .set('authorization', authToken)
+              .send({
+                pixelId: null,
+                hexColor: "#FFFFFF",
+              });
+            expect(res.status).toEqual(400);
+          });
+
           it('PUT success', async () => {
             const res = await request(app.getHttpServer())
               .put('/pixel')
