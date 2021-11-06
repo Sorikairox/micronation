@@ -27,7 +27,7 @@
             cursor-move
           "
         >
-          <div class="relative border-2 rounded-md overflow-hidden">
+          <div class="relative rounded-md overflow-hidden" style="border: 1px solid #ccc">
             <canvas
               id="flagCanva"
               class="w-full border-grey-dark"
