@@ -1,5 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { UserHasNoPixel } from './errors/UserHasNoPixel';
+import { DatabaseEvent } from 'library/database/object/event/DatabaseEvent';
+import { PixelDoesNotExistError } from './errors/PixelDoesNotExistError';
+import { UserHasNoPixelError } from './errors/UserHasNoPixelError';
 import { GetPixelDTO } from './pixel/dto/GetPixelDTO';
 import { Pixel } from './pixel/Pixel';
 import { PixelRepository } from './pixel/PixelRepository';
@@ -33,12 +35,15 @@ export class FlagService {
     return createdEvent;
   }
 
-  async changePixelColor(ownerId: string, hexColor: string) {
+  async changePixelColor(ownerId: string, pixelId: string, hexColor: string) {
     const lastUserAction = await this.pixelRepository.findLast({
       author: ownerId,
     });
-    if (!lastUserAction) {
-      throw new UserHasNoPixel();
+    const lastPixelEvent = await this.pixelRepository.findLast({
+      entityId: pixelId,
+    });
+    if (!lastPixelEvent) {
+      throw new PixelDoesNotExistError();
     }
     const difference = differenceInMilliseconds(new Date(), lastUserAction.createdAt);
     const changeCooldownInMilliseconds = Number(process.env.CHANGE_COOLDOWN) * 60 * 1000;
@@ -49,11 +54,21 @@ export class FlagService {
     const createdEvent = await this.pixelRepository.createAndReturn({
       action: 'update',
       author: ownerId,
-      entityId: lastUserAction.entityId,
-      data: { ...lastUserAction.data, hexColor },
+      entityId: lastPixelEvent.entityId,
+      data: { ...lastPixelEvent.data, hexColor },
     });
     this.flagSnapshotService.createSnapshotIfEventIdMeetThreshold(createdEvent.eventId);
     return createdEvent;
+  }
+
+  async checkUserIsNotOnCooldown(lastUserAction: DatabaseEvent<Pixel> | null, cooldownTimeInMs: number) {
+    if (lastUserAction) {
+      const timeSinceLastUserAction = differenceInMilliseconds(new Date(), lastUserAction.createdAt);
+      const remainingTime = cooldownTimeInMs - timeSinceLastUserAction;
+      if (lastUserAction.action === 'update' && remainingTime > 0) {
+        throw new UserActionIsOnCooldownError(remainingTime);
+      }
+    }
   }
 
   async getFlag(): Promise<GetPixelDTO[]> {

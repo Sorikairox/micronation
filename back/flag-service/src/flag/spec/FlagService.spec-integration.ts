@@ -1,6 +1,6 @@
 import { ConfigModule } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
-import { UserHasNoPixel } from '../errors/UserHasNoPixel';
+import { PixelDoesNotExistError } from '../errors/PixelDoesNotExistError';
 import { FlagService } from '../FlagService';
 import { Pixel } from '../pixel/Pixel';
 import { DatabaseModule } from 'library/database/DatabaseModule';
@@ -8,7 +8,7 @@ import { DatabaseClientService } from 'library/database/client/DatabaseClientSer
 import { PixelModule } from '../pixel/PixelModule';
 import { PixelRepository } from '../pixel/PixelRepository';
 import { DatabaseEvent } from 'library/database/object/event/DatabaseEvent';
-import { set } from 'date-fns';
+import { set, sub } from 'date-fns';
 import { UserAlreadyOwnsAPixelError } from "../errors/UserAlreadyOwnsAPixelError";
 import { CooldownTimerHasNotEndedYetError } from "../errors/CooldownTimerHasNotEndedYetError";
 import { FlagSnapshotModule } from '../snapshot/SnapshotModule';
@@ -296,11 +296,12 @@ describe('FlagService', () => {
   });
 
   describe('changePixelColor', () => {
-    it('add pixel event in db', async () => {
-      const addedPixelEvent = await flagService.addPixel('ownerid', '#DDDDDD');
+    it('add pixel event in db when modifying a pixel that is not mine', async () => {
+      const addedPixelEvent = await flagService.addPixel('otherownerid', '#DDDDDD');
+      await flagService.addPixel('ownerid', '#FFFFFF');
       await new Promise((r) => setTimeout(r, 1));
 
-      await flagService.changePixelColor('ownerid', '#FFFFFF');
+      await flagService.changePixelColor('ownerid', addedPixelEvent.entityId, '#FFFFFF');
       const events = await dbClientService
         .getDb()
         .collection(pixelRepository.getCollectionName())
@@ -312,27 +313,29 @@ describe('FlagService', () => {
 
       expect(events.length).toEqual(2);
       expect(events[0].action).toEqual('update');
+      expect(events[0].entityId).toEqual(addedPixelEvent.entityId);
       expect(events[0].data.hexColor).toEqual('#FFFFFF');
-      expect(events[0].eventId).toEqual(2);
+      expect(events[0].eventId).toEqual(3);
       expect(events[0].data.indexInFlag).toEqual(1);
     });
-    it('throw error when user has no pixel', async () => {
+    it('throw error when pixel does not exist', async () => {
       process.env.CHANGE_COOLDOWN = '5';
 
+      await flagService.addPixel('ownerid', '#DDDDDD');
       await expect(
-        flagService.changePixelColor('fakeownerid', '#FFFFFF'),
-      ).rejects.toThrow(UserHasNoPixel);
+        flagService.changePixelColor('fakeownerid','fakeId', '#FFFFFF'),
+      ).rejects.toThrow(PixelDoesNotExistError);
     });
     it('throw error when changing color before cooldown duration ends', async () => {
       process.env.CHANGE_COOLDOWN = '5';
-      await flagService.addPixel('ownerid', '#DDDDDD');
+      const addedPixel = await flagService.addPixel('ownerid', '#DDDDDD');
       await new Promise((r) => setTimeout(r, 1));
 
-      await flagService.changePixelColor('ownerid', '#FFFFFF');
+      await flagService.changePixelColor('ownerid', addedPixel.entityId,'#FFFFFF');
 
       await expect(
-        flagService.changePixelColor('ownerid', '#FFFFFF'),
-      ).rejects.toThrow(CooldownTimerHasNotEndedYetError);
+        flagService.changePixelColor('ownerid', addedPixel.entityId,'#FFFFFF'),
+      ).rejects.toThrow(UserActionIsOnCooldownError);
     });
   });
 
@@ -343,12 +346,12 @@ describe('FlagService', () => {
         await new Promise((r) => setTimeout(r, 1));
         await flagService.addPixel('secondowner', '#AAAAAA');
         await new Promise((r) => setTimeout(r, 1));
-        await flagService.addPixel(
+        const addedPixel = await flagService.addPixel(
           'thirdowner',
           '#FFFFFF',
         );
         await new Promise((r) => setTimeout(r, 1));
-        await flagService.changePixelColor('thirdowner', '#000000');
+        await flagService.changePixelColor('thirdowner', addedPixel.entityId, '#000000');
 
         const flag = await flagService.getFlag();
         expect(flag.length).toEqual(3);
@@ -364,7 +367,7 @@ describe('FlagService', () => {
       it('returns latest flag', async () => {
         await flagService.addPixel('ownerid', '#DDDDDD');
         await new Promise((r) => setTimeout(r, 1));
-        await flagService.addPixel('secondowner', '#AAAAAA');
+        const addedPixel = await flagService.addPixel('secondowner', '#AAAAAA');
         await flagSnapshotService.createSnapShot(2);
         await new Promise((r) => setTimeout(r, 1));
         await flagService.addPixel(
@@ -372,7 +375,7 @@ describe('FlagService', () => {
           '#FFFFFF',
         );
         await new Promise((r) => setTimeout(r, 1));
-        await flagService.changePixelColor('secondowner', '#000000');
+        await flagService.changePixelColor('secondowner', addedPixel.entityId, '#000000');
 
         const flag = await flagService.getFlag();
         expect(flag.length).toEqual(3);
@@ -425,6 +428,43 @@ describe('FlagService', () => {
       expect(flag.length).toEqual(1);
       expect(flag[0].hexColor).toEqual('#AAAAAA');
       expect(flag[0].indexInFlag).toEqual(2);
+    });
+  });
+
+  describe(FlagService.prototype.checkUserIsNotOnCooldown, () => {
+    const testCooldownInSeconds = 5;
+    it(`throws ${UserActionIsOnCooldownError.prototype.name} if lastUserAction createdAt is too recent`, async () => {
+      const lastUserAction = {
+        action: 'update',
+        createdAt: sub(new Date(), { seconds: 1 }),
+      } as DatabaseEvent<Pixel>;
+      await expect(flagService.checkUserIsNotOnCooldown(lastUserAction, testCooldownInSeconds * 1000))
+        .rejects.toThrow(UserActionIsOnCooldownError);
+    });
+    it('does not throw if lastUserAction is null', async () => {
+      await expect(flagService.checkUserIsNotOnCooldown(null, testCooldownInSeconds * 1000)).resolves.not.toThrow();
+    });
+    it('does not throw if lastUserAction is not of type "update"', async () => {
+      for(const ignoredType of [
+        'creation',
+        'randomvalue',
+        '',
+      ]) {
+        const lastUserAction = {
+          action: ignoredType,
+          createdAt: sub(new Date(), { seconds: 1 }),
+        } as DatabaseEvent<Pixel>;
+        await expect(flagService.checkUserIsNotOnCooldown(lastUserAction, testCooldownInSeconds * 1000))
+          .resolves.not.toThrow();
+      }
+    });
+    it('does not throw if lastUserAction is old enough', async () => {
+      const lastUserAction = {
+        action: 'update',
+        createdAt: sub(new Date(), { seconds: testCooldownInSeconds }),
+      } as DatabaseEvent<Pixel>;
+      await expect(flagService.checkUserIsNotOnCooldown(lastUserAction, testCooldownInSeconds * 1000))
+        .resolves.not.toThrow();
     });
   });
 

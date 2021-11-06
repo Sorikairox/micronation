@@ -12,11 +12,9 @@ import {
 import { Response } from 'express';
 import { Public } from '../user/decorators/Public';
 import { UserId } from '../user/decorators/UserId';
-import { ChangePixelColorDTO } from './dto/ChangePixelColor';
+import { ChangePixelColorDTO } from './dto/ChangePixelColorDto';
 import { FlagService } from './FlagService';
 import { parseISO } from 'date-fns';
-
-const hexColorPattern: RegExp = /^#[0-9a-f]{6}$/i;
 
 @Controller('')
 export class FlagController {
@@ -28,9 +26,6 @@ export class FlagController {
     @UserId() ownerId: string,
     @Body('hexColor') hexColor: string,
   ) {
-    if (!hexColorPattern.test(hexColor)) {
-      throw new BadRequestException('wrongColorFormat');
-    }
     const event = await this.flagService.addPixel(ownerId, hexColor);
     return event;
   }
@@ -40,10 +35,7 @@ export class FlagController {
       @UserId() ownerId: string,
       @Body() changeColorDTO: ChangePixelColorDTO
   ) {
-    if (!hexColorPattern.test(changeColorDTO.hexColor)) {
-      throw new BadRequestException('wrongColorFormat');
-    }
-    const event = await this.flagService.changePixelColor(ownerId, changeColorDTO.hexColor);
+    const event = await this.flagService.changePixelColor(ownerId, changeColorDTO.pixelId, changeColorDTO.hexColor);
     return event;
   }
 
