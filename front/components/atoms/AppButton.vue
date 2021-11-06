@@ -8,15 +8,9 @@
     :rel="href ? 'noreferrer noopener' : undefined"
     @click="to ? '' : $emit('click', $event)"
   >
-    <span v-if="icon === 'left'" :class="typoIcon">
-      <slot name="icon"></slot>
-    </span>
-    <span :class="typoButton">
-      <slot></slot>
-    </span>
-    <span v-if="icon === 'right'" :class="typoIcon">
-      <slot name="icon"></slot>
-    </span>
+    <slot name="icon" v-if="icon === 'left'"></slot>
+    <slot :class="typoButton"></slot>
+    <slot name="icon" v-if="icon === 'right'"></slot>
   </component>
 </template>
 
@@ -99,9 +93,6 @@ export default {
     },
     typoButton() {
       return this.size == "medium" ? " body-1" : " body-2";
-    },
-    typoIcon() {
-      return this.isContained ? "text-grey-light" : "text-grey-dark";
     },
   },
 };

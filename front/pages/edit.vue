@@ -47,7 +47,12 @@
           style="max-width: 500px"
         >
           <div class="flex-col flex-1 flex justify-center relative">
-            <img class="cursor-pointer w-8 absolute right-0 top-0" @click="showHelp = true" src="https://img.icons8.com/ios/50/000000/help.png" alt="Help icon">
+            <button
+              v-on:click="showHelp = true"
+              class="cursor-pointer w-8 h-8 p-1 absolute right-0 top-0 hover:text-grey-light"
+            >
+              <AppHelpIcon/>
+            </button>
 
             <div class="pr-10">
               <div>Voisin de gauche : <span v-if="leftPixel">[{{leftPixel.x + 1}}:{{leftPixel.y + 1}}] {{leftPixel.username}} </span><span v-else>Pas de voisin</span></div>
@@ -59,8 +64,9 @@
             <AppButton
               size="small"
               v-on:click="Overlay()"
-              class="mt-2 bg-positive-base"
+              class="my-2 bg-positive-base"
             >
+              <template v-slot:icon><AppPlaceIcon/></template>
               Où est ma zone [{{ x + 1 }}:{{ y + 1 }}] ?
             </AppButton>
           </div>
@@ -118,6 +124,7 @@
                          variant="contained"
                          class="bg-primary-dark mt-4"
               >
+                <template v-slot:icon><AppDoneIcon/></template>
                 Valider
               </AppButton>
               <AppButton v-if="requesting"
@@ -185,7 +192,6 @@
 
 <script>
 import fouloscopie from "fouloscopie";
-import AppAlert from "~/components/organisms/AppAlert";
 import countdown from "@chenfengyuan/vue-countdown";
 import {
   DESIRED_FLAG_RATIO,
@@ -426,10 +432,19 @@ const getStyle = (color) => {
 }
 
 import { Chrome } from 'vue-color';
+import AppAlert from "~/components/organisms/AppAlert";
+import AppDoneIcon from "~/components/atoms/icons/AppDoneIcon";
+import AppHelpIcon from "../components/atoms/icons/AppHelpIcon";
+import AppButton from "../components/atoms/AppButton";
+import AppPlaceIcon from "../components/atoms/icons/AppPlaceIcon";
 
 export default {
   name: "edit",
   components: {
+    AppPlaceIcon,
+    AppButton,
+    AppHelpIcon,
+    AppDoneIcon,
     AppAlert,
     countdown,
     'chrome-picker': Chrome,

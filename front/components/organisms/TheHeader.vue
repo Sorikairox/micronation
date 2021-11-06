@@ -5,33 +5,25 @@
     <div class="flex flex-row items-center justify-start space-x-8">
       <img id="db-icon" src="~/assets/icon-dirtybiology.jpeg" alt="Dirtybiology logo">
 
-      <AppButton class="lg:hidden" :to="{ name: 'index' }"
-      >
-        <AppHomeIcon />
+      <AppButton :to="{ name: 'index' }">
+        <template v-slot:icon><AppFlagIcon /></template>
+        <span class="hidden md:block whitespace-nowrap">Drapeau</span>
       </AppButton>
-      <AppButton class="hidden lg:block" :to="{ name: 'index' }">Accueil</AppButton>
 
       <AppButton
         :to="{ name: 'edit' }"
         size="medium"
         variant="contained"
-        class="bg-primary-dark lg:hidden"
+        class="bg-primary-dark"
       >
-        <AppFlagIcon />
-      </AppButton>
-      <AppButton
-        :to="{ name: 'edit' }"
-        size="medium"
-        variant="contained"
-        class="hidden bg-primary-dark lg:block"
-      >
-        Éditer le drapeau
+        <template v-slot:icon><AppCreateIcon /></template>
+        <span class="hidden md:block whitespace-nowrap">Éditer le drapeau</span>
       </AppButton>
 
-      <AppButton class="lg:hidden" :to="{ name: 'about' }">
-        <AppInfoIcon />
+      <AppButton :to="{ name: 'about' }">
+        <template v-slot:icon><AppInfoIcon /></template>
+        <span class="hidden md:block whitespace-nowrap">À propos</span>
       </AppButton>
-      <AppButton class="hidden lg:block" :to="{ name: 'about' }">À propos</AppButton>
     </div>
     <!-- <div v-if="loggedIn" class="flex justify-end">
       <AppButton icon="left" variant="contained" class="bg-primary-dark"
@@ -64,15 +56,15 @@
 
 <script>
 import AppButton from "../atoms/AppButton.vue";
-import AppHomeIcon from "../atoms/icons/AppHomeIcon.vue";
 import AppInfoIcon from "../atoms/icons/AppInfoIcon.vue";
 import AppLogInIcon from "../atoms/icons/AppLogInIcon.vue";
 import AppRegisterIcon from "../atoms/icons/AppRegisterIcon.vue";
 import AppFlagIcon from "../atoms/icons/AppFlagIcon.vue";
+import AppCreateIcon from "../atoms/icons/AppCreateIcon";
 
 export default {
   components: {
-    AppHomeIcon,
+    AppCreateIcon,
     AppButton,
     AppInfoIcon,
     AppLogInIcon,
@@ -99,4 +91,8 @@ export default {
 };
 </script>
 
-<style></style>
+<style>
+#db-icon {
+  max-width: 40px;
+}
+</style>
