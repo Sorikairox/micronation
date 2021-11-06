@@ -628,9 +628,8 @@ export default {
       }
       return null;
     },
-    async sendPixel(x, y) {
+    async sendPixel() {
       //Sending the user pixel with coords, color, timestamp?, userID?
-      const UserPixel = new Pixel(x, y, flagPixelMap[x][y].hexColor);
       this.requesting = true;
       // console.log("Sending: ", UserPixel);
       await fetch(`${process.env.apiUrl}/pixel`, {
@@ -641,7 +640,8 @@ export default {
           Authorization: this.token,
         },
         body: JSON.stringify({
-          hexColor: UserPixel.color,
+          hexColor: canvasPixelColor,
+          pixelId: this.editedPixel.entityId
         }),
       })
         .then((response) => response.json())
