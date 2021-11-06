@@ -27,19 +27,24 @@
             cursor-move
           "
         >
-          <div class="m-2 text-center">
-            [{{ hoveredPixelPosition.x + 1 }}:{{ hoveredPixelPosition.y + 1 }}]
-          </div>
-          <div>
+          <div class="relative border-2 rounded-md overflow-hidden">
             <canvas
               id="flagCanva"
-              class="w-full border-2 rounded-md border-grey-dark"
+              class="w-full border-grey-dark"
               @mousemove="updateHoveredPixel"
               @click="setPixelToEditFromHover"
+              @mouseenter="isMouseOverCanvas = true"
+              @mouseleave="isMouseOverCanvas = false"
             />
+            <div class="overlay" v-if="isMouseOverCanvas">
+              <div class="m-2 text-center">
+                [{{ hoveredPixelPosition.x + 1 }}:{{ hoveredPixelPosition.y + 1 }}]
+              </div>
+            </div>
           </div>
         </div>
         <div
+          id="sidePanel"
           class="
             flex flex-col
             m-2 md:m-4 md:ml-0
@@ -49,9 +54,8 @@
             h-100
             justify-between
           "
-          style="max-width: 500px"
         >
-          <div class="flex-col flex-1 flex justify-center relative">
+          <div class="flex-col flex-1 flex justify-start relative">
             <button
               v-on:click="showHelp = true"
               class="cursor-pointer w-8 h-8 p-1 absolute right-0 top-0 hover:text-grey-light"
@@ -59,11 +63,11 @@
               <AppHelpIcon/>
             </button>
 
-            <div class="pr-10">
-              <div>Voisin de gauche : <span v-if="leftPixel">[{{leftPixel.x + 1}}:{{leftPixel.y + 1}}] {{leftPixel.username}} </span><span v-else>Pas de voisin</span></div>
-              <div>Voisin du haut : <span v-if="topPixel">[{{topPixel.x + 1}}:{{topPixel.y + 1}}] {{topPixel.username}} </span><span v-else>Pas de voisin</span></div>
-              <div>Voisin de droite : <span v-if="rightPixel">[{{rightPixel.x + 1}}:{{rightPixel.y + 1}}] {{rightPixel.username}}</span><span v-else>Pas de voisin</span></div>
-              <div>Voisin du bas : <span v-if="bottomPixel">[{{bottomPixel.x + 1}}:{{bottomPixel.y + 1}}] {{bottomPixel.username}} </span><span v-else>Pas de voisin</span></div>
+            <div class="pr-10 property-list">
+              <div><span class="property-name">Voisin de gauche :</span> <span v-if="leftPixel">[{{leftPixel.x + 1}}:{{leftPixel.y + 1}}] {{leftPixel.username}} </span><span v-else>Pas de voisin</span></div>
+              <div><span class="property-name">Voisin du haut :</span> <span v-if="topPixel">[{{topPixel.x + 1}}:{{topPixel.y + 1}}] {{topPixel.username}} </span><span v-else>Pas de voisin</span></div>
+              <div><span class="property-name">Voisin de droite :</span> <span v-if="rightPixel">[{{rightPixel.x + 1}}:{{rightPixel.y + 1}}] {{rightPixel.username}}</span><span v-else>Pas de voisin</span></div>
+              <div><span class="property-name">Voisin du bas :</span> <span v-if="bottomPixel">[{{bottomPixel.x + 1}}:{{bottomPixel.y + 1}}] {{bottomPixel.username}} </span><span v-else>Pas de voisin</span></div>
             </div>
 
             <AppButton
@@ -75,50 +79,47 @@
               Où est ma zone [{{ x + 1 }}:{{ y + 1 }}] ?
             </AppButton>
 
-          </div>
             <hr class="mt-1 border-grey-light">
-            <div class="flex flex-col text-center">
-              <h1 class="m-4">
-                <span v-if="editedPixel">
-                  <div>Modifie la couleur de la zone [{{ editedPixel.x + 1 }}:{{ editedPixel.y + 1 }}]</div>
-                  <div>Propriétair·e : {{ editedPixel.authorName || editedPixel.author }}</div>
-                </span>
-                <span v-if="!editedPixel">La zone sélectionnée n'existe pas</span>
-              </h1>
-              <div>
-                <input
-                  class="border-black"
-                  type="number"
-                  step="1"
-                  v-model="modifiedPixelX"
-                  @change="setPixelToEditFromCoordinates"
-                >
-                <input
-                  class="border-black"
-                  type="number"
-                  step="1"
-                  v-model="modifiedPixelY"
-                  @change="setPixelToEditFromCoordinates"
-                >
+          </div>
+          <div class="flex flex-col text-center">
+            <h1 class="m-4">
+              <div v-if="editedPixel" class="property-list">
+                <div><span class="property-name">Zone :</span> [{{ editedPixel.x + 1 }}:{{ editedPixel.y + 1 }}]</div>
+                <div><span class="property-name">Propriétaire :</span> {{ editedPixel.authorName || editedPixel.author }}</div>
               </div>
-              <chrome-picker style="width: 100%;height: auto" v-model="color" @input="change"></chrome-picker>
-              <AppButton v-if="!requesting"
-                         size="medium"
-                         v-on:click="Finish()"
-                         variant="contained"
-                         class="bg-primary-dark mt-4"
+              <span v-if="!editedPixel">Pas de zone sélectionnée</span>
+            </h1>
+            <div class="flex mb-2 justify-between items-center">
+              <span class="p-2">x:</span>
+              <input
+                class="flex-grow number-input inline-block rounded p-2"
+                type="number"
+                step="1"
+                v-model="modifiedPixelX"
+                @change="setPixelToEditFromCoordinates"
               >
-                <template v-slot:icon><AppDoneIcon/></template>
-                Valider
-              </AppButton>
-              <AppButton v-if="requesting"
-                         size="medium"
-                         variant="contained"
-                         class="bg-primary-dark mt-4"
+              <span class="p-2">y:</span>
+              <input
+                class="flex-grow number-input inline-block rounded p-2"
+                type="number"
+                step="1"
+                v-model="modifiedPixelY"
+                @change="setPixelToEditFromCoordinates"
               >
-                <div class="loader"></div>
-              </AppButton>
             </div>
+            <chrome-picker style="width: 100%;height: auto" v-model="color" @input="change"></chrome-picker>
+            <AppButton
+                       size="medium"
+                       v-on:click="Finish()"
+                       variant="contained"
+                       class="bg-primary-dark mt-4"
+                       :disabled="requesting || !editedPixel"
+            >
+              <template v-slot:icon v-if="!requesting"><AppDoneIcon/></template>
+              <span v-if="!requesting">Modifier la couleur de la zone<span v-if="editedPixel"> [{{editedPixel.x + 1}}:{{editedPixel.y + 1}}]</span></span>
+              <div v-if="requesting" class="loader"></div>
+            </AppButton>
+          </div>
         </div>
       </div>
       <AppAlert
@@ -462,6 +463,7 @@ export default {
       editedPixel: null,
       modifiedPixelX: 1,
       modifiedPixelY: 1,
+      isMouseOverCanvas: false,
     };
   },
   computed: {
@@ -756,6 +758,7 @@ export default {
 
 
 <style>
+
 .vc-chrome-saturation-wrap {
   padding-bottom: 30% !important;
 }
@@ -779,6 +782,21 @@ export default {
 .pixelButton {
   max-width: 200px;
   height: 100%;
+}
+
+.vc-chrome {
+  box-shadow: none !important;
+  border-radius: 0.25rem !important;
+  overflow: hidden;
+}
+
+.vc-chrome-body {
+  border: 1px solid rgb(220, 222, 228);
+  border-top: 0;
+  border-radius: 0 0 0.25rem 0.25rem;
+}
+.vc-input__label, .vc-input__input {
+  color: #000 !important;
 }
 
 .pixelButton span {
@@ -812,5 +830,38 @@ export default {
 
 #flagCanva {
   touch-action: none;
+}
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  background: #000000cc;
+  color: #fff;
+
+  border-radius: 0 0 0.25em 0;
+}
+
+#sidePanel {
+  max-width: 100%;
+}
+@screen md {
+  #sidePanel {
+    width: 350px;
+  }
+}
+
+.property-list > div {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.property-name {
+  color: gray;
+}
+
+.number-input {
+  border: 1px solid gray;
+  width: 100%;
 }
 </style>
