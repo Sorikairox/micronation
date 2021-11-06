@@ -27,16 +27,16 @@
             cursor-move
           "
         >
+          <div class="m-2 text-center">
+            [{{ hoveredPixelPosition.x + 1 }}:{{ hoveredPixelPosition.y + 1 }}]
+          </div>
           <div>
             <canvas
               id="flagCanva"
               class="w-full border-2 rounded-md border-grey-dark"
               @mousemove="updateHoveredPixel"
-              @click="selectPixelToEdit"
+              @click="setPixelToEditFromHover"
             />
-          </div>
-          <div>
-            [{{ hoveredPixelPosition.x + 1 }}:{{ hoveredPixelPosition.y + 1 }}]
           </div>
         </div>
         <div
@@ -74,54 +74,33 @@
               <template v-slot:icon><AppPlaceIcon/></template>
               Où est ma zone [{{ x + 1 }}:{{ y + 1 }}] ?
             </AppButton>
+
           </div>
-          <div class="flex-col justify-between flex-1 hidden">
-              <div class="flex justify-center">
-                <AppButton v-if="topPixel"
-                  size="medium"
-                  class="text-white my-auto pixelButton"
-                  :style="topPixelButtonStyle"
-                >
-                  [{{topPixel.x + 1}}:{{topPixel.y + 1}}] {{topPixel.username}}
-                </AppButton>
-              </div>
-              <div class="flex justify-between">
-                <AppButton v-if="leftPixel"
-                           size="medium"
-                           class="text-white my-auto pixelButton"
-                           :style="leftPixelButtonStyle"
-                >
-                   [{{leftPixel.x + 1}}:{{leftPixel.y + 1}}] {{leftPixel.username}}
-                </AppButton>
-                <AppButton
-                  size="medium"
-                  v-on:click="Overlay()"
-                  class="my-auto pixelButton"
-                  :style="myPixelButtonStyle"
-                >
-                  [{{ x + 1 }}:{{ y + 1 }}] Toi
-                </AppButton>
-                <AppButton v-if="rightPixel"
-                           size="medium"
-                           class="text-white my-auto pixelButton"
-                           :style="rightPixelButtonStyle"
-                >
-                  [{{rightPixel.x + 1}}:{{rightPixel.y + 1}}] {{rightPixel.username}}
-                </AppButton>
-              </div>
-              <div class="flex justify-center">
-                <AppButton v-if="bottomPixel"
-                           size="medium"
-                           class="text-white my-auto pixelButton"
-                           :style="bottomPixelButtonStyle"
-                >
-                  [{{bottomPixel.x + 1}}:{{bottomPixel.y + 1}}] {{bottomPixel.username}}
-                </AppButton>
-              </div>
-            </div>
             <hr class="mt-1 border-grey-light">
             <div class="flex flex-col text-center">
-              <h1 class="m-4" v-if="editedPixel">Modifies la couleur de la zone [{{ editedPixel.x + 1 }}:{{ editedPixel.y + 1 }}]</h1>
+              <h1 class="m-4">
+                <span v-if="editedPixel">
+                  <div>Modifie la couleur de la zone [{{ editedPixel.x + 1 }}:{{ editedPixel.y + 1 }}]</div>
+                  <div>Propriétair·e : {{ editedPixel.authorName || editedPixel.author }}</div>
+                </span>
+                <span v-if="!editedPixel">La zone sélectionnée n'existe pas</span>
+              </h1>
+              <div>
+                <input
+                  class="border-black"
+                  type="number"
+                  step="1"
+                  v-model="modifiedPixelX"
+                  @change="setPixelToEditFromCoordinates"
+                >
+                <input
+                  class="border-black"
+                  type="number"
+                  step="1"
+                  v-model="modifiedPixelY"
+                  @change="setPixelToEditFromCoordinates"
+                >
+              </div>
               <chrome-picker style="width: 100%;height: auto" v-model="color" @input="change"></chrome-picker>
               <AppButton v-if="!requesting"
                          size="medium"
@@ -481,6 +460,8 @@ export default {
       },
       hoveredPixel: null,
       editedPixel: null,
+      modifiedPixelX: 1,
+      modifiedPixelY: 1,
     };
   },
   computed: {
@@ -520,7 +501,7 @@ export default {
     },
     change(newColorObject) {
       this.color = newColorObject.hex;
-      if (this.isMounted) {
+      if (this.isMounted && this.editedPixel) {
         changeColor(this.editedPixel.x, this.editedPixel.y, this.color);
       }
     },
@@ -640,10 +621,12 @@ export default {
       return null;
     },
     async sendPixel() {
+      if (this.requesting) return;
+      if (!this.editedPixel) return;
       //Sending the user pixel with coords, color, timestamp?, userID?
       this.requesting = true;
       // console.log("Sending: ", UserPixel);
-      await fetch(`${process.env.apiUrl}/pixel`, {
+      const response = await fetch(`${process.env.apiUrl}/pixel`, {
         method: "PUT",
         crossDomain: true,
         headers: {
@@ -654,32 +637,17 @@ export default {
           hexColor: canvasPixelColor,
           pixelId: this.editedPixel.entityId
         }),
-      })
-        .then((response) => response.json())
-        .then((data) => {
-          if (data.retryAfter) {
-            this.openFailedEditModal = true;
-            this.errorMessage = 'CooldownNotEndedYet';
-            this.lastSubmittedTime = new Date();
-            this.maxCooldownTime = data.retryAfter;
-            /*fetch(`${process.env.apiUrl}/cooldown`, {
-              method: "GET",
-              crossDomain: true,
-              headers: {
-                "Content-Type": "application/json",
-              },
-            })
-              .then((response) => response.json())
-              .then((data) => {
-                this.maxCooldownTime = data.cooldown;
-              })
-              // .catch((err) => console.log(err));*/
-          } else {
-            this.openSuccessEditModal = true;
-            this.FetchUserPixelAndMap();
-          }
-        })
-        // .catch((error) => console.log(error));
+      });
+      const data = await response.json();
+      if (data.retryAfter) {
+        this.openFailedEditModal = true;
+        this.errorMessage = 'CooldownNotEndedYet';
+        this.lastSubmittedTime = new Date();
+        this.maxCooldownTime = data.retryAfter;
+      } else {
+        this.openSuccessEditModal = true;
+        this.FetchUserPixelAndMap();
+      }
       this.requesting = false;
     },
     async FetchUserPixelAndMap() {
@@ -704,10 +672,7 @@ export default {
           console.debug("time last updated ", this.lastSubmittedTime);
           setUserPixel(this.x, this.y);
           changeColor(this.x, this.y, this.color);
-          this.editedPixel = {
-            ...userPixelCoordinates,
-            ...data,
-          };
+          this.setPixelToEdit(null, { ...userPixelCoordinates, ...data });
           // console.log('here');
         })
         // .catch((error) => console.log(error));
@@ -728,7 +693,6 @@ export default {
       let drawWidth = canvas.width / flagWidth;
       let drawHeight = canvas.height / flagHeight;
 
-      console.log(cameraZoom);
       this.hoveredPixelPosition = {
         x: Math.floor((cameraPositionX + e.offsetX / cameraZoom) / drawWidth),
         y: Math.floor((cameraPositionY + e.offsetY / cameraZoom) / drawHeight),
@@ -736,15 +700,30 @@ export default {
 
       this.hoveredPixel = flagPixelMap[this.hoveredPixelPosition.x]?.[this.hoveredPixelPosition.y] || null;
     },
-    selectPixelToEdit() {
-      if (this.hoveredPixel) {
+    setPixelToEditFromCoordinates() {
+      const x = Number(this.modifiedPixelX) - 1;
+      const y = Number(this.modifiedPixelY) - 1;
+      const pixel = flagPixelMap[x]?.[y];
+      this.setPixelToEdit(undefined, pixel ? { ...pixel, x, y } : null);
+    },
+    setPixelToEditFromHover() {
+      this.setPixelToEdit(undefined,  this.hoveredPixel ? {
+        ...this.hoveredPixelPosition,
+        ...this.hoveredPixel,
+      } : null);
+    },
+    setPixelToEdit(_, pixel) {
+      if (this.editedPixel) {
         changeColor(this.editedPixel.x, this.editedPixel.y, this.editedPixel.hexColor);
+      }
 
-        this.editedPixel = {
-          ...this.hoveredPixelPosition,
-          ...this.hoveredPixel,
-        };
+      if (pixel) {
+        this.editedPixel = { ...pixel };
         this.color = this.editedPixel.hexColor;
+        this.modifiedPixelX = this.editedPixel.x + 1;
+        this.modifiedPixelY = this.editedPixel.y + 1;
+      } else {
+        this.editedPixel = null;
       }
     },
   },
@@ -829,5 +808,9 @@ export default {
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
+}
+
+#flagCanva {
+  touch-action: none;
 }
 </style>
