@@ -7,7 +7,7 @@ import { Pixel } from './pixel/Pixel';
 import { PixelRepository } from './pixel/PixelRepository';
 import { differenceInMilliseconds } from 'date-fns';
 import { UserAlreadyOwnsAPixelError } from "./errors/UserAlreadyOwnsAPixelError";
-import { CooldownTimerHasNotEndedYetError } from "./errors/CooldownTimerHasNotEndedYetError";
+import { UserActionIsOnCooldownError } from "./errors/UserActionIsOnCooldownError";
 import { FlagSnapshotService } from './snapshot/SnapshotService';
 
 @Injectable()
@@ -45,12 +45,10 @@ export class FlagService {
     if (!lastPixelEvent) {
       throw new PixelDoesNotExistError();
     }
-    const difference = differenceInMilliseconds(new Date(), lastUserAction.createdAt);
+
     const changeCooldownInMilliseconds = Number(process.env.CHANGE_COOLDOWN) * 60 * 1000;
-    const remainingTime = changeCooldownInMilliseconds - difference;
-    if (lastUserAction.action === 'update' && remainingTime > 0) {
-      throw new CooldownTimerHasNotEndedYetError(remainingTime);
-    }
+    await this.checkUserIsNotOnCooldown(lastUserAction, changeCooldownInMilliseconds);
+
     const createdEvent = await this.pixelRepository.createAndReturn({
       action: 'update',
       author: ownerId,

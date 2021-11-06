@@ -10,7 +10,7 @@ import { PixelRepository } from '../pixel/PixelRepository';
 import { DatabaseEvent } from 'library/database/object/event/DatabaseEvent';
 import { set, sub } from 'date-fns';
 import { UserAlreadyOwnsAPixelError } from "../errors/UserAlreadyOwnsAPixelError";
-import { CooldownTimerHasNotEndedYetError } from "../errors/CooldownTimerHasNotEndedYetError";
+import { UserActionIsOnCooldownError } from "../errors/UserActionIsOnCooldownError";
 import { FlagSnapshotModule } from '../snapshot/SnapshotModule';
 import { FlagSnapshotRepository } from '../snapshot/SnapshotRepository';
 import { FlagSnapshotService } from '../snapshot/SnapshotService';
