@@ -206,6 +206,7 @@ let flagPixelMap = new Array(flagWidth);
 let canvasContainer;
 let canvas, canvasDrawingContext;
 let canvasBoundingBox;
+let bufferCanvas;
 
 const MIN_ZOOM_LEVEL = 1;
 let cameraZoom = 1;
@@ -230,18 +231,40 @@ function initializeFlagResolution() {
   const hasChanged = flagWidth !== resolution.width || flagHeight !== resolution.height;
   flagWidth = resolution.width;
   flagHeight = resolution.height;
+
   return hasChanged;
 }
 
-//Draw EVERY PIXEL of the map given
-function drawFlag(pixelMap) {
-  canvasDrawingContext.fillStyle = '#fff';
-  canvasDrawingContext.fillRect(cameraPositionX, cameraPositionY, canvas.width*cameraZoom, canvas.height*cameraZoom);
-  for (let i = 0; i < pixelMap.length; i++) {
-    for (let j = 0; j < pixelMap[i].length; j++) {
-      drawPixel(i, j, pixelMap[i][j]);
-    }
+function updateFlagPixelMap(data) {
+  flagPixelMap = mapFlagDataToWorldCoordinates(data, flagIndexToCoordinateCache);
+  if (canvasDrawingContext) {
+    drawFlagToBuffer(canvasDrawingContext);
   }
+}
+
+function drawFlagToBuffer() {
+  const ctx = bufferCanvas.getContext('2d');
+  const imageData = ctx.createImageData(flagWidth, flagHeight);
+  const textureData = makeFlagTextureArray(flagWidth, flagHeight, flagPixelMap);
+  for(let i = 0; i < textureData.length; i++) {
+    imageData.data[i] = textureData[i] || 0;
+  }
+  ctx.putImageData(imageData, 0, 0);
+  console.log(flagPixelMap, textureData, imageData)
+}
+
+function clearCanvas() {
+  canvasDrawingContext.save();
+  canvasDrawingContext.setTransform(1, 0, 0, 1, 0, 0);
+  canvasDrawingContext.clearRect(0, 0, canvas.width, canvas.height);
+  canvasDrawingContext.restore();
+}
+
+function drawWorld() {
+  clearCanvas();
+
+  canvasDrawingContext.imageSmoothingEnabled = false;
+  canvasDrawingContext.drawImage(bufferCanvas, 0, 0, canvas.width, canvas.height);
 }
 
 //Draw an overlay to find the user pixel on the whole flag
@@ -282,12 +305,16 @@ function initCanvas() {
 
   canvasBoundingBox = canvas.getBoundingClientRect();
   canvasDrawingContext = canvas.getContext("2d");
+  bufferCanvas = document.createElement('canvas');
+  bufferCanvas.width = flagWidth;
+  bufferCanvas.height = flagHeight;
 
   cameraZoom = 1;
   cameraPositionX = 0;
   cameraPositionY = 0;
 
-  drawFlag(flagPixelMap);
+  drawFlagToBuffer();
+  drawWorld();
 }
 
 //Initalising the variables to their value
@@ -343,7 +370,7 @@ function onWheel(event) {
   cameraPositionX += mouseX / oldCameraZoom - mouseX / cameraZoom;
   cameraPositionY += mouseY / oldCameraZoom - mouseY / cameraZoom;
   zoomAndTranslateContext(oldCameraZoom, oldCameraPositionX, oldCameraPositionY, cameraZoom, cameraPositionX, cameraPositionY);
-  drawFlag(flagPixelMap);
+  drawWorld();
 }
 
 let isDraggingFlag = false;
@@ -365,7 +392,7 @@ function dragFlag(e) {
 
     zoomAndTranslateContext(cameraZoom, oldCameraPositionX, oldCameraPositionY, cameraZoom, cameraPositionX, cameraPositionY);
 
-    drawFlag(flagPixelMap);
+    drawWorld();
   }
 }
 function endFlagDrag() {
@@ -423,7 +450,11 @@ import AppDoneIcon from "~/components/atoms/icons/AppDoneIcon";
 import AppHelpIcon from "../components/atoms/icons/AppHelpIcon";
 import AppButton from "../components/atoms/AppButton";
 import AppPlaceIcon from "../components/atoms/icons/AppPlaceIcon";
-import { mapFlagDataToWorldCoordinates, sanitizeFlagData } from "../js/flag";
+import {
+  makeFlagTextureArray,
+  mapFlagDataToWorldCoordinates,
+  sanitizeFlagData
+} from "../js/flag";
 
 export default {
   name: "edit",
@@ -516,7 +547,7 @@ export default {
     Overlay() {
       drawOverlay();
       setTimeout(() => {
-        drawFlag(flagPixelMap);
+        drawWorld();
       }, 3000);
     },
     async Refresh(ack = false) {
@@ -562,7 +593,7 @@ export default {
             this.setNeighboursInfo();
 
             if (hasChanged) {
-              drawFlag(flagPixelMap);
+              drawWorld();
             }
           }
         })
@@ -570,26 +601,24 @@ export default {
     },
     async FetchMap() {
       // console.log("Fetching the whole map");
-      return await fetch(`${process.env.apiUrl}/flag`, {
+      const response = await fetch(`${process.env.apiUrl}/flag`, {
         method: "GET",
         crossDomain: true,
         headers: {
           "Content-Type": "application/json",
         },
-      })
-        .then((response) => response.json())
-        .then((data) => {
-          const sanitizedData = sanitizeFlagData(data);
+      });
+      const data = await response.json();
+      const sanitizedData = sanitizeFlagData(data);
 
-          flagPixels = sanitizedData;
-          initializeFlagResolution();
+      flagPixels = sanitizedData;
+      initializeFlagResolution();
 
-          for (let i = 0; i < sanitizedData.length; i++) {
-            indexInFlagToLocalIndexMap[sanitizedData[i].indexInFlag] = i;
-          }
+      for (let i = 0; i < sanitizedData.length; i++) {
+        indexInFlagToLocalIndexMap[sanitizedData[i].indexInFlag] = i;
+      }
 
-          return mapFlagDataToWorldCoordinates(sanitizedData, flagIndexToCoordinateCache);
-        });
+      updateFlagPixelMap(sanitizedData);
     },
     async setNeighboursInfo() {
       this.topPixel = await this.getNeighbourPixelIfItExists(this.x, this.y - 1 );
@@ -652,7 +681,7 @@ export default {
         .then((response) => response.json())
         .then(async (data) => {
           console.debug("User pixel : ", data);
-          flagPixelMap = await this.FetchMap();
+          await this.FetchMap();
           const userPixelCoordinates = getCoordinateFromFlagIndex(indexInFlagToLocalIndexMap[data.indexInFlag]);
           this.x = userPixelCoordinates.x;
           this.y = userPixelCoordinates.y;
