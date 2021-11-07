@@ -16,6 +16,11 @@ import {
   getFlagResolutionFromIndexToCoordinateMap,
   mapCoordinatesToTargetRatioRectangleDistribution
 } from "../js/ratio-rectangle-distribution";
+import {
+  makeFlagTextureArray,
+  mapFlagDataToWorldCoordinates,
+  sanitizeFlagData
+} from "../js/flag.js";
 
 
 async function getFlag() {
@@ -27,50 +32,14 @@ async function getFlag() {
     },
   });
 
-  let data = await response.json();
-  data = data.filter(p => !!p)
-    .sort((a, b) => (a.indexInflag - b.indexInFlag));
-  return data;
+  const data = await response.json();
+  return sanitizeFlagData(data);
 }
 
 let flagIndexToCoordinateCache = [];
 function computeTextureWidthAndHeightFromFlag(flag) {
   flagIndexToCoordinateCache = mapCoordinatesToTargetRatioRectangleDistribution(flag.length, DESIRED_FLAG_RATIO);
   return getFlagResolutionFromIndexToCoordinateMap(flagIndexToCoordinateCache);
-}
-
-function createTextureArray(width, height, flag_data) {
-  const textureArray = new Uint8Array(4 * width * height);
-
-  let i = 0;
-
-  while (i < flag_data.length) {
-    const pixel2DCoordinates = flagIndexToCoordinateCache[i];
-    const textureIndex = pixel2DCoordinates.x + pixel2DCoordinates.y * width;
-    const stride = textureIndex * 4;
-    if (flag_data[i]) {
-      const color = new THREE.Color(flag_data[i].hexColor);
-      const r = Math.floor(color.r * 255);
-      const g = Math.floor(color.g * 255);
-      const b = Math.floor(color.b * 255);
-
-      textureArray[stride] = r;
-      textureArray[stride + 1] = g;
-      textureArray[stride + 2] = b;
-      textureArray[stride + 3] = 255;
-    } else {
-      textureArray[stride] = 0;
-      textureArray[stride + 1] = 0;
-      textureArray[stride + 2] = 0;
-      textureArray[stride + 3] = 0;
-    }
-    i++;
-  }
-  i = i * 4;
-  while (i < 4 * width * height) {
-    textureArray[i++] = 0;
-  }
-  return textureArray;
 }
 
 
@@ -85,7 +54,8 @@ export default {
     const flag_data = await getFlag();
     let { width, height } = computeTextureWidthAndHeightFromFlag(flag_data);
 
-    let new_data = createTextureArray(width, height, flag_data);
+    const flagPixelMap = mapFlagDataToWorldCoordinates(flag_data, flagIndexToCoordinateCache);
+    let new_data = makeFlagTextureArray(width, height, flagPixelMap);
     // used the buffer to create a DataTexture
     const flag_texture = new THREE.DataTexture(
       new_data,

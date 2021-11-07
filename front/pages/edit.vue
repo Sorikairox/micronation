@@ -423,6 +423,7 @@ import AppDoneIcon from "~/components/atoms/icons/AppDoneIcon";
 import AppHelpIcon from "../components/atoms/icons/AppHelpIcon";
 import AppButton from "../components/atoms/AppButton";
 import AppPlaceIcon from "../components/atoms/icons/AppPlaceIcon";
+import { mapFlagDataToWorldCoordinates, sanitizeFlagData } from "../js/flag";
 
 export default {
   name: "edit",
@@ -578,32 +579,17 @@ export default {
       })
         .then((response) => response.json())
         .then((data) => {
-          // console.log("DEBUG - New map array : ", data);
+          const sanitizedData = sanitizeFlagData(data);
 
-          data = data.filter(p => !!p)
-            .sort((a, b) => (a.indexInflag - b.indexInFlag));
-
-          flagPixels = data;
+          flagPixels = sanitizedData;
           initializeFlagResolution();
 
-          const NEW_MAP = new Array(flagWidth);
-          for (let i = 0; i < NEW_MAP.length; i++) {
-            NEW_MAP[i] = new Array(flagHeight);
+          for (let i = 0; i < sanitizedData.length; i++) {
+            indexInFlagToLocalIndexMap[sanitizedData[i].indexInFlag] = i;
           }
 
-          for (let i = 0; i < data.length; i++) {
-            indexInFlagToLocalIndexMap[data[i].indexInFlag] = i;
-            const { x, y } = getCoordinateFromFlagIndex(i);
-            if (!NEW_MAP[x]) {
-              NEW_MAP[x] = [];
-              console.warn(`no row for x=${x}`)
-            }
-            NEW_MAP[x][y] = data[i];
-          }
-          // console.log('new map');
-          return NEW_MAP;
-        })
-        // .catch((error) => console.log(error));
+          return mapFlagDataToWorldCoordinates(sanitizedData, flagIndexToCoordinateCache);
+        });
     },
     async setNeighboursInfo() {
       this.topPixel = await this.getNeighbourPixelIfItExists(this.x, this.y - 1 );
