@@ -235,10 +235,12 @@ function initializeFlagResolution() {
 
 //Draw EVERY PIXEL of the map given
 function drawFlag(pixelMap) {
-  canvasDrawingContext.fillRect(cameraPositionX, cameraPositionY, canvas.width*cameraZoom, canvas.height*cameraZoom);
-  for (let i = 0; i < pixelMap.length; i++) {
-    for (let j = 0; j < pixelMap[i].length; j++) {
-      drawPixel(i, j, pixelMap[i][j]);
+  if (canvasDrawingContext) {
+    canvasDrawingContext.fillRect(cameraPositionX, cameraPositionY, canvas.width * cameraZoom, canvas.height * cameraZoom);
+    for (let i = 0; i < pixelMap.length; i++) {
+      for (let j = 0; j < pixelMap[i].length; j++) {
+        drawPixel(i, j, pixelMap[i][j]);
+      }
     }
   }
 }
@@ -674,7 +676,7 @@ export default {
           console.debug("time last updated ", this.lastSubmittedTime);
           setUserPixel(this.x, this.y);
           changeColor(this.x, this.y, this.color);
-          this.setPixelToEdit(null, { ...userPixelCoordinates, ...data });
+          this.setPixelToEdit(null, { ...userPixelCoordinates, ...data }, false);
           // console.log('here');
         })
         // .catch((error) => console.log(error));
@@ -714,8 +716,8 @@ export default {
         ...this.hoveredPixel,
       } : null);
     },
-    setPixelToEdit(_, pixel) {
-      if (this.editedPixel) {
+    setPixelToEdit(_, pixel, resetPreviousPixelColor = true) {
+      if (this.editedPixel && resetPreviousPixelColor) {
         changeColor(this.editedPixel.x, this.editedPixel.y, this.editedPixel.hexColor);
       }
 
