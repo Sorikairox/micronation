@@ -321,6 +321,10 @@ function init() {
   canvas.addEventListener("mousedown", initFlagDrag);
   window.addEventListener("mousemove", dragFlag);
   window.addEventListener("mouseup", endFlagDrag);
+
+  canvas.addEventListener("touchstart", initFlagDrag);
+  canvas.addEventListener("touchmove", dragFlag);
+  canvas.addEventListener("touchend", endFlagDrag);
 }
 
 //Change the color value and draw it to the user pixel
@@ -370,20 +374,40 @@ function onWheel(event) {
 
 let isDraggingFlag = false;
 let mouseDragX, mouseDragY;
+function getMouseOrTouchEventPosition(e) {
+  const eventPosition = {
+    x: e.offsetX,
+    y: e.offsetY,
+  };
+
+  if (e.touches) {
+    e.preventDefault();
+    const touch = e.touches[0];
+    const canvasBoundingBox = canvas.getBoundingClientRect();
+    eventPosition.x = touch.clientX - canvasBoundingBox.left;
+    eventPosition.y = touch.clientY - canvasBoundingBox.top;
+  }
+
+  return eventPosition;
+}
 function initFlagDrag(e) {
   isDraggingFlag = true;
-  mouseDragX = e.offsetX;
-  mouseDragY = e.offsetY;
+
+  const eventPosition = getMouseOrTouchEventPosition(e);
+  mouseDragX = eventPosition.x;
+  mouseDragY = eventPosition.y;
 }
 function dragFlag(e) {
   if (isDraggingFlag) {
+    const eventPosition = getMouseOrTouchEventPosition(e);
+
     const oldCameraPositionX = cameraPositionX;
     const oldCameraPositionY = cameraPositionY;
-    cameraPositionX += (mouseDragX - e.offsetX) / cameraZoom;
-    cameraPositionY += (mouseDragY - e.offsetY) / cameraZoom;
+    cameraPositionX += (mouseDragX - eventPosition.x) / cameraZoom;
+    cameraPositionY += (mouseDragY - eventPosition.y) / cameraZoom;
 
-    mouseDragX = e.offsetX;
-    mouseDragY = e.offsetY;
+    mouseDragX = eventPosition.x;
+    mouseDragY = eventPosition.y;
 
     zoomAndTranslateContext(cameraZoom, oldCameraPositionX, oldCameraPositionY, cameraZoom, cameraPositionX, cameraPositionY);
 
@@ -845,9 +869,6 @@ export default {
   100% { transform: rotate(360deg); }
 }
 
-#flagCanva {
-  touch-action: none;
-}
 .overlay {
   position: absolute;
   top: 0;
