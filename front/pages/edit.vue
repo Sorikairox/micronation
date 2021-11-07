@@ -235,12 +235,11 @@ function initializeFlagResolution() {
 
 //Draw EVERY PIXEL of the map given
 function drawFlag(pixelMap) {
-  if (canvasDrawingContext) {
-    canvasDrawingContext.fillRect(cameraPositionX, cameraPositionY, canvas.width * cameraZoom, canvas.height * cameraZoom);
-    for (let i = 0; i < pixelMap.length; i++) {
-      for (let j = 0; j < pixelMap[i].length; j++) {
-        drawPixel(i, j, pixelMap[i][j]);
-      }
+  canvasDrawingContext.fillStyle = '#fff';
+  canvasDrawingContext.fillRect(cameraPositionX, cameraPositionY, canvas.width*cameraZoom, canvas.height*cameraZoom);
+  for (let i = 0; i < pixelMap.length; i++) {
+    for (let j = 0; j < pixelMap[i].length; j++) {
+      drawPixel(i, j, pixelMap[i][j]);
     }
   }
 }
