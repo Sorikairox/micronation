@@ -836,10 +836,12 @@ export default {
   position: absolute;
   top: 0;
   left: 0;
+
   background: #000000cc;
   color: #fff;
-
   border-radius: 0 0 0.25em 0;
+
+  pointer-events: none;
 }
 
 #sidePanel {
