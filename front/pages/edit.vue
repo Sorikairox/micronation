@@ -184,18 +184,6 @@ import {
   mapCoordinatesToTargetRatioRectangleDistribution
 } from "../js/ratio-rectangle-distribution";
 
-class Pixel {
-  constructor(x, y, color) {
-    this.x = x;
-    this.y = y;
-    this.color = color;
-  }
-
-  draw() {
-    drawPixel(this.x, this.y, this.color, true);
-  }
-}
-
 //Initialising all the var
 let flagWidth, flagHeight;
 let flagPixels = [];
@@ -204,7 +192,7 @@ let flagPixelMap = new Array(flagWidth);
 
 //Canvas var
 let canvasContainer;
-let canvas, canvasDrawingContext;
+let canvas;
 let canvasBoundingBox;
 let bufferCanvas;
 
@@ -232,67 +220,71 @@ function initializeFlagResolution() {
   flagWidth = resolution.width;
   flagHeight = resolution.height;
 
+  if (hasChanged) {
+    initBufferCanvas();
+  }
+
   return hasChanged;
 }
 
 function updateFlagPixelMap(data) {
   flagPixelMap = mapFlagDataToWorldCoordinates(data, flagIndexToCoordinateCache);
-  if (canvasDrawingContext) {
-    drawFlagToBuffer(canvasDrawingContext);
-  }
+  drawFlagToBuffer();
 }
 
 function drawFlagToBuffer() {
   const ctx = bufferCanvas.getContext('2d');
+
+  clearCanvas(bufferCanvas);
+
   const imageData = ctx.createImageData(flagWidth, flagHeight);
   const textureData = makeFlagTextureArray(flagWidth, flagHeight, flagPixelMap);
   for(let i = 0; i < textureData.length; i++) {
     imageData.data[i] = textureData[i] || 0;
   }
   ctx.putImageData(imageData, 0, 0);
-  console.log(flagPixelMap, textureData, imageData)
 }
 
-function clearCanvas() {
-  canvasDrawingContext.save();
-  canvasDrawingContext.setTransform(1, 0, 0, 1, 0, 0);
-  canvasDrawingContext.clearRect(0, 0, canvas.width, canvas.height);
-  canvasDrawingContext.restore();
+function drawPixelToBuffer(x, y, hexColor) {
+  const ctx = bufferCanvas.getContext('2d');
+  ctx.fillStyle = hexColor;
+  ctx.fillRect(x, y, 1, 1);
+}
+
+function clearCanvas(canvas) {
+  const ctx = canvas.getContext('2d');
+
+  ctx.save();
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.restore();
 }
 
 function drawWorld() {
-  clearCanvas();
+  if (!canvas) {
+    console.warn('drawWorld: canvas not ready');
+    return;
+  }
 
-  canvasDrawingContext.imageSmoothingEnabled = false;
-  canvasDrawingContext.drawImage(bufferCanvas, 0, 0, canvas.width, canvas.height);
+  clearCanvas(canvas);
+
+  const ctx = canvas.getContext('2d');
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(bufferCanvas, 0, 0, canvas.width, canvas.height);
 }
 
 //Draw an overlay to find the user pixel on the whole flag
-function drawOverlay() {
-  for (let i = 0; i < flagPixelMap.length; i++) {
-    for (let j = 0; j < flagPixelMap[0].length; j++) {
-      if (!(i == userXPixel && j == userYPixel)) {
-        drawPixel(i, j, { hexColor : "#090909e0" });
+function drawOverlayToBuffer() {
+  for (let x = 0; x < flagPixelMap.length; x++) {
+    for (let y = 0; y < flagPixelMap[0].length; y++) {
+      if (!(x == userXPixel && y == userYPixel)) {
+        drawPixelToBuffer(x, y, "#090909e0");
       } else {
-        drawPixel(i, j, { hexColor : "#00ff16" });
+        drawPixelToBuffer(x, y, "#00ff16");
       }
       }
     }
-}
-
-//Draw a pixel on a coord given (x,y,clr), if changetexture is set to true, change the value on the map
-//You can change the size and the context to draw, default is flag context
-function drawPixel(x, y, pixel, changeTexture = false, size = 1, ctx = canvasDrawingContext) {
-  if (ctx && pixel?.hexColor) {
-    let drawWidth = (canvas.width / flagWidth) * size;
-    let drawHeight = (canvas.height / flagHeight) * size;
-    ctx.fillStyle = pixel.hexColor;
-    ctx.fillRect(x * drawWidth, y * drawHeight, drawWidth, drawHeight);
-    if (changeTexture) {
-      flagPixelMap[x][y].hexColor = pixel.hexColor;
-    }
-    ctx.fillStyle = "#ffffff";
-  }
+  drawWorld();
 }
 
 //Initalising the flag canvas
@@ -304,10 +296,6 @@ function initCanvas() {
   canvas.height = ~~(canvas.width / 2);
 
   canvasBoundingBox = canvas.getBoundingClientRect();
-  canvasDrawingContext = canvas.getContext("2d");
-  bufferCanvas = document.createElement('canvas');
-  bufferCanvas.width = flagWidth;
-  bufferCanvas.height = flagHeight;
 
   cameraZoom = 1;
   cameraPositionX = 0;
@@ -315,6 +303,12 @@ function initCanvas() {
 
   drawFlagToBuffer();
   drawWorld();
+}
+
+function initBufferCanvas() {
+  bufferCanvas = document.createElement('canvas');
+  bufferCanvas.width = flagWidth;
+  bufferCanvas.height = flagHeight;
 }
 
 //Initalising the variables to their value
@@ -334,7 +328,9 @@ function init() {
 function changeColor(x, y, newColor) {
   // // console.log("Pixel draw informations :", [newColor, userXPixel, userYPixel]);
   canvasPixelColor = newColor;
-  drawPixel(x, y, { hexColor : newColor } , true);
+  flagPixelMap[x][y].hexColor = newColor;
+  drawPixelToBuffer(x, y, newColor);
+  drawWorld();
 }
 
 function getCanvas() {
@@ -403,7 +399,9 @@ function clampCameraScale() {
   cameraZoom = Math.min(Math.max(cameraZoom, MIN_ZOOM_LEVEL), getMaxZoomLevel());
 }
 
-function zoomAndTranslateContext(currentZoom, currentPositionX, currentPositionY, newScale, newPositionX, newPositionY, ctx = canvasDrawingContext) {
+function zoomAndTranslateContext(currentZoom, currentPositionX, currentPositionY, newScale, newPositionX, newPositionY) {
+  const ctx = canvas.getContext('2d');
+
   ctx.translate(currentPositionX, currentPositionY);
 
   const relativeZoom = newScale / currentZoom;
@@ -545,8 +543,10 @@ export default {
       this.sendPixel(this.x, this.y);
     },
     Overlay() {
-      drawOverlay();
+      drawOverlayToBuffer();
+      drawWorld();
       setTimeout(() => {
+        drawFlagToBuffer();
         drawWorld();
       }, 3000);
     },
@@ -585,7 +585,7 @@ export default {
               }
               flagPixelMap[x][y] = modifiedPixel;
               if (!hasChanged) {
-                drawPixel(x, y, modifiedPixel);
+                drawPixelToBuffer(x, y, modifiedPixel.hexColor);
               }
             }
 
@@ -593,8 +593,10 @@ export default {
             this.setNeighboursInfo();
 
             if (hasChanged) {
-              drawWorld();
+              drawFlagToBuffer();
             }
+
+            drawWorld();
           }
         })
         // .catch((err) => console.log(err));
