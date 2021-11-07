@@ -361,8 +361,8 @@ function onWheel(event) {
 
   const oldCameraPositionX = cameraPositionX;
   const oldCameraPositionY = cameraPositionY;
-  const mouseX = event.x - canvas.offsetLeft;
-  const mouseY = event.y - canvas.offsetTop;
+  const mouseX = event.offsetX;
+  const mouseY = event.offsetY;
   cameraPositionX += mouseX / oldCameraZoom - mouseX / cameraZoom;
   cameraPositionY += mouseY / oldCameraZoom - mouseY / cameraZoom;
   zoomAndTranslateContext(oldCameraZoom, oldCameraPositionX, oldCameraPositionY, cameraZoom, cameraPositionX, cameraPositionY);
@@ -373,18 +373,18 @@ let isDraggingFlag = false;
 let mouseDragX, mouseDragY;
 function initFlagDrag(e) {
   isDraggingFlag = true;
-  mouseDragX = e.clientX;
-  mouseDragY = e.clientY;
+  mouseDragX = e.offsetX;
+  mouseDragY = e.offsetY;
 }
 function dragFlag(e) {
   if (isDraggingFlag) {
     const oldCameraPositionX = cameraPositionX;
     const oldCameraPositionY = cameraPositionY;
-    cameraPositionX += (mouseDragX - e.clientX) / cameraZoom;
-    cameraPositionY += (mouseDragY - e.clientY) / cameraZoom;
+    cameraPositionX += (mouseDragX - e.offsetX) / cameraZoom;
+    cameraPositionY += (mouseDragY - e.offsetY) / cameraZoom;
 
-    mouseDragX = e.clientX;
-    mouseDragY = e.clientY;
+    mouseDragX = e.offsetX;
+    mouseDragY = e.offsetY;
 
     zoomAndTranslateContext(cameraZoom, oldCameraPositionX, oldCameraPositionY, cameraZoom, cameraPositionX, cameraPositionY);
 
