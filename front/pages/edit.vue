@@ -692,7 +692,7 @@ export default {
           console.debug("time last updated ", this.lastSubmittedTime);
           setUserPixel(this.x, this.y);
           changeColor(this.x, this.y, this.color);
-          this.setPixelToEdit(null, { ...userPixelCoordinates, ...data });
+          this.setPixelToEdit(null, { ...userPixelCoordinates, ...data }, false);
           // console.log('here');
         })
         // .catch((error) => console.log(error));
@@ -732,8 +732,8 @@ export default {
         ...this.hoveredPixel,
       } : null);
     },
-    setPixelToEdit(_, pixel) {
-      if (this.editedPixel) {
+    setPixelToEdit(_, pixel, resetPreviousPixelColor = true) {
+      if (this.editedPixel && resetPreviousPixelColor) {
         changeColor(this.editedPixel.x, this.editedPixel.y, this.editedPixel.hexColor);
       }
 
