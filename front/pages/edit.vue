@@ -322,9 +322,9 @@ function init() {
   window.addEventListener("mousemove", dragFlag);
   window.addEventListener("mouseup", endFlagDrag);
 
-  canvas.addEventListener("touchstart", initFlagDrag);
-  canvas.addEventListener("touchmove", dragFlag);
-  canvas.addEventListener("touchend", endFlagDrag);
+  canvas.addEventListener("touchstart", handleTouchStart);
+  canvas.addEventListener("touchmove", handleTouchMove);
+  canvas.addEventListener("touchend", handleTouchEnd);
 }
 
 //Change the color value and draw it to the user pixel
@@ -353,6 +353,13 @@ function onWheel(event) {
   event.preventDefault();
 
   const zoomDelta = event.deltaY * -0.01;
+  zoomOnPositionByAmount({
+    x: event.offsetX,
+    y: event.offsetY,
+  }, zoomDelta);
+}
+
+function zoomOnPositionByAmount(position, zoomDelta) {
   if (zoomDelta < 0 && cameraZoom <= MIN_ZOOM_LEVEL ||
       zoomDelta > 0 && cameraZoom >= getMaxZoomLevel()) {
     return;
@@ -364,8 +371,8 @@ function onWheel(event) {
 
   const oldCameraPositionX = cameraPositionX;
   const oldCameraPositionY = cameraPositionY;
-  const mouseX = event.offsetX;
-  const mouseY = event.offsetY;
+  const mouseX = position.x;
+  const mouseY = position.y;
   cameraPositionX += mouseX / oldCameraZoom - mouseX / cameraZoom;
   cameraPositionY += mouseY / oldCameraZoom - mouseY / cameraZoom;
   zoomAndTranslateContext(oldCameraZoom, oldCameraPositionX, oldCameraPositionY, cameraZoom, cameraPositionX, cameraPositionY);
@@ -381,7 +388,6 @@ function getMouseOrTouchEventPosition(e) {
   };
 
   if (e.touches) {
-    e.preventDefault();
     const touch = e.touches[0];
     const canvasBoundingBox = canvas.getBoundingClientRect();
     eventPosition.x = touch.clientX - canvasBoundingBox.left;
@@ -416,6 +422,48 @@ function dragFlag(e) {
 }
 function endFlagDrag() {
   isDraggingFlag = false;
+}
+
+let pinchPosition;
+let pinchDistance;
+function getPinchGesturePosition(touch1, touch2) {
+  const canvasBoundingBox = canvas.getBoundingClientRect();
+  const pos1 = { x: touch1.clientX, y: touch1.clientY };
+  const pos2 = { x: touch2.clientX, y: touch2.clientY };
+  return {
+    x: (pos1.x + pos2.x) / 2 - canvasBoundingBox.left,
+    y: (pos1.y + pos2.y) / 2 - canvasBoundingBox.top,
+  };
+}
+function getPinchGestureDistance(touch1, touch2) {
+  const pos1 = { x: touch1.clientX, y: touch1.clientY };
+  const pos2 = { x: touch2.clientX, y: touch2.clientY };
+  return Math.sqrt(Math.pow(pos1.x - pos2.x, 2) + Math.pow(pos1.y - pos2.y, 2))
+}
+function handleTouchStart(e) {
+  if (e.touches.length >= 2) {
+    pinchPosition = getPinchGesturePosition(...e.touches);
+    pinchDistance = getPinchGestureDistance(...e.touches);
+  } else {
+    initFlagDrag(e);
+  }
+}
+function handleTouchMove(e) {
+  e.preventDefault();
+  if (e.touches.length >= 2) {
+    const newPinchDistance = getPinchGestureDistance(...e.touches);
+
+    const difference = newPinchDistance - pinchDistance;
+    const zoomDelta = difference * 0.1;
+    zoomOnPositionByAmount(pinchPosition, zoomDelta);
+
+    pinchDistance = newPinchDistance;
+  } else {
+    dragFlag(e);
+  }
+}
+function handleTouchEnd() {
+  endFlagDrag();
 }
 
 function clampCameraScale() {
