@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { DatabaseEvent } from 'library/database/object/event/DatabaseEvent';
 import { PixelDoesNotExistError } from './errors/PixelDoesNotExistError';
-import { UserHasNoPixelError } from './errors/UserHasNoPixelError';
 import { GetPixelDTO } from './pixel/dto/GetPixelDTO';
 import { Pixel } from './pixel/Pixel';
 import { PixelRepository } from './pixel/PixelRepository';

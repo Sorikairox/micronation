@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   Body,
   Controller,
   Get,
@@ -7,9 +6,7 @@ import {
   Param,
   Post,
   Put,
-  Res
 } from '@nestjs/common';
-import { Response } from 'express';
 import { Public } from '../user/decorators/Public';
 import { UserId } from '../user/decorators/UserId';
 import { ChangePixelColorDTO } from './dto/ChangePixelColorDto';
