@@ -1,7 +1,7 @@
 import { DatabaseObject } from 'library/database/object/DatabaseObject';
-import { GetPixelDTO } from '../pixel/dto/GetPixelDTO';
+import { GetPixelDto } from '../pixel/dto/GetPixelDto';
 
 export class FlagSnapshot extends DatabaseObject {
     lastEventId: number;
-    pixels: GetPixelDTO[];
+    pixels: GetPixelDto[];
 }
