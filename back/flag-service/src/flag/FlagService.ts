@@ -34,9 +34,9 @@ export class FlagService {
     return createdEvent;
   }
 
-  async changePixelColor(ownerId: string, pixelId: string, hexColor: string) {
+  async changePixelColor(performingUserId: string, pixelId: string, hexColor: string) {
     const lastUserAction = await this.pixelRepository.findLastByDate({
-      author: ownerId,
+      author: performingUserId,
     });
     const lastPixelEvent = await this.pixelRepository.findLastByDate({
       entityId: pixelId,
@@ -50,7 +50,7 @@ export class FlagService {
 
     const createdEvent = await this.pixelRepository.createAndReturn({
       action: 'update',
-      author: ownerId,
+      author: performingUserId,
       entityId: lastPixelEvent.entityId,
       data: { ...lastPixelEvent.data, hexColor },
     });

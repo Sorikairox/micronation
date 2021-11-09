@@ -29,10 +29,10 @@ export class FlagController {
 
   @Put('pixel')
   async changePixelColor(
-      @UserId() ownerId: string,
+      @UserId() currentUserId: string,
       @Body() changeColorDTO: ChangePixelColorDTO
   ) {
-    const event = await this.flagService.changePixelColor(ownerId, changeColorDTO.pixelId, changeColorDTO.hexColor);
+    const event = await this.flagService.changePixelColor(currentUserId, changeColorDTO.pixelId, changeColorDTO.hexColor);
     return event;
   }
 
