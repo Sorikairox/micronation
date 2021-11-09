@@ -9,7 +9,7 @@ import {
 } from '@nestjs/common';
 import { Public } from '../user/decorators/Public';
 import { UserId } from '../user/decorators/UserId';
-import { ChangePixelColorDTO } from './dto/ChangePixelColorDto';
+import { ChangePixelColorDto } from './dto/ChangePixelColorDto';
 import { FlagService } from './FlagService';
 import { parseISO } from 'date-fns';
 
@@ -30,7 +30,7 @@ export class FlagController {
   @Put('pixel')
   async changePixelColor(
       @UserId() currentUserId: string,
-      @Body() changeColorDTO: ChangePixelColorDTO
+      @Body() changeColorDTO: ChangePixelColorDto
   ) {
     const event = await this.flagService.changePixelColor(currentUserId, changeColorDTO.pixelId, changeColorDTO.hexColor);
     return event;

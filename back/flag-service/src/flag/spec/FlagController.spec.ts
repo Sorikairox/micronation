@@ -1,4 +1,4 @@
-import { ChangePixelColorDTO } from '../dto/ChangePixelColorDto';
+import { ChangePixelColorDto } from '../dto/ChangePixelColorDto';
 import { UserHasNoPixelError } from '../errors/UserHasNoPixelError';
 import { FlagController } from '../FlagController';
 import { FlagService } from '../FlagService';
@@ -60,7 +60,7 @@ describe('FlagController', () => {
       let changePixelColorSpy;
       let res;
       beforeAll(async () => {
-        const data: ChangePixelColorDTO = {
+        const data: ChangePixelColorDto = {
           hexColor: '#FFFFFF',
           pixelId: 'pixelId',
         };
@@ -81,7 +81,7 @@ describe('FlagController', () => {
         let changePixelColorSpy;
         let res;
         beforeAll(async () => {
-          const data: ChangePixelColorDTO = {
+          const data: ChangePixelColorDto = {
             hexColor: '#FFFFFF',
             pixelId: 'pixelId',
           };
@@ -103,7 +103,7 @@ describe('FlagController', () => {
         let changePixelColorSpy;
         let res;
         beforeAll(async () => {
-          const data: ChangePixelColorDTO = {
+          const data: ChangePixelColorDto = {
             hexColor: '#FFFFFF',
             pixelId: 'pixelId',
           };
