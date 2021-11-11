@@ -525,6 +525,9 @@ import {
   mapFlagDataToWorldCoordinates,
   sanitizeFlagData
 } from "../js/flag";
+import {
+  addOrUpdatePixelInFlag
+} from "../js/pixelEventService";
 
 export default {
   name: "edit",
@@ -637,13 +640,7 @@ export default {
         .then((modifiedPixels) => {
           if (modifiedPixels.length > 0) {
             for (const modifiedPixel of modifiedPixels) {
-              const localIndex = indexInFlagToLocalIndexMap[modifiedPixel.indexInFlag];
-              if (localIndex == null) {
-                flagPixels.push(modifiedPixel);
-                indexInFlagToLocalIndexMap[modifiedPixel.indexInFlag] = flagPixels.length - 1;
-              } else {
-                flagPixels[localIndex] = modifiedPixel;
-              }
+              addOrUpdatePixelInFlag(flagPixels, modifiedPixel, indexInFlagToLocalIndexMap);
             }
 
             const hasChanged = initializeFlagResolution();

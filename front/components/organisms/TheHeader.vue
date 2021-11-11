@@ -24,6 +24,11 @@
         <template v-slot:icon><AppInfoIcon /></template>
         <span class="hidden md:block whitespace-nowrap">À propos</span>
       </AppButton>
+
+      <AppButton :to="{ name: 'history' }">
+        <template v-slot:icon><AppInfoIcon /></template>
+        <span class="hidden md:block whitespace-nowrap">Historique</span>
+      </AppButton>
     </div>
     <!-- <div v-if="loggedIn" class="flex justify-end">
       <AppButton icon="left" variant="contained" class="bg-primary-dark"
