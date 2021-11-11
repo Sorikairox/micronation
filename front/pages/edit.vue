@@ -284,7 +284,6 @@ function drawOverlayToBuffer() {
       }
       }
     }
-  drawWorld();
 }
 
 //Initalising the flag canvas
