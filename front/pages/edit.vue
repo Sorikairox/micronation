@@ -324,7 +324,7 @@ function init() {
 }
 
 //Change the color value and draw it to the user pixel
-function changeColor(x, y, newColor) {
+function changePixelColorByCoordinatesAndRedraw(x, y, newColor) {
   // // console.log("Pixel draw informations :", [newColor, userXPixel, userYPixel]);
   canvasPixelColor = newColor;
   flagPixelMap[x][y].hexColor = newColor;
@@ -534,7 +534,7 @@ export default {
     change(newColorObject) {
       this.color = newColorObject.hex;
       if (this.isMounted && this.editedPixel) {
-        changeColor(this.editedPixel.x, this.editedPixel.y, this.color);
+        changePixelColorByCoordinatesAndRedraw(this.editedPixel.x, this.editedPixel.y, this.color);
       }
     },
     Finish() {
@@ -690,7 +690,7 @@ export default {
           this.lastSubmittedTime = data.lastUpdate;
           console.debug("time last updated ", this.lastSubmittedTime);
           setUserPixel(this.x, this.y);
-          changeColor(this.x, this.y, this.color);
+          changePixelColorByCoordinatesAndRedraw(this.x, this.y, this.color);
           this.setPixelToEdit(null, { ...userPixelCoordinates, ...data }, false);
           // console.log('here');
         })
@@ -733,7 +733,7 @@ export default {
     },
     async setPixelToEdit(_, pixel, resetPreviousPixelColor = true) {
       if (this.editedPixel && resetPreviousPixelColor) {
-        changeColor(this.editedPixel.x, this.editedPixel.y, this.editedPixel.hexColor);
+        changePixelColorByCoordinatesAndRedraw(this.editedPixel.x, this.editedPixel.y, this.editedPixel.hexColor);
       }
 
       if (pixel) {
