@@ -184,18 +184,6 @@ import {
   mapCoordinatesToTargetRatioRectangleDistribution
 } from "../js/ratio-rectangle-distribution";
 
-class Pixel {
-  constructor(x, y, color) {
-    this.x = x;
-    this.y = y;
-    this.color = color;
-  }
-
-  draw() {
-    drawPixel(this.x, this.y, this.color, true);
-  }
-}
-
 //Initialising all the var
 let flagWidth, flagHeight;
 let flagPixels = [];
@@ -204,8 +192,9 @@ let flagPixelMap = new Array(flagWidth);
 
 //Canvas var
 let canvasContainer;
-let canvas, canvasDrawingContext;
+let canvas;
 let canvasBoundingBox;
+let bufferCanvas;
 
 const MIN_ZOOM_LEVEL = 1;
 let cameraZoom = 1;
@@ -230,47 +219,71 @@ function initializeFlagResolution() {
   const hasChanged = flagWidth !== resolution.width || flagHeight !== resolution.height;
   flagWidth = resolution.width;
   flagHeight = resolution.height;
+
+  if (hasChanged) {
+    initBufferCanvas();
+  }
+
   return hasChanged;
 }
 
-//Draw EVERY PIXEL of the map given
-function drawFlag(pixelMap) {
-  if (canvasDrawingContext) {
-    canvasDrawingContext.fillRect(cameraPositionX, cameraPositionY, canvas.width * cameraZoom, canvas.height * cameraZoom);
-    for (let i = 0; i < pixelMap.length; i++) {
-      for (let j = 0; j < pixelMap[i].length; j++) {
-        drawPixel(i, j, pixelMap[i][j]);
-      }
-    }
+function updateFlagPixelMap(data) {
+  flagPixelMap = mapFlagDataToWorldCoordinates(data, flagIndexToCoordinateCache);
+  drawFlagToBuffer();
+}
+
+function drawFlagToBuffer() {
+  const ctx = bufferCanvas.getContext('2d');
+
+  clearCanvas(bufferCanvas);
+
+  const imageData = ctx.createImageData(flagWidth, flagHeight);
+  const textureData = makeFlagTextureArray(flagWidth, flagHeight, flagPixelMap);
+  for(let i = 0; i < textureData.length; i++) {
+    imageData.data[i] = textureData[i] || 0;
   }
+  ctx.putImageData(imageData, 0, 0);
+}
+
+function drawPixelToBuffer(x, y, hexColor) {
+  const ctx = bufferCanvas.getContext('2d');
+  ctx.fillStyle = hexColor;
+  ctx.fillRect(x, y, 1, 1);
+}
+
+function clearCanvas(canvas) {
+  const ctx = canvas.getContext('2d');
+
+  ctx.save();
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.restore();
+}
+
+function drawWorld() {
+  if (!canvas) {
+    console.warn('drawWorld: canvas not ready');
+    return;
+  }
+
+  clearCanvas(canvas);
+
+  const ctx = canvas.getContext('2d');
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(bufferCanvas, 0, 0, canvas.width, canvas.height);
 }
 
 //Draw an overlay to find the user pixel on the whole flag
-function drawOverlay() {
-  for (let i = 0; i < flagPixelMap.length; i++) {
-    for (let j = 0; j < flagPixelMap[0].length; j++) {
-      if (!(i == userXPixel && j == userYPixel)) {
-        drawPixel(i, j, { hexColor : "#090909e0" });
+function drawOverlayToBuffer() {
+  for (let x = 0; x < flagPixelMap.length; x++) {
+    for (let y = 0; y < flagPixelMap[0].length; y++) {
+      if (!(x == userXPixel && y == userYPixel)) {
+        drawPixelToBuffer(x, y, "#090909e0");
       } else {
-        drawPixel(i, j, { hexColor : "#00ff16" });
+        drawPixelToBuffer(x, y, "#00ff16");
       }
       }
     }
-}
-
-//Draw a pixel on a coord given (x,y,clr), if changetexture is set to true, change the value on the map
-//You can change the size and the context to draw, default is flag context
-function drawPixel(x, y, pixel, changeTexture = false, size = 1, ctx = canvasDrawingContext) {
-  if (ctx && pixel?.hexColor) {
-    let drawWidth = (canvas.width / flagWidth) * size;
-    let drawHeight = (canvas.height / flagHeight) * size;
-    ctx.fillStyle = pixel.hexColor;
-    ctx.fillRect(x * drawWidth, y * drawHeight, drawWidth, drawHeight);
-    if (changeTexture) {
-      flagPixelMap[x][y].hexColor = pixel.hexColor;
-    }
-    ctx.fillStyle = "#ffffff";
-  }
 }
 
 //Initalising the flag canvas
@@ -282,13 +295,19 @@ function initCanvas() {
   canvas.height = ~~(canvas.width / 2);
 
   canvasBoundingBox = canvas.getBoundingClientRect();
-  canvasDrawingContext = canvas.getContext("2d");
 
   cameraZoom = 1;
   cameraPositionX = 0;
   cameraPositionY = 0;
 
-  drawFlag(flagPixelMap);
+  drawFlagToBuffer();
+  drawWorld();
+}
+
+function initBufferCanvas() {
+  bufferCanvas = document.createElement('canvas');
+  bufferCanvas.width = flagWidth;
+  bufferCanvas.height = flagHeight;
 }
 
 //Initalising the variables to their value
@@ -305,10 +324,12 @@ function init() {
 }
 
 //Change the color value and draw it to the user pixel
-function changeColor(x, y, newColor) {
+function changePixelColorByCoordinatesAndRedraw(x, y, newColor) {
   // // console.log("Pixel draw informations :", [newColor, userXPixel, userYPixel]);
   canvasPixelColor = newColor;
-  drawPixel(x, y, { hexColor : newColor } , true);
+  flagPixelMap[x][y].hexColor = newColor;
+  drawPixelToBuffer(x, y, newColor);
+  drawWorld();
 }
 
 function getCanvas() {
@@ -339,34 +360,34 @@ function onWheel(event) {
 
   const oldCameraPositionX = cameraPositionX;
   const oldCameraPositionY = cameraPositionY;
-  const mouseX = event.x - canvas.offsetLeft;
-  const mouseY = event.y - canvas.offsetTop;
+  const mouseX = event.offsetX;
+  const mouseY = event.offsetY;
   cameraPositionX += mouseX / oldCameraZoom - mouseX / cameraZoom;
   cameraPositionY += mouseY / oldCameraZoom - mouseY / cameraZoom;
   zoomAndTranslateContext(oldCameraZoom, oldCameraPositionX, oldCameraPositionY, cameraZoom, cameraPositionX, cameraPositionY);
-  drawFlag(flagPixelMap);
+  drawWorld();
 }
 
 let isDraggingFlag = false;
 let mouseDragX, mouseDragY;
 function initFlagDrag(e) {
   isDraggingFlag = true;
-  mouseDragX = e.clientX;
-  mouseDragY = e.clientY;
+  mouseDragX = e.offsetX;
+  mouseDragY = e.offsetY;
 }
 function dragFlag(e) {
   if (isDraggingFlag) {
     const oldCameraPositionX = cameraPositionX;
     const oldCameraPositionY = cameraPositionY;
-    cameraPositionX += (mouseDragX - e.clientX) / cameraZoom;
-    cameraPositionY += (mouseDragY - e.clientY) / cameraZoom;
+    cameraPositionX += (mouseDragX - e.offsetX) / cameraZoom;
+    cameraPositionY += (mouseDragY - e.offsetY) / cameraZoom;
 
-    mouseDragX = e.clientX;
-    mouseDragY = e.clientY;
+    mouseDragX = e.offsetX;
+    mouseDragY = e.offsetY;
 
     zoomAndTranslateContext(cameraZoom, oldCameraPositionX, oldCameraPositionY, cameraZoom, cameraPositionX, cameraPositionY);
 
-    drawFlag(flagPixelMap);
+    drawWorld();
   }
 }
 function endFlagDrag() {
@@ -377,7 +398,9 @@ function clampCameraScale() {
   cameraZoom = Math.min(Math.max(cameraZoom, MIN_ZOOM_LEVEL), getMaxZoomLevel());
 }
 
-function zoomAndTranslateContext(currentZoom, currentPositionX, currentPositionY, newScale, newPositionX, newPositionY, ctx = canvasDrawingContext) {
+function zoomAndTranslateContext(currentZoom, currentPositionX, currentPositionY, newScale, newPositionX, newPositionY) {
+  const ctx = canvas.getContext('2d');
+
   ctx.translate(currentPositionX, currentPositionY);
 
   const relativeZoom = newScale / currentZoom;
@@ -424,6 +447,11 @@ import AppDoneIcon from "~/components/atoms/icons/AppDoneIcon";
 import AppHelpIcon from "../components/atoms/icons/AppHelpIcon";
 import AppButton from "../components/atoms/AppButton";
 import AppPlaceIcon from "../components/atoms/icons/AppPlaceIcon";
+import {
+  makeFlagTextureArray,
+  mapFlagDataToWorldCoordinates,
+  sanitizeFlagData
+} from "../js/flag";
 
 export default {
   name: "edit",
@@ -506,7 +534,7 @@ export default {
     change(newColorObject) {
       this.color = newColorObject.hex;
       if (this.isMounted && this.editedPixel) {
-        changeColor(this.editedPixel.x, this.editedPixel.y, this.color);
+        changePixelColorByCoordinatesAndRedraw(this.editedPixel.x, this.editedPixel.y, this.color);
       }
     },
     Finish() {
@@ -514,9 +542,11 @@ export default {
       this.sendPixel(this.x, this.y);
     },
     Overlay() {
-      drawOverlay();
+      drawOverlayToBuffer();
+      drawWorld();
       setTimeout(() => {
-        drawFlag(flagPixelMap);
+        drawFlagToBuffer();
+        drawWorld();
       }, 3000);
     },
     async Refresh(ack = false) {
@@ -554,7 +584,7 @@ export default {
               }
               flagPixelMap[x][y] = modifiedPixel;
               if (!hasChanged) {
-                drawPixel(x, y, modifiedPixel);
+                drawPixelToBuffer(x, y, modifiedPixel.hexColor);
               }
             }
 
@@ -562,49 +592,34 @@ export default {
             this.setNeighboursInfo();
 
             if (hasChanged) {
-              drawFlag(flagPixelMap);
+              drawFlagToBuffer();
             }
+
+            drawWorld();
           }
         })
         // .catch((err) => console.log(err));
     },
     async FetchMap() {
       // console.log("Fetching the whole map");
-      return await fetch(`${process.env.apiUrl}/flag`, {
+      const response = await fetch(`${process.env.apiUrl}/flag`, {
         method: "GET",
         crossDomain: true,
         headers: {
           "Content-Type": "application/json",
         },
-      })
-        .then((response) => response.json())
-        .then((data) => {
-          // console.log("DEBUG - New map array : ", data);
+      });
+      const data = await response.json();
+      const sanitizedData = sanitizeFlagData(data);
 
-          data = data.filter(p => !!p)
-            .sort((a, b) => (a.indexInflag - b.indexInFlag));
+      flagPixels = sanitizedData;
+      initializeFlagResolution();
 
-          flagPixels = data;
-          initializeFlagResolution();
+      for (let i = 0; i < sanitizedData.length; i++) {
+        indexInFlagToLocalIndexMap[sanitizedData[i].indexInFlag] = i;
+      }
 
-          const NEW_MAP = new Array(flagWidth);
-          for (let i = 0; i < NEW_MAP.length; i++) {
-            NEW_MAP[i] = new Array(flagHeight);
-          }
-
-          for (let i = 0; i < data.length; i++) {
-            indexInFlagToLocalIndexMap[data[i].indexInFlag] = i;
-            const { x, y } = getCoordinateFromFlagIndex(i);
-            if (!NEW_MAP[x]) {
-              NEW_MAP[x] = [];
-              console.warn(`no row for x=${x}`)
-            }
-            NEW_MAP[x][y] = data[i];
-          }
-          // console.log('new map');
-          return NEW_MAP;
-        })
-        // .catch((error) => console.log(error));
+      updateFlagPixelMap(sanitizedData);
     },
     async setNeighboursInfo() {
       this.topPixel = await this.getNeighbourPixelIfItExists(this.x, this.y - 1 );
@@ -667,7 +682,7 @@ export default {
         .then((response) => response.json())
         .then(async (data) => {
           console.debug("User pixel : ", data);
-          flagPixelMap = await this.FetchMap();
+          await this.FetchMap();
           const userPixelCoordinates = getCoordinateFromFlagIndex(indexInFlagToLocalIndexMap[data.indexInFlag]);
           this.x = userPixelCoordinates.x;
           this.y = userPixelCoordinates.y;
@@ -675,7 +690,7 @@ export default {
           this.lastSubmittedTime = data.lastUpdate;
           console.debug("time last updated ", this.lastSubmittedTime);
           setUserPixel(this.x, this.y);
-          changeColor(this.x, this.y, this.color);
+          changePixelColorByCoordinatesAndRedraw(this.x, this.y, this.color);
           this.setPixelToEdit(null, { ...userPixelCoordinates, ...data }, false);
           // console.log('here');
         })
@@ -718,7 +733,7 @@ export default {
     },
     async setPixelToEdit(_, pixel, resetPreviousPixelColor = true) {
       if (this.editedPixel && resetPreviousPixelColor) {
-        changeColor(this.editedPixel.x, this.editedPixel.y, this.editedPixel.hexColor);
+        changePixelColorByCoordinatesAndRedraw(this.editedPixel.x, this.editedPixel.y, this.editedPixel.hexColor);
       }
 
       if (pixel) {
@@ -837,10 +852,12 @@ export default {
   position: absolute;
   top: 0;
   left: 0;
+
   background: #000000cc;
   color: #fff;
-
   border-radius: 0 0 0.25em 0;
+
+  pointer-events: none;
 }
 
 #sidePanel {
