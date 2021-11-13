@@ -1,9 +1,10 @@
-import { UserHasNoPixel } from '../errors/UserHasNoPixel';
+import { ChangePixelColorDto } from '../dto/ChangePixelColorDto';
+import { UserHasNoPixelError } from '../errors/UserHasNoPixelError';
 import { FlagController } from '../FlagController';
 import { FlagService } from '../FlagService';
 import { InternalServerErrorException } from '@nestjs/common';
 import { UserAlreadyOwnsAPixelError } from "../errors/UserAlreadyOwnsAPixelError";
-import { CooldownTimerHasNotEndedYetError } from "../errors/CooldownTimerHasNotEndedYetError";
+import { UserActionIsOnCooldownError } from "../errors/UserActionIsOnCooldownError";
 
 describe('FlagController', () => {
   let flagController: FlagController;
@@ -59,10 +60,14 @@ describe('FlagController', () => {
       let changePixelColorSpy;
       let res;
       beforeAll(async () => {
+        const data: ChangePixelColorDto = {
+          hexColor: '#FFFFFF',
+          pixelId: 'pixelId',
+        };
         changePixelColorSpy = jest
           .spyOn(flagService, 'changePixelColor')
           .mockReturnValue({ modified: true } as any);
-        res = await flagController.changePixelColor('ownerId', '#DDDDDD');
+        res = await flagController.changePixelColor('ownerId', data);
       });
       it('call changePixelColor from service', () => {
         expect(changePixelColorSpy).toBeCalledTimes(1);
@@ -76,36 +81,44 @@ describe('FlagController', () => {
         let changePixelColorSpy;
         let res;
         beforeAll(async () => {
+          const data: ChangePixelColorDto = {
+            hexColor: '#FFFFFF',
+            pixelId: 'pixelId',
+          };
           changePixelColorSpy = jest
             .spyOn(flagService, 'changePixelColor')
             .mockImplementation(() => {
-              throw new CooldownTimerHasNotEndedYetError(1000);
+              throw new UserActionIsOnCooldownError(1000);
             });
-          res = flagController.changePixelColor('ownerId', '#ffffff');
+          res = flagController.changePixelColor('ownerId', data);
         });
         it('call changePixelColor from service', () => {
           expect(changePixelColorSpy).toBeCalledTimes(1);
         });
         it('throws CooldownTimerHasNotEndedYetError from service', async () => {
-          await expect(res).rejects.toThrow(CooldownTimerHasNotEndedYetError);
+          await expect(res).rejects.toThrow(UserActionIsOnCooldownError);
         });
       });
       describe('service.changePixelColor throw UserHasNoPixel', () => {
         let changePixelColorSpy;
         let res;
         beforeAll(async () => {
+          const data: ChangePixelColorDto = {
+            hexColor: '#FFFFFF',
+            pixelId: 'pixelId',
+          };
           changePixelColorSpy = jest
             .spyOn(flagService, 'changePixelColor')
             .mockImplementation(() => {
-              throw new UserHasNoPixel();
+              throw new UserHasNoPixelError();
             });
-          res = flagController.changePixelColor('ownerId', '#ffffff');
+          res = flagController.changePixelColor('ownerId', data);
         });
         it('call changePixelColor from service', () => {
           expect(changePixelColorSpy).toBeCalledTimes(1);
         });
         it('throws UserHasNoPixel from service', async () => {
-          await expect(res).rejects.toThrow(UserHasNoPixel);
+          await expect(res).rejects.toThrow(UserHasNoPixelError);
         });
       });
     });

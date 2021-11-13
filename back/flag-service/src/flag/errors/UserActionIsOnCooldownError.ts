@@ -1,6 +1,6 @@
 import { HttpException, HttpStatus } from "@nestjs/common";
 
-export class CooldownTimerHasNotEndedYetError extends HttpException {
+export class UserActionIsOnCooldownError extends HttpException {
   constructor(remainingTimeInMilliseconds: number) {
     super({
       message: 'Please retry later.',

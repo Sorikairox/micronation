@@ -8,15 +8,9 @@
     :rel="href ? 'noreferrer noopener' : undefined"
     @click="to ? '' : $emit('click', $event)"
   >
-    <span v-if="icon === 'left'" :class="typoIcon">
-      <slot name="icon"></slot>
-    </span>
-    <span :class="typoButton">
-      <slot></slot>
-    </span>
-    <span v-if="icon === 'right'" :class="typoIcon">
-      <slot name="icon"></slot>
-    </span>
+    <slot name="icon" v-if="icon === 'left'"></slot>
+    <slot :class="typoButton"></slot>
+    <slot name="icon" v-if="icon === 'right'"></slot>
   </component>
 </template>
 
@@ -37,6 +31,10 @@ export default {
       validator(value) {
         return ["small", "medium"].includes(value);
       },
+    },
+    disabled: {
+      type: Boolean,
+      default: false,
     },
     to: {
       type: Object,
@@ -95,13 +93,12 @@ export default {
       classNames.push("flex flex-row items-center");
       if (this.$slots.icon) classNames.push("space-x-1");
 
+      if (this.disabled) classNames.push('disabled cursor-not-allowed');
+
       return classNames.join(" ");
     },
     typoButton() {
       return this.size == "medium" ? " body-1" : " body-2";
-    },
-    typoIcon() {
-      return this.isContained ? "text-grey-light" : "text-grey-dark";
     },
   },
 };
@@ -112,5 +109,10 @@ export default {
 .fitButton {
   /* width: fit-content; */
   /* height: fit-content; */
+}
+.disabled, .disabled:hover {
+  background: #f3f3f3;
+  color: #777;
+  box-shadow: none;
 }
 </style>

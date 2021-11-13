@@ -1,8 +1,10 @@
 import { HttpStatus, INestApplication } from '@nestjs/common';
+import { DatabaseEvent } from 'library/database/object/event/DatabaseEvent';
 import request from 'supertest';
 import { DatabaseClientService } from 'library/database/client/DatabaseClientService';
 import * as DirectusModule from "@directus/sdk";
 import { AuthToken, Directus, PartialItem, QueryOne, TypeOf, UserItem } from "@directus/sdk";
+import { Pixel } from '../src/flag/pixel/Pixel';
 import { bootstrap } from "../src/bootstrap";
 import { AuthBackend } from "../src/user/AuthBackend";
 import { registerAndLogin } from "./util/registerAndLogin";
@@ -17,8 +19,7 @@ describe('Flag (e2e)', () => {
   let savedEnvAuthBackend: string;
 
   let app: INestApplication;
-  let createdPixel;
-  let modifiedPixel;
+  let createdPixelEvent: DatabaseEvent<Pixel>;
   let authToken: string;
   let userId: string;
 
@@ -74,15 +75,16 @@ describe('Flag (e2e)', () => {
 
       describe('/pixel', () => {
         describe('PUT/POST flow', () => {
-          it('PUT UserHasNoPixel error', async () => {
+          it('PUT PixelDoesNotExist error', async () => {
             const res = await request(app.getHttpServer())
               .put('/pixel')
               .set('authorization', authToken)
               .send({
+                pixelId: 'fakePixelId',
                 hexColor: '#DDDDDD',
               });
             expect(res.status).toEqual(400);
-            expect(res.body.message).toEqual('User has no pixel.');
+            expect(res.body.message).toEqual('Pixel does not exist.');
           });
 
           it('POST success', async () => {
@@ -93,15 +95,44 @@ describe('Flag (e2e)', () => {
                 hexColor: '#FFADAD',
               });
             expect(res.status).toEqual(201);
-            createdPixel = res.body;
+            createdPixelEvent = res.body;
           });
 
-          it('PUT fail with bad color', async () => {
+          for(const badColor of [
+            'badcolor',
+            '#FFF',
+            '#ZZZZZZ',
+            '#FFFFFFF',
+          ]) {
+            it(`PUT fails with bad color "${badColor}"`, async () => {
+              const res = await request(app.getHttpServer())
+                .put('/pixel')
+                .set('authorization', authToken)
+                .send({
+                  pixelId: createdPixelEvent.entityId,
+                  hexColor: badColor,
+                });
+              expect(res.status).toEqual(400);
+            });
+          }
+
+          it(`PUT fails with empty id`, async () => {
             const res = await request(app.getHttpServer())
               .put('/pixel')
               .set('authorization', authToken)
               .send({
-                hexColor: 'badcolor',
+                hexColor: "#FFFFFF",
+              });
+            expect(res.status).toEqual(400);
+          });
+
+          it(`PUT fails with null for pixelId`, async () => {
+            const res = await request(app.getHttpServer())
+              .put('/pixel')
+              .set('authorization', authToken)
+              .send({
+                pixelId: null,
+                hexColor: "#FFFFFF",
               });
             expect(res.status).toEqual(400);
           });
@@ -111,10 +142,10 @@ describe('Flag (e2e)', () => {
               .put('/pixel')
               .set('authorization', authToken)
               .send({
+                pixelId: createdPixelEvent.entityId,
                 hexColor: '#DDDDDD',
               });
             expect(res.status).toEqual(200);
-            modifiedPixel = res.body;
           });
         });
 

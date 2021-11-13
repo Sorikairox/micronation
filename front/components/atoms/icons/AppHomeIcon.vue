@@ -11,9 +11,3 @@ export default {
   name: "AppHomeIcon",
 };
 </script>
-
-<style>
-#db-icon {
-  max-width: 40px;
-}
-</style>

@@ -27,14 +27,24 @@
             cursor-move
           "
         >
-          <div>
+          <div class="relative rounded-md overflow-hidden bg-white" style="border: 1px solid #ccc">
             <canvas
               id="flagCanva"
-              class="w-full border-2 rounded-md border-grey-dark"
+              class="w-full border-grey-dark"
+              @mousemove="updateHoveredPixel"
+              @click="setPixelToEditFromHover"
+              @mouseenter="isMouseOverCanvas = true"
+              @mouseleave="isMouseOverCanvas = false"
             />
+            <div class="overlay" v-if="isMouseOverCanvas">
+              <div class="m-2 text-center">
+                [{{ hoveredPixelPosition.x + 1 }}:{{ hoveredPixelPosition.y + 1 }}]
+              </div>
+            </div>
           </div>
         </div>
         <div
+          id="sidePanel"
           class="
             flex flex-col
             m-2 md:m-4 md:ml-0
@@ -44,90 +54,72 @@
             h-100
             justify-between
           "
-          style="max-width: 500px"
         >
-          <div class="flex-col flex-1 flex justify-center relative">
-            <img class="cursor-pointer w-8 absolute right-0 top-0" @click="showHelp = true" src="https://img.icons8.com/ios/50/000000/help.png" alt="Help icon">
+          <div class="flex-col flex-1 flex justify-start relative">
+            <button
+              v-on:click="showHelp = true"
+              class="cursor-pointer w-8 h-8 p-1 absolute right-0 top-0 hover:text-grey-light"
+            >
+              <AppHelpIcon/>
+            </button>
 
-            <div class="pr-10">
-              <div>Voisin de gauche : <span v-if="leftPixel">[{{leftPixel.x + 1}}:{{leftPixel.y + 1}}] {{leftPixel.username}} </span><span v-else>Pas de voisin</span></div>
-              <div>Voisin du haut : <span v-if="topPixel">[{{topPixel.x + 1}}:{{topPixel.y + 1}}] {{topPixel.username}} </span><span v-else>Pas de voisin</span></div>
-              <div>Voisin de droite : <span v-if="rightPixel">[{{rightPixel.x + 1}}:{{rightPixel.y + 1}}] {{rightPixel.username}}</span><span v-else>Pas de voisin</span></div>
-              <div>Voisin du bas : <span v-if="bottomPixel">[{{bottomPixel.x + 1}}:{{bottomPixel.y + 1}}] {{bottomPixel.username}} </span><span v-else>Pas de voisin</span></div>
+            <div class="pr-10 property-list">
+              <div><span class="property-name">Voisin de gauche :</span> <span v-if="leftPixel">[{{leftPixel.x + 1}}:{{leftPixel.y + 1}}] {{leftPixel.username}} </span><span v-else>Pas de voisin</span></div>
+              <div><span class="property-name">Voisin du haut :</span> <span v-if="topPixel">[{{topPixel.x + 1}}:{{topPixel.y + 1}}] {{topPixel.username}} </span><span v-else>Pas de voisin</span></div>
+              <div><span class="property-name">Voisin de droite :</span> <span v-if="rightPixel">[{{rightPixel.x + 1}}:{{rightPixel.y + 1}}] {{rightPixel.username}}</span><span v-else>Pas de voisin</span></div>
+              <div><span class="property-name">Voisin du bas :</span> <span v-if="bottomPixel">[{{bottomPixel.x + 1}}:{{bottomPixel.y + 1}}] {{bottomPixel.username}} </span><span v-else>Pas de voisin</span></div>
             </div>
 
             <AppButton
               size="small"
               v-on:click="Overlay()"
-              class="mt-2 bg-positive-base"
+              class="my-2 bg-positive-base"
             >
+              <template v-slot:icon><AppPlaceIcon/></template>
               Où est ma zone [{{ x + 1 }}:{{ y + 1 }}] ?
             </AppButton>
-          </div>
-          <div class="flex-col justify-between flex-1 hidden">
-              <div class="flex justify-center">
-                <AppButton v-if="topPixel"
-                  size="medium"
-                  class="text-white my-auto pixelButton"
-                  :style="topPixelButtonStyle"
-                >
-                  [{{topPixel.x + 1}}:{{topPixel.y + 1}}] {{topPixel.username}}
-                </AppButton>
-              </div>
-              <div class="flex justify-between">
-                <AppButton v-if="leftPixel"
-                           size="medium"
-                           class="text-white my-auto pixelButton"
-                           :style="leftPixelButtonStyle"
-                >
-                   [{{leftPixel.x + 1}}:{{leftPixel.y + 1}}] {{leftPixel.username}}
-                </AppButton>
-                <AppButton
-                  size="medium"
-                  v-on:click="Overlay()"
-                  class="my-auto pixelButton"
-                  :style="myPixelButtonStyle"
-                >
-                  [{{ x + 1 }}:{{ y + 1 }}] Toi
-                </AppButton>
-                <AppButton v-if="rightPixel"
-                           size="medium"
-                           class="text-white my-auto pixelButton"
-                           :style="rightPixelButtonStyle"
-                >
-                  [{{rightPixel.x + 1}}:{{rightPixel.y + 1}}] {{rightPixel.username}}
-                </AppButton>
-              </div>
-              <div class="flex justify-center">
-                <AppButton v-if="bottomPixel"
-                           size="medium"
-                           class="text-white my-auto pixelButton"
-                           :style="bottomPixelButtonStyle"
-                >
-                  [{{bottomPixel.x + 1}}:{{bottomPixel.y + 1}}] {{bottomPixel.username}}
-                </AppButton>
-              </div>
-            </div>
+
             <hr class="mt-1 border-grey-light">
-            <div class="flex flex-col text-center">
-              <h1 class="m-4">Modifies la couleur de ta zone ci-dessous</h1>
-              <chrome-picker style="width: 100%;height: auto" v-model="color" @input="change"></chrome-picker>
-              <AppButton v-if="!requesting"
-                         size="medium"
-                         v-on:click="Finish()"
-                         variant="contained"
-                         class="bg-primary-dark mt-4"
+          </div>
+          <div class="flex flex-col text-center">
+            <h1 class="m-4">
+              <div v-if="editedPixel" class="property-list">
+                <div><span class="property-name">Zone :</span> [{{ editedPixel.x + 1 }}:{{ editedPixel.y + 1 }}]</div>
+                <div><span class="property-name">Propriétaire :</span> {{ editedPixel.username || editedPixel.author }}</div>
+              </div>
+              <span v-if="!editedPixel">Pas de zone sélectionnée</span>
+            </h1>
+            <div class="flex mb-2 justify-between items-center">
+              <span class="p-2">x:</span>
+              <input
+                class="flex-grow number-input inline-block rounded p-2"
+                type="number"
+                step="1"
+                v-model="modifiedPixelX"
+                @change="setPixelToEditFromCoordinates"
               >
-                Valider
-              </AppButton>
-              <AppButton v-if="requesting"
-                         size="medium"
-                         variant="contained"
-                         class="bg-primary-dark mt-4"
+              <span class="p-2">y:</span>
+              <input
+                class="flex-grow number-input inline-block rounded p-2"
+                type="number"
+                step="1"
+                v-model="modifiedPixelY"
+                @change="setPixelToEditFromCoordinates"
               >
-                <div class="loader"></div>
-              </AppButton>
             </div>
+            <chrome-picker style="width: 100%;height: auto" v-model="color" @input="change"></chrome-picker>
+            <AppButton
+                       size="medium"
+                       v-on:click="Finish()"
+                       variant="contained"
+                       class="bg-primary-dark mt-4"
+                       :disabled="requesting || !editedPixel"
+            >
+              <template v-slot:icon v-if="!requesting"><AppDoneIcon/></template>
+              <span v-if="!requesting">Modifier la couleur de la zone<span v-if="editedPixel"> [{{editedPixel.x + 1}}:{{editedPixel.y + 1}}]</span></span>
+              <div v-if="requesting" class="loader"></div>
+            </AppButton>
+          </div>
         </div>
       </div>
       <AppAlert
@@ -135,8 +127,7 @@
         variant="error"
         @close="closeCooldownModal"
         :open="openFailedEditModal"
-        >La date de dernière modification de ta zone est trop récente,
-        merci de patienter ! <br />
+        >La date de ta dernière modification d'un pixel est trop récente, merci de patienter !<br />
         Temps restant :
         <countdown
           :time="this.cooldownTime"
@@ -185,25 +176,12 @@
 
 <script>
 import fouloscopie from "fouloscopie";
-import AppAlert from "~/components/organisms/AppAlert";
 import countdown from "@chenfengyuan/vue-countdown";
 import {
   DESIRED_FLAG_RATIO,
   getFlagResolutionFromIndexToCoordinateMap,
   mapCoordinatesToTargetRatioRectangleDistribution
 } from "../js/ratio-rectangle-distribution";
-
-class Pixel {
-  constructor(x, y, color) {
-    this.x = x;
-    this.y = y;
-    this.color = color;
-  }
-
-  draw() {
-    drawPixel(this.x, this.y, this.color, true);
-  }
-}
 
 //Initialising all the var
 let flagWidth, flagHeight;
@@ -213,8 +191,9 @@ let flagPixelMap = new Array(flagWidth);
 
 //Canvas var
 let canvasContainer;
-let canvas, canvasDrawingContext;
+let canvas;
 let canvasBoundingBox;
+let bufferCanvas;
 
 const MIN_ZOOM_LEVEL = 1;
 let cameraZoom = 1;
@@ -239,45 +218,71 @@ function initializeFlagResolution() {
   const hasChanged = flagWidth !== resolution.width || flagHeight !== resolution.height;
   flagWidth = resolution.width;
   flagHeight = resolution.height;
+
+  if (hasChanged) {
+    initBufferCanvas();
+  }
+
   return hasChanged;
 }
 
-//Draw EVERY PIXEL of the map given
-function drawFlag(pixelMap) {
-  canvasDrawingContext.fillRect(cameraPositionX, cameraPositionY, canvas.width*cameraZoom, canvas.height*cameraZoom);
-  for (let i = 0; i < pixelMap.length; i++) {
-    for (let j = 0; j < pixelMap[i].length; j++) {
-      drawPixel(i, j, pixelMap[i][j]);
-    }
+function updateFlagPixelMap(data) {
+  flagPixelMap = mapFlagDataToWorldCoordinates(data, flagIndexToCoordinateCache);
+  drawFlagToBuffer();
+}
+
+function drawFlagToBuffer() {
+  const ctx = bufferCanvas.getContext('2d');
+
+  clearCanvas(bufferCanvas);
+
+  const imageData = ctx.createImageData(flagWidth, flagHeight);
+  const textureData = makeFlagTextureArray(flagWidth, flagHeight, flagPixelMap);
+  for(let i = 0; i < textureData.length; i++) {
+    imageData.data[i] = textureData[i] || 0;
   }
+  ctx.putImageData(imageData, 0, 0);
+}
+
+function drawPixelToBuffer(x, y, hexColor) {
+  const ctx = bufferCanvas.getContext('2d');
+  ctx.fillStyle = hexColor;
+  ctx.fillRect(x, y, 1, 1);
+}
+
+function clearCanvas(canvas) {
+  const ctx = canvas.getContext('2d');
+
+  ctx.save();
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.restore();
+}
+
+function drawWorld() {
+  if (!canvas) {
+    console.warn('drawWorld: canvas not ready');
+    return;
+  }
+
+  clearCanvas(canvas);
+
+  const ctx = canvas.getContext('2d');
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(bufferCanvas, 0, 0, canvas.width, canvas.height);
 }
 
 //Draw an overlay to find the user pixel on the whole flag
-function drawOverlay() {
-  for (let i = 0; i < flagPixelMap.length; i++) {
-    for (let j = 0; j < flagPixelMap[0].length; j++) {
-      if (!(i == userXPixel && j == userYPixel)) {
-        drawPixel(i, j, { hexColor : "#090909e0" });
+function drawOverlayToBuffer() {
+  for (let x = 0; x < flagPixelMap.length; x++) {
+    for (let y = 0; y < flagPixelMap[0].length; y++) {
+      if (!(x == userXPixel && y == userYPixel)) {
+        drawPixelToBuffer(x, y, "#090909e0");
       } else {
-        drawPixel(i, j, { hexColor : "#00ff16" });
+        drawPixelToBuffer(x, y, "#00ff16");
       }
       }
     }
-}
-
-//Draw a pixel on a coord given (x,y,clr), if changetexture is set to true, change the value on the map
-//You can change the size and the context to draw, default is flag context
-function drawPixel(x, y, pixel, changeTexture = false, size = 1, ctx = canvasDrawingContext) {
-  if (ctx && pixel?.hexColor) {
-    let drawWidth = (canvas.width / flagWidth) * size;
-    let drawHeight = (canvas.height / flagHeight) * size;
-    ctx.fillStyle = pixel.hexColor;
-    ctx.fillRect(x * drawWidth, y * drawHeight, drawWidth, drawHeight);
-    if (changeTexture) {
-      flagPixelMap[x][y].hexColor = pixel.hexColor;
-    }
-    ctx.fillStyle = "#ffffff";
-  }
 }
 
 //Initalising the flag canvas
@@ -289,13 +294,19 @@ function initCanvas() {
   canvas.height = ~~(canvas.width / 2);
 
   canvasBoundingBox = canvas.getBoundingClientRect();
-  canvasDrawingContext = canvas.getContext("2d");
 
   cameraZoom = 1;
   cameraPositionX = 0;
   cameraPositionY = 0;
 
-  drawFlag(flagPixelMap);
+  drawFlagToBuffer();
+  drawWorld();
+}
+
+function initBufferCanvas() {
+  bufferCanvas = document.createElement('canvas');
+  bufferCanvas.width = flagWidth;
+  bufferCanvas.height = flagHeight;
 }
 
 //Initalising the variables to their value
@@ -306,16 +317,22 @@ function init() {
 
   canvas.addEventListener("wheel", onWheel);
 
-  canvas.addEventListener("mousedown", onMouseDown);
-  window.addEventListener("mousemove", onMouseMove);
-  window.addEventListener("mouseup", onMouseUp);
+  canvas.addEventListener("mousedown", initFlagDrag);
+  window.addEventListener("mousemove", dragFlag);
+  window.addEventListener("mouseup", endFlagDrag);
+
+  canvas.addEventListener("touchstart", handleTouchStart);
+  canvas.addEventListener("touchmove", handleTouchMove);
+  canvas.addEventListener("touchend", handleTouchEnd);
 }
 
 //Change the color value and draw it to the user pixel
-function changeColor(newColor) {
+function changePixelColorByCoordinatesAndRedraw(x, y, newColor) {
   // // console.log("Pixel draw informations :", [newColor, userXPixel, userYPixel]);
   canvasPixelColor = newColor;
-  drawPixel(userXPixel, userYPixel, { hexColor : newColor } , true);
+  flagPixelMap[x][y].hexColor = newColor;
+  drawPixelToBuffer(x, y, newColor);
+  drawWorld();
 }
 
 function getCanvas() {
@@ -335,6 +352,13 @@ function onWheel(event) {
   event.preventDefault();
 
   const zoomDelta = event.deltaY * -0.01;
+  zoomOnPositionByAmount({
+    x: event.offsetX,
+    y: event.offsetY,
+  }, zoomDelta);
+}
+
+function zoomOnPositionByAmount(position, zoomDelta) {
   if (zoomDelta < 0 && cameraZoom <= MIN_ZOOM_LEVEL ||
       zoomDelta > 0 && cameraZoom >= getMaxZoomLevel()) {
     return;
@@ -346,45 +370,108 @@ function onWheel(event) {
 
   const oldCameraPositionX = cameraPositionX;
   const oldCameraPositionY = cameraPositionY;
-  const mouseX = event.x - canvas.offsetLeft;
-  const mouseY = event.y - canvas.offsetTop;
+  const mouseX = position.x;
+  const mouseY = position.y;
   cameraPositionX += mouseX / oldCameraZoom - mouseX / cameraZoom;
   cameraPositionY += mouseY / oldCameraZoom - mouseY / cameraZoom;
   zoomAndTranslateContext(oldCameraZoom, oldCameraPositionX, oldCameraPositionY, cameraZoom, cameraPositionX, cameraPositionY);
-  drawFlag(flagPixelMap);
+  drawWorld();
 }
 
-let isMoving = false;
+let isDraggingFlag = false;
 let mouseDragX, mouseDragY;
-function onMouseDown(e) {
-  isMoving = true;
-  mouseDragX = e.clientX;
-  mouseDragY = e.clientY;
+function getMouseOrTouchEventPosition(e) {
+  const eventPosition = {
+    x: e.offsetX,
+    y: e.offsetY,
+  };
+
+  if (e.touches) {
+    const touch = e.touches[0];
+    const canvasBoundingBox = canvas.getBoundingClientRect();
+    eventPosition.x = touch.clientX - canvasBoundingBox.left;
+    eventPosition.y = touch.clientY - canvasBoundingBox.top;
+  }
+
+  return eventPosition;
 }
-function onMouseMove(e) {
-  if (isMoving) {
+function initFlagDrag(e) {
+  isDraggingFlag = true;
+
+  const eventPosition = getMouseOrTouchEventPosition(e);
+  mouseDragX = eventPosition.x;
+  mouseDragY = eventPosition.y;
+}
+function dragFlag(e) {
+  if (isDraggingFlag) {
+    const eventPosition = getMouseOrTouchEventPosition(e);
+
     const oldCameraPositionX = cameraPositionX;
     const oldCameraPositionY = cameraPositionY;
-    cameraPositionX += (mouseDragX - e.clientX) / cameraZoom;
-    cameraPositionY += (mouseDragY - e.clientY) / cameraZoom;
+    cameraPositionX += (mouseDragX - eventPosition.x) / cameraZoom;
+    cameraPositionY += (mouseDragY - eventPosition.y) / cameraZoom;
 
-    mouseDragX = e.clientX;
-    mouseDragY = e.clientY;
+    mouseDragX = eventPosition.x;
+    mouseDragY = eventPosition.y;
 
     zoomAndTranslateContext(cameraZoom, oldCameraPositionX, oldCameraPositionY, cameraZoom, cameraPositionX, cameraPositionY);
 
-    drawFlag(flagPixelMap);
+    drawWorld();
   }
 }
-function onMouseUp() {
-  isMoving = false;
+function endFlagDrag() {
+  isDraggingFlag = false;
+}
+
+let pinchPosition;
+let pinchDistance;
+function getPinchGesturePosition(touch1, touch2) {
+  const canvasBoundingBox = canvas.getBoundingClientRect();
+  const pos1 = { x: touch1.clientX, y: touch1.clientY };
+  const pos2 = { x: touch2.clientX, y: touch2.clientY };
+  return {
+    x: (pos1.x + pos2.x) / 2 - canvasBoundingBox.left,
+    y: (pos1.y + pos2.y) / 2 - canvasBoundingBox.top,
+  };
+}
+function getPinchGestureDistance(touch1, touch2) {
+  const pos1 = { x: touch1.clientX, y: touch1.clientY };
+  const pos2 = { x: touch2.clientX, y: touch2.clientY };
+  return Math.sqrt(Math.pow(pos1.x - pos2.x, 2) + Math.pow(pos1.y - pos2.y, 2))
+}
+function handleTouchStart(e) {
+  if (e.touches.length >= 2) {
+    pinchPosition = getPinchGesturePosition(...e.touches);
+    pinchDistance = getPinchGestureDistance(...e.touches);
+  } else {
+    initFlagDrag(e);
+  }
+}
+function handleTouchMove(e) {
+  e.preventDefault();
+  if (e.touches.length >= 2) {
+    const newPinchDistance = getPinchGestureDistance(...e.touches);
+
+    const difference = newPinchDistance - pinchDistance;
+    const zoomDelta = difference * 0.1;
+    zoomOnPositionByAmount(pinchPosition, zoomDelta);
+
+    pinchDistance = newPinchDistance;
+  } else {
+    dragFlag(e);
+  }
+}
+function handleTouchEnd() {
+  endFlagDrag();
 }
 
 function clampCameraScale() {
   cameraZoom = Math.min(Math.max(cameraZoom, MIN_ZOOM_LEVEL), getMaxZoomLevel());
 }
 
-function zoomAndTranslateContext(currentZoom, currentPositionX, currentPositionY, newScale, newPositionX, newPositionY, ctx = canvasDrawingContext) {
+function zoomAndTranslateContext(currentZoom, currentPositionX, currentPositionY, newScale, newPositionX, newPositionY) {
+  const ctx = canvas.getContext('2d');
+
   ctx.translate(currentPositionX, currentPositionY);
 
   const relativeZoom = newScale / currentZoom;
@@ -426,10 +513,24 @@ const getStyle = (color) => {
 }
 
 import { Chrome } from 'vue-color';
+import AppAlert from "~/components/organisms/AppAlert";
+import AppDoneIcon from "~/components/atoms/icons/AppDoneIcon";
+import AppHelpIcon from "../components/atoms/icons/AppHelpIcon";
+import AppButton from "../components/atoms/AppButton";
+import AppPlaceIcon from "../components/atoms/icons/AppPlaceIcon";
+import {
+  makeFlagTextureArray,
+  mapFlagDataToWorldCoordinates,
+  sanitizeFlagData
+} from "../js/flag";
 
 export default {
   name: "edit",
   components: {
+    AppPlaceIcon,
+    AppButton,
+    AppHelpIcon,
+    AppDoneIcon,
     AppAlert,
     countdown,
     'chrome-picker': Chrome,
@@ -455,6 +556,15 @@ export default {
       isMounted: false,
       requesting: false,
       loading: false,
+      hoveredPixelPosition: {
+        x: 0,
+        y: 0,
+      },
+      hoveredPixel: null,
+      editedPixel: null,
+      modifiedPixelX: 1,
+      modifiedPixelY: 1,
+      isMouseOverCanvas: false,
     };
   },
   computed: {
@@ -494,8 +604,8 @@ export default {
     },
     change(newColorObject) {
       this.color = newColorObject.hex;
-      if (this.isMounted) {
-        changeColor(this.color);
+      if (this.isMounted && this.editedPixel) {
+        changePixelColorByCoordinatesAndRedraw(this.editedPixel.x, this.editedPixel.y, this.color);
       }
     },
     Finish() {
@@ -503,9 +613,11 @@ export default {
       this.sendPixel(this.x, this.y);
     },
     Overlay() {
-      drawOverlay();
+      drawOverlayToBuffer();
+      drawWorld();
       setTimeout(() => {
-        drawFlag(flagPixelMap);
+        drawFlagToBuffer();
+        drawWorld();
       }, 3000);
     },
     async Refresh(ack = false) {
@@ -543,7 +655,7 @@ export default {
               }
               flagPixelMap[x][y] = modifiedPixel;
               if (!hasChanged) {
-                drawPixel(x, y, modifiedPixel);
+                drawPixelToBuffer(x, y, modifiedPixel.hexColor);
               }
             }
 
@@ -551,49 +663,34 @@ export default {
             this.setNeighboursInfo();
 
             if (hasChanged) {
-              drawFlag(flagPixelMap);
+              drawFlagToBuffer();
             }
+
+            drawWorld();
           }
         })
         // .catch((err) => console.log(err));
     },
     async FetchMap() {
       // console.log("Fetching the whole map");
-      return await fetch(`${process.env.apiUrl}/flag`, {
+      const response = await fetch(`${process.env.apiUrl}/flag`, {
         method: "GET",
         crossDomain: true,
         headers: {
           "Content-Type": "application/json",
         },
-      })
-        .then((response) => response.json())
-        .then((data) => {
-          // console.log("DEBUG - New map array : ", data);
+      });
+      const data = await response.json();
+      const sanitizedData = sanitizeFlagData(data);
 
-          data = data.filter(p => !!p)
-            .sort((a, b) => (a.indexInflag - b.indexInFlag));
+      flagPixels = sanitizedData;
+      initializeFlagResolution();
 
-          flagPixels = data;
-          initializeFlagResolution();
+      for (let i = 0; i < sanitizedData.length; i++) {
+        indexInFlagToLocalIndexMap[sanitizedData[i].indexInFlag] = i;
+      }
 
-          const NEW_MAP = new Array(flagWidth);
-          for (let i = 0; i < NEW_MAP.length; i++) {
-            NEW_MAP[i] = new Array(flagHeight);
-          }
-
-          for (let i = 0; i < data.length; i++) {
-            indexInFlagToLocalIndexMap[data[i].indexInFlag] = i;
-            const { x, y } = getCoordinateFromFlagIndex(i);
-            if (!NEW_MAP[x]) {
-              NEW_MAP[x] = [];
-              console.warn(`no row for x=${x}`)
-            }
-            NEW_MAP[x][y] = data[i];
-          }
-          // console.log('new map');
-          return NEW_MAP;
-        })
-        // .catch((error) => console.log(error));
+      updateFlagPixelMap(sanitizedData);
     },
     async setNeighboursInfo() {
       this.topPixel = await this.getNeighbourPixelIfItExists(this.x, this.y - 1 );
@@ -613,12 +710,13 @@ export default {
       }
       return null;
     },
-    async sendPixel(x, y) {
+    async sendPixel() {
+      if (this.requesting) return;
+      if (!this.editedPixel) return;
       //Sending the user pixel with coords, color, timestamp?, userID?
-      const UserPixel = new Pixel(x, y, flagPixelMap[x][y].hexColor);
       this.requesting = true;
       // console.log("Sending: ", UserPixel);
-      await fetch(`${process.env.apiUrl}/pixel`, {
+      const response = await fetch(`${process.env.apiUrl}/pixel`, {
         method: "PUT",
         crossDomain: true,
         headers: {
@@ -626,34 +724,20 @@ export default {
           Authorization: this.token,
         },
         body: JSON.stringify({
-          hexColor: UserPixel.color,
+          hexColor: canvasPixelColor,
+          pixelId: this.editedPixel.entityId
         }),
-      })
-        .then((response) => response.json())
-        .then((data) => {
-          if (data.retryAfter) {
-            this.openFailedEditModal = true;
-            this.errorMessage = 'CooldownNotEndedYet';
-            this.lastSubmittedTime = new Date();
-            this.maxCooldownTime = data.retryAfter;
-            /*fetch(`${process.env.apiUrl}/cooldown`, {
-              method: "GET",
-              crossDomain: true,
-              headers: {
-                "Content-Type": "application/json",
-              },
-            })
-              .then((response) => response.json())
-              .then((data) => {
-                this.maxCooldownTime = data.cooldown;
-              })
-              // .catch((err) => console.log(err));*/
-          } else {
-            this.openSuccessEditModal = true;
-            this.FetchUserPixelAndMap();
-          }
-        })
-        // .catch((error) => console.log(error));
+      });
+      const data = await response.json();
+      if (data.retryAfter) {
+        this.openFailedEditModal = true;
+        this.errorMessage = 'CooldownNotEndedYet';
+        this.lastSubmittedTime = new Date();
+        this.maxCooldownTime = data.retryAfter;
+      } else {
+        this.openSuccessEditModal = true;
+        this.FetchUserPixelAndMap();
+      }
       this.requesting = false;
     },
     async FetchUserPixelAndMap() {
@@ -669,7 +753,7 @@ export default {
         .then((response) => response.json())
         .then(async (data) => {
           console.debug("User pixel : ", data);
-          flagPixelMap = await this.FetchMap();
+          await this.FetchMap();
           const userPixelCoordinates = getCoordinateFromFlagIndex(indexInFlagToLocalIndexMap[data.indexInFlag]);
           this.x = userPixelCoordinates.x;
           this.y = userPixelCoordinates.y;
@@ -677,7 +761,8 @@ export default {
           this.lastSubmittedTime = data.lastUpdate;
           console.debug("time last updated ", this.lastSubmittedTime);
           setUserPixel(this.x, this.y);
-          changeColor(this.color);
+          changePixelColorByCoordinatesAndRedraw(this.x, this.y, this.color);
+          this.setPixelToEdit(null, { ...userPixelCoordinates, ...data }, false);
           // console.log('here');
         })
         // .catch((error) => console.log(error));
@@ -693,6 +778,43 @@ export default {
       });
       const body = await res.json();
       return body.cooldown;
+    },
+    updateHoveredPixel(e) {
+      let drawWidth = canvas.width / flagWidth;
+      let drawHeight = canvas.height / flagHeight;
+
+      this.hoveredPixelPosition = {
+        x: Math.floor((cameraPositionX + e.offsetX / cameraZoom) / drawWidth),
+        y: Math.floor((cameraPositionY + e.offsetY / cameraZoom) / drawHeight),
+      };
+
+      this.hoveredPixel = flagPixelMap[this.hoveredPixelPosition.x]?.[this.hoveredPixelPosition.y] || null;
+    },
+    setPixelToEditFromCoordinates() {
+      const x = Number(this.modifiedPixelX) - 1;
+      const y = Number(this.modifiedPixelY) - 1;
+      const pixel = flagPixelMap[x]?.[y];
+      this.setPixelToEdit(undefined, pixel ? { ...pixel, x, y } : null);
+    },
+    setPixelToEditFromHover() {
+      this.setPixelToEdit(undefined,  this.hoveredPixel ? {
+        ...this.hoveredPixelPosition,
+        ...this.hoveredPixel,
+      } : null);
+    },
+    async setPixelToEdit(_, pixel, resetPreviousPixelColor = true) {
+      if (this.editedPixel && resetPreviousPixelColor) {
+        changePixelColorByCoordinatesAndRedraw(this.editedPixel.x, this.editedPixel.y, this.editedPixel.hexColor);
+      }
+
+      if (pixel) {
+        this.editedPixel = { ...pixel, username: (await this.fouloscopieSdk.getUser(flagPixelMap[pixel.x][pixel.y].author)).last_name, };
+        this.color = this.editedPixel.hexColor;
+        this.modifiedPixelX = this.editedPixel.x + 1;
+        this.modifiedPixelY = this.editedPixel.y + 1;
+      } else {
+        this.editedPixel = null;
+      }
     },
   },
   async mounted() {
@@ -724,6 +846,7 @@ export default {
 
 
 <style>
+
 .vc-chrome-saturation-wrap {
   padding-bottom: 30% !important;
 }
@@ -747,6 +870,21 @@ export default {
 .pixelButton {
   max-width: 200px;
   height: 100%;
+}
+
+.vc-chrome {
+  box-shadow: none !important;
+  border-radius: 0.25rem !important;
+  overflow: hidden;
+}
+
+.vc-chrome-body {
+  border: 1px solid rgb(220, 222, 228);
+  border-top: 0;
+  border-radius: 0 0 0.25rem 0.25rem;
+}
+.vc-input__label, .vc-input__input {
+  color: #000 !important;
 }
 
 .pixelButton span {
@@ -776,5 +914,41 @@ export default {
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
+}
+
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+
+  background: #000000cc;
+  color: #fff;
+  border-radius: 0 0 0.25em 0;
+
+  pointer-events: none;
+}
+
+#sidePanel {
+  max-width: 100%;
+}
+@screen md {
+  #sidePanel {
+    width: 350px;
+  }
+}
+
+.property-list > div {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.property-name {
+  color: gray;
+}
+
+.number-input {
+  border: 1px solid gray;
+  width: 100%;
 }
 </style>

@@ -18,8 +18,12 @@ export class DatabaseRepository<T extends DatabaseObject> {
         return this.dbClient.getDb().collection(this.collectionName).findOne(filter);
     }
 
-    async findLast(filter: FilterQuery<T>): Promise<T> {
+    async findLastByDate(filter: FilterQuery<T>): Promise<T> {
         return this.dbClient.getDb().collection(this.collectionName).findOne(filter, { sort: { createdAt: -1 } });
+    }
+
+    async findLastByEventId(filter: FilterQuery<T>): Promise<T> {
+        return this.dbClient.getDb().collection(this.collectionName).findOne(filter, { sort: { eventId: -1 } });
     }
 
     async updateAndReturnOne(filter: Partial<T>, partialUpdateObject: Partial<T>): Promise<T> {
