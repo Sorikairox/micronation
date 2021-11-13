@@ -127,8 +127,7 @@
         variant="error"
         @close="closeCooldownModal"
         :open="openFailedEditModal"
-        >La date de dernière modification de ta zone est trop récente,
-        merci de patienter ! <br />
+        >La date de ta dernière modification d'un pixel est trop récente, merci de patienter !<br />
         Temps restant :
         <countdown
           :time="this.cooldownTime"
