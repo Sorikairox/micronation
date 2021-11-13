@@ -32,6 +32,10 @@ export default {
         return ["small", "medium"].includes(value);
       },
     },
+    disabled: {
+      type: Boolean,
+      default: false,
+    },
     to: {
       type: Object,
       default: undefined,
@@ -89,6 +93,8 @@ export default {
       classNames.push("flex flex-row items-center");
       if (this.$slots.icon) classNames.push("space-x-1");
 
+      if (this.disabled) classNames.push('disabled cursor-not-allowed');
+
       return classNames.join(" ");
     },
     typoButton() {
@@ -103,5 +109,10 @@ export default {
 .fitButton {
   /* width: fit-content; */
   /* height: fit-content; */
+}
+.disabled, .disabled:hover {
+  background: #f3f3f3;
+  color: #777;
+  box-shadow: none;
 }
 </style>

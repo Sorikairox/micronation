@@ -106,7 +106,7 @@ describe('FlagSnapshotService', () => {
       });
       it ('create snapshot with aggregation', async () => {
         await flagSnapshotService.createSnapShot(9);
-        const snapshot = await flagSnapshotRepository.findLast({});
+        const snapshot = await flagSnapshotRepository.findLastByDate({});
         expect(snapshot.lastEventId).toEqual(9);
         expect(snapshot.pixels).toEqual(createdPixels.map(p => ({ author: p.author, hexColor: p.hexColor, entityId: p.entityId, indexInFlag: p.indexInFlag })));
       });
@@ -120,7 +120,7 @@ describe('FlagSnapshotService', () => {
       });
       it ('creates snapshot based on previous snapshot', async () => {
         await flagSnapshotService.createSnapShot(35);
-        const snapshot = await flagSnapshotRepository.findLast({});
+        const snapshot = await flagSnapshotRepository.findLastByDate({});
         expect(snapshot.lastEventId).toEqual(35);
         expect(snapshot.pixels).toEqual(createdPixels.map(p => ({ author: p.author, hexColor: p.hexColor, entityId: p.entityId, indexInFlag: p.indexInFlag })));
       });
