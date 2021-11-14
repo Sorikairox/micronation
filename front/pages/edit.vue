@@ -636,6 +636,7 @@ export default {
       // console.log("REFRESH", ack);
       // console.log("Fetching the flag size");
 
+      lastUpdate = new Date();
       await fetch(`${process.env.apiUrl}/flag/after/${lastUpdate.toISOString()}`, {
         method: "GET",
         crossDomain: true,
@@ -675,7 +676,6 @@ export default {
               }
             }
 
-            lastUpdate = new Date();
             this.setNeighboursInfo();
 
             if (hasChanged) {
