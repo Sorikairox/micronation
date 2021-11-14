@@ -57,7 +57,7 @@ describe('Flag (e2e)', () => {
               me: {
                 // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 async read(query?: QueryOne<UserItem<TypeOf<any, "directus_users">>>): Promise<PartialItem<UserItem<TypeOf<any, "directus_users">>>> {
-                  return { id: USER_ID_SAMPLE };
+                  return { id: USER_ID_SAMPLE, email_valid: true };
                 },
               },
             },

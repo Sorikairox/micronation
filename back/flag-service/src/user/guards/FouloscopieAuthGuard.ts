@@ -27,9 +27,11 @@ export class FouloscopieAuthGuard implements CanActivate {
       if (!await directus.auth.static(token)) {
         throw new InvalidDirectusTokenError();
       }
-
-      request.userId = (await directus.users.me.read({ fields: 'id' })).id;
-
+      const user = (await directus.users.me.read({ fields: ['id', 'email_valid'] }));
+      if (!user.email_valid) {
+        return false;
+      }
+      request.userId = user.id;
       return true;
     }
   }
