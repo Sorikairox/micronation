@@ -640,7 +640,7 @@ export default {
                 flagPixels.push(modifiedPixel);
                 indexInFlagToLocalIndexMap[modifiedPixel.indexInFlag] = flagPixels.length - 1;
               } else {
-                flagPixels[localIndex] = modifiedPixel;
+                flagPixels[localIndex].hexColor = modifiedPixel.hexColor;
               }
             }
 
@@ -653,7 +653,11 @@ export default {
                 flagPixelMap[x] = [];
                 console.warn(`There was no row on x=${x}`);
               }
-              flagPixelMap[x][y] = modifiedPixel;
+              if (flagPixelMap[x][y]) {
+                flagPixelMap[x][y].hexColor = modifiedPixel.hexColor;
+              } else {
+                flagPixelMap[x][y] = modifiedPixel;
+              }
               if (!hasChanged) {
                 drawPixelToBuffer(x, y, modifiedPixel.hexColor);
               }
