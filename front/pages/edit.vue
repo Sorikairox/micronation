@@ -113,7 +113,7 @@
                        v-on:click="Finish()"
                        variant="contained"
                        class="bg-primary-dark mt-4"
-                       :disabled="requesting || !editedPixel"
+                       :disabled="requesting || !editedPixel || this.isOnCooldown"
             >
               <template v-slot:icon v-if="!requesting"><AppDoneIcon/></template>
               <span v-if="!requesting">Modifier la couleur de la zone<span v-if="editedPixel"> [{{editedPixel.x + 1}}:{{editedPixel.y + 1}}]</span></span>
