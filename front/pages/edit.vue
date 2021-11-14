@@ -816,7 +816,7 @@ export default {
       if (pixel) {
         let pixelOwnerName = null;
         try {
-          pixelOwnerName = await this.fouloscopieSdk.getUser(flagPixelMap[pixel.x][pixel.y].author).last_name;
+          pixelOwnerName = (await this.fouloscopieSdk.getUser(flagPixelMap[pixel.x][pixel.y].author)).last_name;
         } catch (e) {
           console.warn('Error while fetching pixel author', e);
         }
