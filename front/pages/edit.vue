@@ -740,11 +740,11 @@ export default {
         this.maxCooldownTime = data.retryAfter;
       } else {
         this.openSuccessEditModal = true;
-        this.FetchUserPixelAndMap();
+        this.FetchUserPixelAndMap(false);
       }
       this.requesting = false;
     },
-    async FetchUserPixelAndMap() {
+    async FetchUserPixelAndMap(fetchmap = true) {
       // console.log("Fetching user pixel");
       await fetch(`${process.env.apiUrl}/pixel`, {
         method: "GET",
@@ -757,7 +757,9 @@ export default {
         .then((response) => response.json())
         .then(async (data) => {
           console.debug("User pixel : ", data);
-          await this.FetchMap();
+          if (fetchmap) {
+            await this.FetchMap();
+          }
           const userPixelCoordinates = getCoordinateFromFlagIndex(indexInFlagToLocalIndexMap[data.indexInFlag]);
           this.x = userPixelCoordinates.x;
           this.y = userPixelCoordinates.y;
