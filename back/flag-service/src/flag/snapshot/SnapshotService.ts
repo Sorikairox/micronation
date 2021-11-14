@@ -3,7 +3,6 @@ import { ConfigService } from '@nestjs/config';
 import { PixelRepository } from '../pixel/PixelRepository';
 import { FlagSnapshotDto } from './dto/FlagSnapshotDto';
 import { FlagSnapshotPixelService } from './pixel/FlagSnapshotPixelService';
-import { FlagSnapshotPixelRepository } from './pixel/SnapshotPixelRepository';
 import { FlagSnapshot } from './Snapshot';
 import { FlagSnapshotRepository } from './SnapshotRepository';
 
