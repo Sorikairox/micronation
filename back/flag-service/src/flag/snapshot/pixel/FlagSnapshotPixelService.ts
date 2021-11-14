@@ -11,4 +11,8 @@ export class FlagSnapshotPixelService {
     const snapshotPixelsArray = pixelsData.map(p => ({ ...p, snapshotId }));
     return this.snapshotPixelRepository.createMany(snapshotPixelsArray);
   }
+
+  async getSnapshotPixels(snapshotId: string) {
+    return this.snapshotPixelRepository.find({ snapshotId },{ indexInFlag: 1 }, { snapshotId: 0, _id: 0, createdAt: 0 });
+  }
 }

@@ -1,11 +1,13 @@
 import { ConfigModule } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
+import { set, sub } from 'date-fns';
 import { DatabaseModule } from 'library/database/DatabaseModule';
 import { DatabaseClientService } from 'library/database/client/DatabaseClientService';
 import { DatabaseEvent } from 'library/database/object/event/DatabaseEvent';
 import { v4 } from 'uuid';
 import { Pixel } from '../../../flag/pixel/Pixel';
 import { PixelRepository } from '../../pixel/PixelRepository';
+import { FlagSnapshotPixelRepository } from '../pixel/SnapshotPixelRepository';
 import { FlagSnapshotModule } from '../SnapshotModule';
 import { FlagSnapshotRepository } from '../SnapshotRepository';
 import { FlagSnapshotService } from '../SnapshotService';
@@ -14,6 +16,7 @@ let flagSnapshotService: FlagSnapshotService;
 let dbClientService: DatabaseClientService;
 let pixelRepository: PixelRepository;
 let flagSnapshotRepository: FlagSnapshotRepository;
+let flagSnapshotPixelRepository: FlagSnapshotPixelRepository;
 let app : TestingModule;
 
 async function clean() {
@@ -28,6 +31,10 @@ async function clean() {
   await dbClientService
     .getDb()
     .collection(flagSnapshotRepository.getCollectionName())
+    .deleteMany({});
+  await dbClientService
+    .getDb()
+    .collection(flagSnapshotPixelRepository.getCollectionName())
     .deleteMany({});
 }
 
@@ -48,6 +55,7 @@ async function init() {
   dbClientService = app.get<DatabaseClientService>('DATABASE_CLIENT');
   pixelRepository = app.get<PixelRepository>(PixelRepository);
   flagSnapshotRepository = app.get<FlagSnapshotRepository>(FlagSnapshotRepository);
+  flagSnapshotPixelRepository = app.get<FlagSnapshotPixelRepository>(FlagSnapshotPixelRepository);
   await dbClientService.onModuleInit();
 }
 
@@ -112,12 +120,29 @@ describe('FlagSnapshotService', () => {
         expect(snapshot.pixels).toEqual(createdPixels.map(p => ({ author: p.author, hexColor: p.hexColor, entityId: p.entityId, indexInFlag: p.indexInFlag })));
       });
     });
+
+    describe('with previous legacy snapshot', () => {
+      let createdPixels = [];
+      beforeAll(async () => {
+        createdPixels = await createManyPixel(35);
+        await flagSnapshotRepository.createAndReturn({
+          pixels: createdPixels.slice(0, 15).map(p => ({ author: p.author, hexColor: p.hexColor, entityId: p.entityId, indexInFlag: p.indexInFlag })) as any,
+          lastEventId: 15,
+        });
+      });
+      it ('creates snapshot based on previous legacy snapshot', async () => {
+        await flagSnapshotService.createSnapShot(35);
+        const snapshot = await flagSnapshotService.getLatestSnapshot();
+        expect(snapshot.lastEventId).toEqual(35);
+        expect(snapshot.pixels).toEqual(createdPixels.map(p => ({ author: p.author, hexColor: p.hexColor, entityId: p.entityId, indexInFlag: p.indexInFlag })));
+      });
+    });
+
     describe('with previous snapshot', () => {
       let createdPixels = [];
       beforeAll(async () => {
-        createdPixels = await createManyPixel(15);
+        createdPixels = await createManyPixel(35);
         await flagSnapshotService.createSnapShot(15);
-        createdPixels = createdPixels.concat(...(await createManyPixel(20)));
       });
       it ('creates snapshot based on previous snapshot', async () => {
         await flagSnapshotService.createSnapShot(35);
@@ -137,25 +162,55 @@ describe('FlagSnapshotService', () => {
     });
     describe('with previous snapshot', () => {
       let createdPixels = [];
-      beforeAll(async () => {
-        createdPixels = await createManyPixel(15);
+      beforeEach(async () => {
+        createdPixels = await createManyPixel(35);
         await flagSnapshotService.createSnapShot(15);
       });
       it ('get snapshot when no newer', async () => {
         const snapshot = await flagSnapshotService.getLatestSnapshot();
         expect(snapshot.lastEventId).toEqual(15);
-        expect(snapshot.pixels).toEqual(createdPixels.map(p => ({ author: p.author, hexColor: p.hexColor, entityId: p.entityId, indexInFlag: p.indexInFlag })));
+        expect(snapshot.pixels).toEqual(createdPixels.splice(0, 15).map(p => ({ author: p.author, hexColor: p.hexColor, entityId: p.entityId, indexInFlag: p.indexInFlag })));
       });
       it ('get newer snapshot when there is a newer', async () => {
-        createdPixels = createdPixels.concat(...(await createManyPixel(20)));
-
-        await flagSnapshotRepository.createAndReturn({
-          pixels: createdPixels.map(p => ({ author: p.author, hexColor: p.hexColor, entityId: p.entityId, indexInFlag: p.indexInFlag })) as any,
+        const snapshot = await flagSnapshotRepository.createAndReturn({
           lastEventId: 35,
         });
+        await Promise.all(createdPixels.map(async p => {
+          await flagSnapshotPixelRepository.createAndReturn({ author: p.author, hexColor: p.hexColor, entityId: p.entityId, indexInFlag: p.indexInFlag, snapshotId: snapshot._id.toHexString() })
+        }) as any);
+
+        const latestSnapshot = await flagSnapshotService.getLatestSnapshot();
+        expect(latestSnapshot.lastEventId).toEqual(35);
+        expect(latestSnapshot.pixels).toEqual(createdPixels.map(p => ({ author: p.author, hexColor: p.hexColor, entityId: p.entityId, indexInFlag: p.indexInFlag })));
+      });
+    });
+
+    describe('with previous legacy snapshot', () => {
+      let createdPixels = [];
+      beforeEach(async () => {
+        createdPixels = await createManyPixel(35);
+        await flagSnapshotRepository.createAndReturn({
+          pixels: createdPixels.slice(0, 15).map(p => ({ author: p.author, hexColor: p.hexColor, entityId: p.entityId, indexInFlag: p.indexInFlag })) as any,
+          lastEventId: 15,
+        });
+      });
+      it ('get snapshot when no newer', async () => {
         const snapshot = await flagSnapshotService.getLatestSnapshot();
-        expect(snapshot.lastEventId).toEqual(35);
-        expect(snapshot.pixels).toEqual(createdPixels.map(p => ({ author: p.author, hexColor: p.hexColor, entityId: p.entityId, indexInFlag: p.indexInFlag })));
+        expect(snapshot.lastEventId).toEqual(15);
+        expect(snapshot.pixels).toEqual(createdPixels.splice(0, 15).map(p => ({ author: p.author, hexColor: p.hexColor, entityId: p.entityId, indexInFlag: p.indexInFlag })));
+      });
+      it ('get newer snapshot when there is a newer', async () => {
+        await new Promise((r) => setTimeout(r, 1));
+        const snapshot = await flagSnapshotRepository.createAndReturn({
+          lastEventId: 35,
+        });
+        await Promise.all(createdPixels.map(async p => {
+          await flagSnapshotPixelRepository.createAndReturn({ author: p.author, hexColor: p.hexColor, entityId: p.entityId, indexInFlag: p.indexInFlag, snapshotId: snapshot._id.toHexString() })
+        }) as any);
+
+        const latestSnapshot = await flagSnapshotService.getLatestSnapshot();
+        expect(latestSnapshot.lastEventId).toEqual(35);
+        expect(latestSnapshot.pixels).toEqual(createdPixels.map(p => ({ author: p.author, hexColor: p.hexColor, entityId: p.entityId, indexInFlag: p.indexInFlag })));
       });
     });
   });

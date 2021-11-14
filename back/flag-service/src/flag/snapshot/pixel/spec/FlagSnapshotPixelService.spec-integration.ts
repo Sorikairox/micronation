@@ -65,4 +65,37 @@ describe('FlagSnapshotPixelService', () => {
     });
   });
 
+
+  describe('getSnapshotPixels', () => {
+    it('get snapshot pixels from DB', async () => {
+      await flagSnapshotPixelRepository.createMany([{
+        snapshotId: 'snapshotId',
+        entityId: 'entityId1',
+        hexColor: '#FFFFFF',
+        author: 'author',
+        createdAt: new Date(),
+        indexInFlag: 1,
+      },
+      {
+        snapshotId: 'snapshotId',
+        entityId: 'entityId2',
+        hexColor: '#FFFFFF',
+        author: 'author2',
+        createdAt: new Date(),
+        indexInFlag: 2,
+      },
+      {
+        snapshotId: 'snapshotId2',
+        entityId: 'entityId2',
+        hexColor: '#FFFFFF',
+        author: 'author2',
+        createdAt: new Date(),
+        indexInFlag: 2,
+      }]);
+      const snapshotPixels = await flagSnapshotPixelService.getSnapshotPixels('snapshotId');
+      expect(snapshotPixels.length).toEqual(2);
+      expect(snapshotPixels[0].indexInFlag).toEqual(1);
+    });
+  });
+
 });
