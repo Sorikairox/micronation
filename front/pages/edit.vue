@@ -85,7 +85,7 @@
             <h1 class="m-4">
               <div v-if="editedPixel" class="property-list">
                 <div><span class="property-name">Zone :</span> [{{ editedPixel.x + 1 }}:{{ editedPixel.y + 1 }}]</div>
-                <div><span class="property-name">Propriétaire :</span> {{ editedPixel.username || editedPixel.author }}</div>
+                <div><span class="property-name">Propriétaire :</span> {{ editedPixel.username || 'Inconnu' }}</div>
               </div>
               <span v-if="!editedPixel">Pas de zone sélectionnée</span>
             </h1>
@@ -812,7 +812,14 @@ export default {
       }
 
       if (pixel) {
-        this.editedPixel = { ...pixel, username: (await this.fouloscopieSdk.getUser(flagPixelMap[pixel.x][pixel.y].author)).last_name, };
+        let pixelOwnerName = null;
+        try {
+          pixelOwnerName = await this.fouloscopieSdk.getUser(flagPixelMap[pixel.x][pixel.y].author).last_name;
+        } catch (e) {
+          console.warn('Error while fetching pixel author', e);
+        }
+
+        this.editedPixel = { ...pixel, username: pixelOwnerName };
         this.color = this.editedPixel.hexColor;
         this.modifiedPixelX = this.editedPixel.x + 1;
         this.modifiedPixelY = this.editedPixel.y + 1;
