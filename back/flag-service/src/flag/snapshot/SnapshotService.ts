@@ -14,32 +14,32 @@ export class FlagSnapshotService {
   async getLatestSnapshot(): Promise<FlagSnapshotDto> {
     if (!this.lastSnapshot) {
       const latestSnapshot = await this.snapshotRepository.findLastByDate({});
-      await this.setLastSnapshotValueWithLatestSnapshot(latestSnapshot);
+      if (latestSnapshot) {
+        await this.setLastSnapshotValueWithLatestSnapshot(latestSnapshot);
+      }
       return this.lastSnapshot;
     } else {
       const latestSnapshot = await this.snapshotRepository.findLastByDate({ lastEventId: { $gt : this.lastSnapshot.lastEventId } });
-      await this.setLastSnapshotValueWithLatestSnapshot(latestSnapshot);
+      if (latestSnapshot) {
+        await this.setLastSnapshotValueWithLatestSnapshot(latestSnapshot);
+      }
       return this.lastSnapshot;
     }
   }
 
   async setLastSnapshotValueWithLatestSnapshot(latestSnapshot: FlagSnapshot) {
-    if (latestSnapshot) {
-      let latestSnapshotPixels;
-      if (latestSnapshot.pixels) {
-        latestSnapshotPixels = latestSnapshot.pixels;
-      } else {
-        latestSnapshotPixels = await this.snapshotPixelService.getSnapshotPixels(latestSnapshot._id.toHexString());
-      }
-      if (latestSnapshotPixels.length > 0) {
-        this.lastSnapshot = {
-          ...latestSnapshot,
-          _id: latestSnapshot._id.toHexString(),
-          pixels: latestSnapshotPixels,
-        };
-      }
+    let latestSnapshotPixels;
+    if (latestSnapshot.pixels) {
+      latestSnapshotPixels = latestSnapshot.pixels;
     } else {
-      this.lastSnapshot = null;
+      latestSnapshotPixels = await this.snapshotPixelService.getSnapshotPixels(latestSnapshot._id.toHexString());
+    }
+    if (latestSnapshotPixels.length > 0) {
+      this.lastSnapshot = {
+        ...latestSnapshot,
+        _id: latestSnapshot._id.toHexString(),
+        pixels: latestSnapshotPixels,
+      };
     }
   }
 

@@ -154,9 +154,9 @@ describe('FlagSnapshotService', () => {
 
   describe('getLatestSnapshot', () => {
     describe('when no previous snapshot', () => {
-      it ('returns null', async () => {
+      it ('returns undefined', async () => {
         const snapshot = await flagSnapshotService.getLatestSnapshot();
-        expect(snapshot).toBe(null);
+        expect(snapshot).toBe(undefined);
       });
     });
     describe('with previous snapshot', () => {
