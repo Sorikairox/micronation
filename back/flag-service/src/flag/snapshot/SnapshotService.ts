@@ -1,19 +1,31 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PixelRepository } from '../pixel/PixelRepository';
+import { FlagSnapshot } from './Snapshot';
 import { FlagSnapshotRepository } from './SnapshotRepository';
 
 @Injectable()
 export class FlagSnapshotService {
-  constructor(private snapshotRepository: FlagSnapshotRepository, private configService: ConfigService, private pixelRepository: PixelRepository) {}
+  private lastSnapshot: FlagSnapshot;
 
+  constructor(private snapshotRepository: FlagSnapshotRepository, private configService: ConfigService, private pixelRepository: PixelRepository) {}
   async getLatestSnapshot() {
-    return this.snapshotRepository.findLastByDate({});
+    if (!this.lastSnapshot) {
+      this.lastSnapshot = await this.snapshotRepository.findLastByDate({});
+      return this.lastSnapshot;
+    } else {
+      const newerSnapshot = await this.snapshotRepository.findLastByDate({ lastEventId: { $gt : this.lastSnapshot.lastEventId } });
+      if (newerSnapshot) {
+        this.lastSnapshot = newerSnapshot;
+      }
+      return this.lastSnapshot;
+    }
   }
 
-  createSnapshotIfEventIdMeetThreshold(eventId: number) {
+  async createSnapshotIfEventIdMeetThreshold(eventId: number) {
     if (eventId % this.configService.get<number>('EVENTS_PER_SNAPSHOT') === 0) {
-      return this.createSnapShot(eventId);
+      this.lastSnapshot = await this.createSnapShot(eventId);
+      return this.lastSnapshot;
     }
   }
 
