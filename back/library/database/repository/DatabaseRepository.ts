@@ -1,6 +1,6 @@
 import { DatabaseClientService } from "../client/DatabaseClientService";
 import { DatabaseObject } from "../object/DatabaseObject";
-import { FilterQuery } from "mongodb";
+import { FilterQuery, SortOptionObject } from 'mongodb';
 
 export class DatabaseRepository<T extends DatabaseObject> {
 
@@ -12,6 +12,15 @@ export class DatabaseRepository<T extends DatabaseObject> {
             data.createdAt = new Date();
             const insertOperation = await this.dbClient.getDb().collection(this.collectionName).insertOne(data);
             return insertOperation.ops[0];
+    }
+
+    async createMany(data: Array<T>) {
+        return this.dbClient.getDb().collection(this.collectionName).insertMany(data);
+    }
+
+    async find(filter: FilterQuery<T>, sort?: SortOptionObject<T>): Promise<Array<T>> {
+        const dataArray = await this.dbClient.getDb().collection(this.collectionName).find(filter).sort(sort).toArray();
+        return dataArray;
     }
 
     async findOne(filter: FilterQuery<T>): Promise<T> {
