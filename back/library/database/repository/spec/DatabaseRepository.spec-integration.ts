@@ -70,6 +70,15 @@ describe('Database Repository', () => {
       expect(objList[0].index).toEqual(1);
       expect(objList[1].index).toEqual(2);
     });
+    it('find many and return given fields', async () => {
+      await db.collection(testCollectionName).insertMany([{value : 'initialValue', index: 2, uselessField: true}, {value: 'whocare', index: 1, uselessField: true }]);
+      const objList = await databaseRepository.find({}, {index: 1}, { uselessField: 0 });
+      expect(objList.length).toEqual(2);
+      expect(objList[0].uselessField).toBe(undefined);
+      expect(objList[0].value).toEqual('whocare');
+      expect(objList[0].index).toEqual(1);
+      expect(objList[1].uselessField).toBe(undefined);
+    });
   });
   describe('createMany', () => {
     it('create many object', async () => {
