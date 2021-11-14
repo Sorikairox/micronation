@@ -118,6 +118,17 @@
               <template v-slot:icon v-if="!requesting"><AppDoneIcon/></template>
               <span v-if="!requesting">Modifier la couleur de la zone<span v-if="editedPixel"> [{{editedPixel.x + 1}}:{{editedPixel.y + 1}}]</span></span>
               <div v-if="requesting" class="loader"></div>
+              <countdown
+                v-if="this.isOnCooldown"
+                :time="this.cooldownTime"
+                :interval="1000"
+                tag="span"
+                class="font-bold whitespace-nowrap ml-2"
+              >
+                <template slot-scope="props"
+                >{{ props.minutes }} : {{ props.seconds }}</template
+                ></countdown
+              >
             </AppButton>
           </div>
         </div>
@@ -548,6 +559,7 @@ export default {
       color: "#ff0000",
       maxCooldownTime: 5, // min
       lastSubmittedTime: new Date(),
+      isOnCooldown: false,
       errorMessage: "",
       openSuccessEditModal: false,
       openFailedEditModal: false,
@@ -734,14 +746,22 @@ export default {
       });
       const data = await response.json();
       if (data.retryAfter) {
+        this.lastSubmittedTime = new Date(Date.now() + data.retryAfter - this.maxCooldownTime);
         this.openFailedEditModal = true;
         this.errorMessage = 'CooldownNotEndedYet';
-        this.lastSubmittedTime = new Date();
-        this.maxCooldownTime = data.retryAfter;
       } else {
+        this.lastSubmittedTime = new Date();
         this.openSuccessEditModal = true;
         this.FetchUserPixelAndMap(false);
       }
+
+      if (!this.isOnCooldown) {
+        this.isOnCooldown = true;
+        setTimeout(() => {
+          this.isOnCooldown = false;
+        }, this.cooldownTime);
+      }
+
       this.requesting = false;
     },
     async FetchUserPixelAndMap(fetchmap = true) {
@@ -764,8 +784,7 @@ export default {
           this.x = userPixelCoordinates.x;
           this.y = userPixelCoordinates.y;
           this.color = data.hexColor;
-          this.lastSubmittedTime = data.lastUpdate;
-          console.debug("time last updated ", this.lastSubmittedTime);
+          console.debug("time last updated ", data.lastUpdate);
           setUserPixel(this.x, this.y);
           changePixelColorByCoordinatesAndRedraw(this.x, this.y, this.color);
           this.setPixelToEdit(null, { ...userPixelCoordinates, ...data }, false);
@@ -783,7 +802,7 @@ export default {
         },
       });
       const body = await res.json();
-      return body.cooldown;
+      return body.cooldown * 60 * 1000;
     },
     updateHoveredPixel(e) {
       let drawWidth = canvas.width / flagWidth;
@@ -835,6 +854,7 @@ export default {
     this.fouloscopieSdk = await fouloscopie();
     this.token = this.fouloscopieSdk.userInfo.token;
     this.maxCooldownTime = await this.FetchCooldown();
+    console.log('cooldown set to', this.maxCooldownTime);
     await this.FetchUserPixelAndMap();
     this.setNeighboursInfo();
     init();
