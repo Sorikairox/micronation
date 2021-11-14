@@ -43,7 +43,7 @@ export class FlagSnapshotService {
         returnedArray.push(pixel);
         indexInFlagToLocalIndexMap[pixel.indexInFlag] = returnedArray.length - 1;
       } else {
-        returnedArray[indexInFlagToLocalIndexMap[pixel.indexInFlag]] = pixel;
+        returnedArray[indexInFlagToLocalIndexMap[pixel.indexInFlag]].hexColor = pixel.hexColor;
       }
     }
     return returnedArray;
