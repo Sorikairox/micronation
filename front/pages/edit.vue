@@ -849,6 +849,8 @@ export default {
     // // console.log("DEBUG - userToken : ", token);
     if (!token) {
       redirect({ name: "index" });
+    } else if (!instance.userInfo.email_valid) {
+      redirect({ name: "invalid_email" });
     }
   },
   beforeDestroy() {
