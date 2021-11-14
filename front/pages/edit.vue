@@ -729,6 +729,8 @@ export default {
     async sendPixel() {
       if (this.requesting) return;
       if (!this.editedPixel) return;
+      if (this.isOnCooldown) return;
+
       //Sending the user pixel with coords, color, timestamp?, userID?
       this.requesting = true;
       // console.log("Sending: ", UserPixel);
