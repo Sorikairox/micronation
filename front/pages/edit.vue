@@ -218,7 +218,7 @@ let canvasPixelColor = "#ff0000";
 let userXPixel = 0;
 let userYPixel = 0;
 
-let lastUpdate = new Date();
+let lastUpdate;
 
 let indexInFlagToLocalIndexMap = {};
 
@@ -689,6 +689,7 @@ export default {
     },
     async FetchMap() {
       // console.log("Fetching the whole map");
+      lastUpdate = new Date();
       const response = await fetch(`${process.env.apiUrl}/flag`, {
         method: "GET",
         crossDomain: true,
@@ -786,7 +787,6 @@ export default {
           this.x = userPixelCoordinates.x;
           this.y = userPixelCoordinates.y;
           this.color = data.hexColor;
-          console.debug("time last updated ", data.lastUpdate);
           setUserPixel(this.x, this.y);
           changePixelColorByCoordinatesAndRedraw(this.x, this.y, this.color);
           this.setPixelToEdit(null, { ...userPixelCoordinates, ...data }, false);
