@@ -856,7 +856,6 @@ export default {
     this.fouloscopieSdk = await fouloscopie();
     this.token = this.fouloscopieSdk.userInfo.token;
     this.maxCooldownTime = await this.FetchCooldown();
-    console.log('cooldown set to', this.maxCooldownTime);
     await this.FetchUserPixelAndMap();
     this.setNeighboursInfo();
     init();
