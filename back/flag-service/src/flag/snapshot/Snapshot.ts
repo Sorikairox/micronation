@@ -3,5 +3,9 @@ import { GetPixelDto } from '../pixel/dto/GetPixelDto';
 
 export class FlagSnapshot extends DatabaseObject {
     lastEventId: number;
-    pixels: GetPixelDto[];
+
+    /**
+     * @deprecated Use SnapshotPixel collections
+     */
+    pixels?: GetPixelDto[];
 }

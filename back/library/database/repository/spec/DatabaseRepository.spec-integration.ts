@@ -49,11 +49,43 @@ describe('Database Repository', () => {
             expect(obj.criteria1).toEqual('coolCriteria');
        });
    });
-   describe('updateAndReturnOne', () => {
-       it('update an object based on filters', async () => {
-           await db.collection(testCollectionName).insertOne({attributeToModify : 'initialValue'});
-           let obj = await databaseRepository.updateAndReturnOne({attributeToModify: 'initialValue'}, {attributeToModify: 'newValue'});
-           expect(obj.attributeToModify).toEqual('newValue');
-       });
-   });
+  describe('updateAndReturnOne', () => {
+    it('update an object based on filters', async () => {
+      await db.collection(testCollectionName).insertOne({attributeToModify : 'initialValue'});
+      let obj = await databaseRepository.updateAndReturnOne({attributeToModify: 'initialValue'}, {attributeToModify: 'newValue'});
+      expect(obj.attributeToModify).toEqual('newValue');
+    });
+  });
+
+  describe('find', () => {
+    it('find many object based on filters', async () => {
+      await db.collection(testCollectionName).insertMany([{firstObject : 'initialValue'}, {secondObject: 'whocare'}]);
+      const objList = await databaseRepository.find({});
+      expect(objList.length).toEqual(2);
+    });
+    it('find many object based on filters and sort', async () => {
+      await db.collection(testCollectionName).insertMany([{firstObject : 'initialValue', index: 2}, {secondObject: 'whocare', index: 1}]);
+      const objList = await databaseRepository.find({}, {index: 1});
+      expect(objList.length).toEqual(2);
+      expect(objList[0].index).toEqual(1);
+      expect(objList[1].index).toEqual(2);
+    });
+    it('find many and return given fields', async () => {
+      await db.collection(testCollectionName).insertMany([{value : 'initialValue', index: 2, uselessField: true}, {value: 'whocare', index: 1, uselessField: true }]);
+      const objList = await databaseRepository.find({}, {index: 1}, { uselessField: 0 });
+      expect(objList.length).toEqual(2);
+      expect(objList[0].uselessField).toBe(undefined);
+      expect(objList[0].value).toEqual('whocare');
+      expect(objList[0].index).toEqual(1);
+      expect(objList[1].uselessField).toBe(undefined);
+    });
+  });
+  describe('createMany', () => {
+    it('create many object', async () => {
+      await databaseRepository.createMany([{firstObject : 'initialValue'}, {secondObject: 'whocare'}]);
+      const objList = await db.collection(testCollectionName).find({}).toArray();
+      expect(objList.length).toEqual(2);
+    });
+  });
+
 });
