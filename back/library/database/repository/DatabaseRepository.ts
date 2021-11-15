@@ -42,6 +42,11 @@ export class DatabaseRepository<T extends DatabaseObject> {
         return updateOperation.value
     }
 
+    async updateAndReturnMany(filter: Partial<T>, partialUpdateObject: Partial<T>): Promise<number> {
+        const updateOperation = await this.dbClient.getDb().collection(this.collectionName).updateMany(filter, { $set : partialUpdateObject});
+        return updateOperation.modifiedCount;
+    }
+
     getCollectionName() {
         return this.collectionName;
     }

@@ -57,6 +57,20 @@ describe('Database Repository', () => {
     });
   });
 
+  describe('updateAndReturnMany', () => {
+    it('update many objects based on filters', async () => {
+      await db.collection(testCollectionName).insertMany([{attributeToModify : 'initialValue', commonAttribute: 'author', untouchedAttribute: 'untouchedValue'}, {attributeToModify : 'initialValue2', commonAttribute: 'author', untouchedAttribute: 'untouchedValue'}, {attributeToModify : 'initialValue', commonAttribute: 'author2'}]);
+      const modifiedNumber = await databaseRepository.updateAndReturnMany({commonAttribute: 'author'}, {attributeToModify: 'newValue'});
+      expect(modifiedNumber).toEqual(2);
+      const objs = await db.collection(testCollectionName).find({commonAttribute: 'author'}).toArray();
+      objs.map(obj => {
+        expect(obj.commonAttribute).toEqual('author');
+        expect(obj.untouchedAttribute).toEqual('untouchedValue');
+        expect(obj.attributeToModify).toEqual('newValue');
+      })
+    });
+  });
+
   describe('find', () => {
     it('find many object based on filters', async () => {
       await db.collection(testCollectionName).insertMany([{firstObject : 'initialValue'}, {secondObject: 'whocare'}]);
