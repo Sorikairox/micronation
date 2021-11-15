@@ -166,7 +166,7 @@
           <li>(2) Cliquez sur le bouton "Où est ma zone ?" pour visualiser la zone qui vous a été attribuée. Elle sera indiquée en surbrillance.</li>
           <li>(3) Vous pouvez modifier la couleur de n'importe quelle zone comme vous le souhaitez, mais seulement une fois toutes les
             {{ maxCooldownTime }} minutes.</li>
-          <li><a target="_blank" href="https://discord.gg/rhz4hW6D">Élabores un plan sur discord avec tes voisins en cliquant ici.</a></li>
+          <li><a target="_blank" href="https://discord.gg/ZwS3w5Tg4x">Élabores un plan sur discord avec tes voisins en cliquant ici.</a></li>
         </ol>
       </div></AppAlert
       >
