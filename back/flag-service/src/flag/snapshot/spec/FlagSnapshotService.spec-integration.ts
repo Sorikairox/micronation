@@ -6,6 +6,7 @@ import { DatabaseEvent } from 'library/database/object/event/DatabaseEvent';
 import { v4 } from 'uuid';
 import { Pixel } from '../../pixel/Pixel';
 import { PixelRepository } from '../../pixel/PixelRepository';
+import { FlagSnapshot } from '../FlagSnapshot';
 import { FlagSnapshotPixelRepository } from '../pixel/FlagSnapshotPixelRepository';
 import { FlagSnapshotModule } from '../FlagSnapshotModule';
 import { FlagSnapshotRepository } from '../FlagSnapshotRepository';
@@ -109,14 +110,22 @@ describe('FlagSnapshotService', () => {
   describe(FlagSnapshotService.prototype.createSnapshot, () => {
     describe('when no previous snapshot', () => {
       let createdPixels = [];
-      beforeAll(async () => {
+      let snapshot: FlagSnapshot;
+      beforeEach(async () => {
         createdPixels = await createManyPixel(9);
+        await flagSnapshotService.createSnapshot(9);
+        snapshot = await flagSnapshotRepository.findLastByDate({});
       });
       it ('create snapshot with aggregation', async () => {
-        await flagSnapshotService.createSnapshot(9);
-        const snapshot = await flagSnapshotService.getLatestSnapshot();
         expect(snapshot.lastEventId).toEqual(9);
-        expect(snapshot.pixels).toEqual(createdPixels.map(p => ({ author: p.author, hexColor: p.hexColor, entityId: p.entityId, indexInFlag: p.indexInFlag })));
+        expect(snapshot.complete).toBe(true);
+      });
+      it('adds createdPixels in DB', async () => {
+        const pixelsInDb = await flagSnapshotPixelRepository.find({ snapshotId: snapshot._id.toHexString() });
+        function filterPixelFields(pixels) {
+          return pixels.map(p => ({ author: p.author, hexColor: p.hexColor, entityId: p.entityId, indexInFlag: p.indexInFlag }));
+        }
+        expect(filterPixelFields(pixelsInDb)).toEqual(filterPixelFields(createdPixels));
       });
     });
 
