@@ -635,7 +635,7 @@ export default {
       // console.log("REFRESH", ack);
       // console.log("Fetching the flag size");
 
-      lastUpdate = new Date();
+      const beforeUpdateTime = new Date();
       await fetch(`${process.env.apiUrl}/flag/after/${lastUpdate.toISOString()}`, {
         method: "GET",
         crossDomain: true,
@@ -645,6 +645,7 @@ export default {
       })
         .then((response) => response.json())
         .then((modifiedPixels) => {
+          lastUpdate = beforeUpdateTime;
           if (modifiedPixels.length > 0) {
             for (const modifiedPixel of modifiedPixels) {
               const localIndex = indexInFlagToLocalIndexMap[modifiedPixel.indexInFlag];
