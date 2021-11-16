@@ -14,13 +14,13 @@ export class FlagSnapshotService {
   constructor(private snapshotRepository: FlagSnapshotRepository, private configService: ConfigService, private pixelRepository: PixelRepository, private snapshotPixelService: FlagSnapshotPixelService) {}
   async getLatestSnapshot(): Promise<FlagSnapshotDto> {
     if (!this.lastSnapshot) {
-      const latestSnapshot = await this.snapshotRepository.findLastByDate({});
+      const latestSnapshot = await this.snapshotRepository.findLastByDate({ complete: true });
       if (latestSnapshot) {
         await this.setLastSnapshotValueWithLatestSnapshot(latestSnapshot);
       }
       return this.lastSnapshot;
     } else {
-      const latestSnapshot = await this.snapshotRepository.findLastByDate({ lastEventId: { $gt : this.lastSnapshot.lastEventId } });
+      const latestSnapshot = await this.snapshotRepository.findLastByDate({ complete: true, lastEventId: { $gt : this.lastSnapshot.lastEventId } });
       if (latestSnapshot) {
         await this.setLastSnapshotValueWithLatestSnapshot(latestSnapshot);
       }

@@ -162,7 +162,7 @@ describe('FlagSnapshotService', () => {
     });
   });
 
-  describe('getLatestSnapshot', () => {
+  describe(FlagSnapshotService.prototype.getLatestSnapshot, () => {
     describe('when no previous snapshot', () => {
       it ('returns undefined', async () => {
         const snapshot = await flagSnapshotService.getLatestSnapshot();
@@ -172,17 +172,17 @@ describe('FlagSnapshotService', () => {
     describe('with previous snapshot', () => {
       let createdPixels = [];
       beforeEach(async () => {
-        createdPixels = await createManyPixel(35);
+        createdPixels = await createManyPixel(40);
         await flagSnapshotService.createSnapshot(15);
       });
       it ('get snapshot when no newer', async () => {
         const snapshot = await flagSnapshotService.getLatestSnapshot();
         expect(snapshot.lastEventId).toEqual(15);
-        expect(snapshot.pixels).toEqual(createdPixels.splice(0, 15).map(p => ({ author: p.author, hexColor: p.hexColor, entityId: p.entityId, indexInFlag: p.indexInFlag })));
+        expect(snapshot.pixels).toEqual(createdPixels.slice(0, 15).map(p => ({ author: p.author, hexColor: p.hexColor, entityId: p.entityId, indexInFlag: p.indexInFlag })));
       });
       it ('get newer snapshot when there is a newer', async () => {
         const snapshot = await flagSnapshotRepository.createAndReturn({
-          lastEventId: 35,
+          lastEventId: 40,
           complete: true,
         });
         await Promise.all(createdPixels.map(async p => {
@@ -190,8 +190,30 @@ describe('FlagSnapshotService', () => {
         }) as any);
 
         const latestSnapshot = await flagSnapshotService.getLatestSnapshot();
-        expect(latestSnapshot.lastEventId).toEqual(35);
+        expect(latestSnapshot.lastEventId).toEqual(40);
         expect(latestSnapshot.pixels).toEqual(createdPixels.map(p => ({ author: p.author, hexColor: p.hexColor, entityId: p.entityId, indexInFlag: p.indexInFlag })));
+      });
+
+      it ('get second last snapshot when last is not complete', async () => {
+        const completeSnapshot = await flagSnapshotRepository.createAndReturn({
+          lastEventId: 35,
+          complete: true,
+        });
+        await Promise.all(createdPixels.slice(0, 35).map(async p => {
+          await flagSnapshotPixelRepository.createAndReturn({ author: p.author, hexColor: p.hexColor, entityId: p.entityId, indexInFlag: p.indexInFlag, snapshotId: completeSnapshot._id.toHexString() })
+        }) as any);
+
+        const incompleteSnapshot = await flagSnapshotRepository.createAndReturn({
+          lastEventId: 40,
+          complete: false,
+        });
+        await Promise.all(createdPixels.map(async p => {
+          await flagSnapshotPixelRepository.createAndReturn({ author: p.author, hexColor: p.hexColor, entityId: p.entityId, indexInFlag: p.indexInFlag, snapshotId: incompleteSnapshot._id.toHexString() })
+        }) as any);
+
+        const latestSnapshot = await flagSnapshotService.getLatestSnapshot();
+        expect(latestSnapshot.lastEventId).toEqual(35);
+        expect(latestSnapshot.pixels).toEqual(createdPixels.slice(0, 35).map(p => ({ author: p.author, hexColor: p.hexColor, entityId: p.entityId, indexInFlag: p.indexInFlag })));
       });
     });
 
