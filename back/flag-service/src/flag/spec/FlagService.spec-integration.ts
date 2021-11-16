@@ -11,9 +11,9 @@ import { DatabaseEvent } from 'library/database/object/event/DatabaseEvent';
 import { set, sub } from 'date-fns';
 import { UserAlreadyOwnsAPixelError } from "../errors/UserAlreadyOwnsAPixelError";
 import { UserActionIsOnCooldownError } from "../errors/UserActionIsOnCooldownError";
-import { FlagSnapshotModule } from '../snapshot/SnapshotModule';
-import { FlagSnapshotRepository } from '../snapshot/SnapshotRepository';
-import { FlagSnapshotService } from '../snapshot/SnapshotService';
+import { FlagSnapshotModule } from '../snapshot/FlagSnapshotModule';
+import { FlagSnapshotRepository } from '../snapshot/FlagSnapshotRepository';
+import { FlagSnapshotService } from '../snapshot/FlagSnapshotService';
 
 describe('FlagService', () => {
   let flagService: FlagService;
@@ -383,7 +383,7 @@ describe('FlagService', () => {
         await flagService.addPixel('ownerid', '#DDDDDD');
         await new Promise((r) => setTimeout(r, 1));
         const addedPixel = await flagService.addPixel('secondowner', '#AAAAAA');
-        await flagSnapshotService.createSnapShot(2);
+        await flagSnapshotService.createSnapshot(2);
         await new Promise((r) => setTimeout(r, 1));
         await flagService.addPixel(
           'thirdowner',

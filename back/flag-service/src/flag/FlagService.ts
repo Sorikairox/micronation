@@ -7,7 +7,7 @@ import { PixelRepository } from './pixel/PixelRepository';
 import { differenceInMilliseconds } from 'date-fns';
 import { UserAlreadyOwnsAPixelError } from "./errors/UserAlreadyOwnsAPixelError";
 import { UserActionIsOnCooldownError } from "./errors/UserActionIsOnCooldownError";
-import { FlagSnapshotService } from './snapshot/SnapshotService';
+import { FlagSnapshotService } from './snapshot/FlagSnapshotService';
 
 @Injectable()
 export class FlagService {

@@ -8,4 +8,5 @@ export class FlagSnapshot extends DatabaseObject {
      * @deprecated Use SnapshotPixel collections
      */
     pixels?: GetPixelDto[];
+    complete: boolean;
 }
