@@ -383,7 +383,7 @@ describe('FlagService', () => {
         await flagService.addPixel('ownerid', '#DDDDDD');
         await new Promise((r) => setTimeout(r, 1));
         const addedPixel = await flagService.addPixel('secondowner', '#AAAAAA');
-        await flagSnapshotService.createSnapShot(2);
+        await flagSnapshotService.createSnapshot(2);
         await new Promise((r) => setTimeout(r, 1));
         await flagService.addPixel(
           'thirdowner',

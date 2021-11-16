@@ -1,10 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { GetPixelDto } from '../pixel/dto/GetPixelDto';
 import { PixelRepository } from '../pixel/PixelRepository';
-import { FlagSnapshotDto } from './dto/FlagSnapshotDto';
 import { FlagSnapshotPixelService } from './pixel/FlagSnapshotPixelService';
 import { FlagSnapshot } from './FlagSnapshot';
 import { FlagSnapshotRepository } from './FlagSnapshotRepository';
+import { FlagSnapshotDto } from "./dto/FlagSnapshotDto";
 
 @Injectable()
 export class FlagSnapshotService {
@@ -45,27 +46,36 @@ export class FlagSnapshotService {
 
   async createSnapshotIfEventIdMeetThreshold(eventId: number) {
     if (eventId % this.configService.get<number>('EVENTS_PER_SNAPSHOT') === 0) {
-      return this.createSnapShot(eventId);
+      return this.createSnapshot(eventId);
     }
   }
 
-  async createSnapShot(eventId: number) {
-    const lastSnapshot = await this.snapshotRepository.findLastByDate({});
+  async createSnapshot(snapshotLastEventId: number) {
+    const pixelArray = await this.getPixelsForSnapshot(snapshotLastEventId);
+    const createdSnapshot = await this.createNewEmptySnapshot(snapshotLastEventId);
+    return this.snapshotPixelService.saveSnapshotPixels(createdSnapshot._id.toHexString(), pixelArray);
+  }
+
+  public async createNewEmptySnapshot(lastEventId: number): Promise<FlagSnapshot> {
+    return this.snapshotRepository.createAndReturn({ lastEventId: lastEventId, complete: false });
+  }
+
+  public async getPixelsForSnapshot(lastEventId: number): Promise<GetPixelDto[]> {
+    const previousSnapshot = await this.snapshotRepository.findLastByDate({});
     let pixelArray;
-    if (!lastSnapshot) {
-      pixelArray = await this.pixelRepository.getPixelsUntilEventId(eventId);
+    if (!previousSnapshot) {
+      pixelArray = await this.pixelRepository.getPixelsUntilEventId(lastEventId);
     } else {
       let lastSnapshotPixel;
-      if (lastSnapshot.pixels) {
-        lastSnapshotPixel = lastSnapshot.pixels;
+      if (previousSnapshot.pixels) {
+        lastSnapshotPixel = previousSnapshot.pixels;
       } else {
-        lastSnapshotPixel = await this.snapshotPixelService.getSnapshotPixels(lastSnapshot._id.toHexString());
+        lastSnapshotPixel = await this.snapshotPixelService.getSnapshotPixels(previousSnapshot._id.toHexString());
       }
-      const arrayPixelNotInSnapshot = await this.pixelRepository.getPixelsBetweenEventIds(lastSnapshot.lastEventId, eventId);
+      const arrayPixelNotInSnapshot = await this.pixelRepository.getPixelsBetweenEventIds(previousSnapshot.lastEventId, lastEventId);
       pixelArray = this.mergeArray(lastSnapshotPixel, arrayPixelNotInSnapshot);
     }
-    const createdSnapshot = await this.snapshotRepository.createAndReturn({ lastEventId: eventId });
-    return this.snapshotPixelService.saveSnapshotPixels(createdSnapshot._id.toHexString(), pixelArray);
+    return pixelArray;
   }
 
   mergeArray(baseDataArray, newDataArray) {
