@@ -123,11 +123,10 @@
                 :time="this.cooldownTime"
                 :interval="1000"
                 tag="span"
-                class="font-bold"
               >
-                <template slot-scope="props"
-                > Prochaine modification possible dans<br>{{ props.minutes }} : {{ props.seconds }}</template
-                ></countdown
+                <template slot-scope="props">
+                  Prochaine modification possible dans<br> <span class="font-bold">{{ props.minutes }} : {{ props.seconds }}</span>
+                </template></countdown
               >
             </AppButton>
           </div>
