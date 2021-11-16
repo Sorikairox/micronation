@@ -6,10 +6,10 @@ import { DatabaseEvent } from 'library/database/object/event/DatabaseEvent';
 import { v4 } from 'uuid';
 import { Pixel } from '../../../flag/pixel/Pixel';
 import { PixelRepository } from '../../pixel/PixelRepository';
-import { FlagSnapshotPixelRepository } from '../pixel/SnapshotPixelRepository';
-import { FlagSnapshotModule } from '../SnapshotModule';
-import { FlagSnapshotRepository } from '../SnapshotRepository';
-import { FlagSnapshotService } from '../SnapshotService';
+import { FlagSnapshotPixelRepository } from '../pixel/FlagSnapshotPixelRepository';
+import { FlagSnapshotModule } from '../FlagSnapshotModule';
+import { FlagSnapshotRepository } from '../FlagSnapshotRepository';
+import { FlagSnapshotService } from '../FlagSnapshotService';
 
 let flagSnapshotService: FlagSnapshotService;
 let dbClientService: DatabaseClientService;

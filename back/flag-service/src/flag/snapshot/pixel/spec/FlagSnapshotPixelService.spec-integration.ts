@@ -3,7 +3,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { DatabaseModule } from 'library/database/DatabaseModule';
 import { DatabaseClientService } from 'library/database/client/DatabaseClientService';
 import { FlagSnapshotPixelService } from '../FlagSnapshotPixelService';
-import { FlagSnapshotPixelRepository } from '../SnapshotPixelRepository';
+import { FlagSnapshotPixelRepository } from '../FlagSnapshotPixelRepository';
 
 let flagSnapshotPixelService: FlagSnapshotPixelService;
 let flagSnapshotPixelRepository: FlagSnapshotPixelRepository;

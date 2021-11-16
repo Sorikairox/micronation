@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { GetPixelDto } from '../../pixel/dto/GetPixelDto';
-import { FlagSnapshotPixelRepository } from './SnapshotPixelRepository';
+import { FlagSnapshotPixelRepository } from './FlagSnapshotPixelRepository';
 
 @Injectable()
 export class FlagSnapshotPixelService {
