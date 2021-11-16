@@ -37,6 +37,8 @@ describe(FlagSnapshotService.name, () => {
         .mockImplementation(async () => ({ _id: new ObjectId() } as any));
       jest.spyOn(snapshotPixelService, 'saveSnapshotPixels')
         .mockImplementation(async () => ({} as any));
+      jest.spyOn(flagSnapshotRepository, 'updateAndReturnOne')
+        .mockImplementation(() => ({} as any));
       await flagSnapshotService.createSnapshot(1);
     });
 
