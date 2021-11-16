@@ -115,18 +115,18 @@
                        class="bg-primary-dark mt-4"
                        :disabled="requesting || !editedPixel || this.isOnCooldown"
             >
-              <template v-slot:icon v-if="!requesting"><AppDoneIcon/></template>
-              <span v-if="!requesting">Modifier la couleur de la zone<span v-if="editedPixel"> [{{editedPixel.x + 1}}:{{editedPixel.y + 1}}]</span></span>
+              <template v-slot:icon v-if="!requesting && !this.isOnCooldown"><AppDoneIcon/></template>
+              <span v-if="!requesting && !this.isOnCooldown">Modifier la couleur de la zone<span v-if="editedPixel"> [{{editedPixel.x + 1}}:{{editedPixel.y + 1}}]</span></span>
               <div v-if="requesting" class="loader"></div>
               <countdown
                 v-if="this.isOnCooldown"
                 :time="this.cooldownTime"
                 :interval="1000"
                 tag="span"
-                class="font-bold whitespace-nowrap ml-2"
+                class="font-bold"
               >
                 <template slot-scope="props"
-                >{{ props.minutes }} : {{ props.seconds }}</template
+                > Prochaine modification possible dans<br>{{ props.minutes }} : {{ props.seconds }}</template
                 ></countdown
               >
             </AppButton>
