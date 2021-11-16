@@ -176,7 +176,7 @@
           <li>(1) Chaque participant possède une zone du drapeau. Plus il y a de monde, plus les zones individuelles seront petites ! </li>
           <li>(2) Cliquez sur le bouton "Où est ma zone ?" pour visualiser la zone qui vous a été attribuée. Elle sera indiquée en surbrillance.</li>
           <li>(3) Vous pouvez modifier la couleur de n'importe quelle zone comme vous le souhaitez, mais seulement une fois toutes les
-            {{ maxCooldownTime }} minutes.</li>
+            {{ maxCooldownTime / 60 / 1000 }} minutes.</li>
           <li><a target="_blank" href="https://discord.gg/ZwS3w5Tg4x">Élabores un plan sur discord avec tes voisins en cliquant ici.</a></li>
         </ol>
       </div></AppAlert
