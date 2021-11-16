@@ -113,11 +113,21 @@
                        v-on:click="Finish()"
                        variant="contained"
                        class="bg-primary-dark mt-4"
-                       :disabled="requesting || !editedPixel"
+                       :disabled="requesting || !editedPixel || this.isOnCooldown"
             >
-              <template v-slot:icon v-if="!requesting"><AppDoneIcon/></template>
-              <span v-if="!requesting">Modifier la couleur de la zone<span v-if="editedPixel"> [{{editedPixel.x + 1}}:{{editedPixel.y + 1}}]</span></span>
+              <template v-slot:icon v-if="!requesting && !this.isOnCooldown"><AppDoneIcon/></template>
+              <span v-if="!requesting && !this.isOnCooldown">Modifier la couleur de la zone<span v-if="editedPixel"> [{{editedPixel.x + 1}}:{{editedPixel.y + 1}}]</span></span>
               <div v-if="requesting" class="loader"></div>
+              <countdown
+                v-if="this.isOnCooldown"
+                :time="this.cooldownTime"
+                :interval="1000"
+                tag="span"
+              >
+                <template slot-scope="props">
+                  Prochaine modification possible dans<br> <span class="font-bold">{{ props.minutes }} : {{ props.seconds }}</span>
+                </template></countdown
+              >
             </AppButton>
           </div>
         </div>
@@ -165,7 +175,7 @@
           <li>(1) Chaque participant possède une zone du drapeau. Plus il y a de monde, plus les zones individuelles seront petites ! </li>
           <li>(2) Cliquez sur le bouton "Où est ma zone ?" pour visualiser la zone qui vous a été attribuée. Elle sera indiquée en surbrillance.</li>
           <li>(3) Vous pouvez modifier la couleur de n'importe quelle zone comme vous le souhaitez, mais seulement une fois toutes les
-            {{ maxCooldownTime }} minutes.</li>
+            {{ maxCooldownTime / 60 / 1000 }} minutes.</li>
           <li><a target="_blank" href="https://discord.gg/ZwS3w5Tg4x">Élabores un plan sur discord avec tes voisins en cliquant ici.</a></li>
         </ol>
       </div></AppAlert
@@ -207,7 +217,7 @@ let canvasPixelColor = "#ff0000";
 let userXPixel = 0;
 let userYPixel = 0;
 
-let lastUpdate = new Date();
+let lastUpdate;
 
 let indexInFlagToLocalIndexMap = {};
 
@@ -548,6 +558,7 @@ export default {
       color: "#ff0000",
       maxCooldownTime: 5, // min
       lastSubmittedTime: new Date(),
+      isOnCooldown: false,
       errorMessage: "",
       openSuccessEditModal: false,
       openFailedEditModal: false,
@@ -624,6 +635,7 @@ export default {
       // console.log("REFRESH", ack);
       // console.log("Fetching the flag size");
 
+      lastUpdate = new Date();
       await fetch(`${process.env.apiUrl}/flag/after/${lastUpdate.toISOString()}`, {
         method: "GET",
         crossDomain: true,
@@ -663,7 +675,6 @@ export default {
               }
             }
 
-            lastUpdate = new Date();
             this.setNeighboursInfo();
 
             if (hasChanged) {
@@ -677,6 +688,7 @@ export default {
     },
     async FetchMap() {
       // console.log("Fetching the whole map");
+      lastUpdate = new Date();
       const response = await fetch(`${process.env.apiUrl}/flag`, {
         method: "GET",
         crossDomain: true,
@@ -717,6 +729,8 @@ export default {
     async sendPixel() {
       if (this.requesting) return;
       if (!this.editedPixel) return;
+      if (this.isOnCooldown) return;
+
       //Sending the user pixel with coords, color, timestamp?, userID?
       this.requesting = true;
       // console.log("Sending: ", UserPixel);
@@ -734,14 +748,22 @@ export default {
       });
       const data = await response.json();
       if (data.retryAfter) {
+        this.lastSubmittedTime = new Date(Date.now() + data.retryAfter - this.maxCooldownTime);
         this.openFailedEditModal = true;
         this.errorMessage = 'CooldownNotEndedYet';
-        this.lastSubmittedTime = new Date();
-        this.maxCooldownTime = data.retryAfter;
       } else {
+        this.lastSubmittedTime = new Date();
         this.openSuccessEditModal = true;
         this.FetchUserPixelAndMap(false);
       }
+
+      if (!this.isOnCooldown) {
+        this.isOnCooldown = true;
+        setTimeout(() => {
+          this.isOnCooldown = false;
+        }, this.cooldownTime);
+      }
+
       this.requesting = false;
     },
     async FetchUserPixelAndMap(fetchmap = true) {
@@ -764,8 +786,6 @@ export default {
           this.x = userPixelCoordinates.x;
           this.y = userPixelCoordinates.y;
           this.color = data.hexColor;
-          this.lastSubmittedTime = data.lastUpdate;
-          console.debug("time last updated ", this.lastSubmittedTime);
           setUserPixel(this.x, this.y);
           changePixelColorByCoordinatesAndRedraw(this.x, this.y, this.color);
           this.setPixelToEdit(null, { ...userPixelCoordinates, ...data }, false);
@@ -783,7 +803,9 @@ export default {
         },
       });
       const body = await res.json();
-      return body.cooldown;
+      const cooldownInMinutes = body.cooldown;
+      const cooldownInMilliseconds = cooldownInMinutes * 60 * 1000;
+      return cooldownInMilliseconds;
     },
     updateHoveredPixel(e) {
       let drawWidth = canvas.width / flagWidth;
