@@ -804,7 +804,9 @@ export default {
         },
       });
       const body = await res.json();
-      return body.cooldown * 60 * 1000;
+      const cooldownInMinutes = body.cooldown;
+      const cooldownInMilliseconds = cooldownInMinutes * 60 * 1000;
+      return cooldownInMilliseconds;
     },
     updateHoveredPixel(e) {
       let drawWidth = canvas.width / flagWidth;
