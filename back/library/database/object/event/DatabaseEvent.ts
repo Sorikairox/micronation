@@ -7,4 +7,6 @@ export class DatabaseEvent<T> extends DatabaseObject {
     entityId: string;
     eventId?: number;
     ignored?: boolean;
+    ip?: string;
+    useragent?: string;
 }

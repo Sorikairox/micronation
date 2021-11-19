@@ -5,8 +5,10 @@ import {
   InternalServerErrorException,
   Param,
   Post,
-  Put,
+  Put, Req,
 } from '@nestjs/common';
+import { Request } from 'express';
+import { RealIP } from 'nestjs-real-ip';
 import { Public } from '../user/decorators/Public';
 import { UserId } from '../user/decorators/UserId';
 import { ChangePixelColorDto } from './dto/ChangePixelColorDto';
@@ -30,9 +32,11 @@ export class FlagController {
   @Put('pixel')
   async changePixelColor(
       @UserId() currentUserId: string,
-      @Body() changeColorDTO: ChangePixelColorDto
+      @Body() changeColorDTO: ChangePixelColorDto,
+      @RealIP() ip: string,
+      @Req() request: Request,
   ) {
-    const event = await this.flagService.changePixelColor(currentUserId, changeColorDTO.pixelId, changeColorDTO.hexColor);
+    const event = await this.flagService.changePixelColor(currentUserId, changeColorDTO.pixelId, changeColorDTO.hexColor, ip, request.header('user-agent'));
     return event;
   }
 

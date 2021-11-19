@@ -67,7 +67,7 @@ describe('FlagController', () => {
         changePixelColorSpy = jest
           .spyOn(flagService, 'changePixelColor')
           .mockReturnValue({ modified: true } as any);
-        res = await flagController.changePixelColor('ownerId', data);
+        res = await flagController.changePixelColor('ownerId', data, 'myip', {} as any);
       });
       it('call changePixelColor from service', () => {
         expect(changePixelColorSpy).toBeCalledTimes(1);
@@ -90,7 +90,7 @@ describe('FlagController', () => {
             .mockImplementation(() => {
               throw new UserActionIsOnCooldownError(1000);
             });
-          res = flagController.changePixelColor('ownerId', data);
+          res = flagController.changePixelColor('ownerId', data, 'myip', {} as any);
         });
         it('call changePixelColor from service', () => {
           expect(changePixelColorSpy).toBeCalledTimes(1);
@@ -112,7 +112,7 @@ describe('FlagController', () => {
             .mockImplementation(() => {
               throw new UserHasNoPixelError();
             });
-          res = flagController.changePixelColor('ownerId', data);
+          res = flagController.changePixelColor('ownerId', data, 'myip', { } as any);
         });
         it('call changePixelColor from service', () => {
           expect(changePixelColorSpy).toBeCalledTimes(1);

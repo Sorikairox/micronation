@@ -34,7 +34,7 @@ export class FlagService {
     return createdEvent;
   }
 
-  async changePixelColor(performingUserId: string, pixelId: string, hexColor: string) {
+  async changePixelColor(performingUserId: string, pixelId: string, hexColor: string, ip: string, useragent: string) {
     const lastUserAction = await this.pixelRepository.findLastByDate({
       author: performingUserId,
     });
@@ -53,6 +53,8 @@ export class FlagService {
       author: performingUserId,
       entityId: lastPixelEvent.entityId,
       data: { ...lastPixelEvent.data, hexColor },
+      ip,
+      useragent,
     });
     this.flagSnapshotService.createSnapshotIfEventIdMeetThreshold(createdEvent.eventId);
     return createdEvent;

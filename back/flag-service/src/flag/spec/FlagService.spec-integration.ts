@@ -245,7 +245,7 @@ describe('FlagService', () => {
           'anotherUserId',
           '#DDDDDD',
         );
-        await flagService.changePixelColor('currentUserId', otherPixel.entityId, '#FFFFFF');
+        await flagService.changePixelColor('currentUserId', otherPixel.entityId, '#FFFFFF', 'myip', 'myuseragent');
         const pixel = await flagService.getOrCreateUserPixel('currentUserId');
         expect(pixel.author).toEqual('currentUserId');
         expect(pixel.entityId).toEqual(myPixel.entityId);
@@ -316,7 +316,7 @@ describe('FlagService', () => {
       await flagService.addPixel('ownerid', '#FFFFFF');
       await new Promise((r) => setTimeout(r, 1));
 
-      await flagService.changePixelColor('userid', addedPixelEvent.entityId, '#FFFFFF');
+      await flagService.changePixelColor('userid', addedPixelEvent.entityId, '#FFFFFF', 'myip', 'myuseragent');
       const events = await dbClientService
         .getDb()
         .collection(pixelRepository.getCollectionName())
@@ -338,7 +338,7 @@ describe('FlagService', () => {
 
       await flagService.addPixel('ownerid', '#DDDDDD');
       await expect(
-        flagService.changePixelColor('fakeuserid','fakeId', '#FFFFFF'),
+        flagService.changePixelColor('fakeuserid','fakeId', '#FFFFFF', 'myip', 'myuseragent'),
       ).rejects.toThrow(PixelDoesNotExistError);
     });
     it('throw error when changing color before cooldown duration ends', async () => {
@@ -346,10 +346,10 @@ describe('FlagService', () => {
       const addedPixel = await flagService.addPixel('ownerid', '#DDDDDD');
       await new Promise((r) => setTimeout(r, 1));
 
-      await flagService.changePixelColor('userid', addedPixel.entityId,'#FFFFFF');
+      await flagService.changePixelColor('userid', addedPixel.entityId,'#FFFFFF', 'myip', 'myuseragent');
 
       await expect(
-        flagService.changePixelColor('userid', addedPixel.entityId,'#FFFFFF'),
+        flagService.changePixelColor('userid', addedPixel.entityId,'#FFFFFF', 'myip', 'myuseragent'),
       ).rejects.toThrow(UserActionIsOnCooldownError);
     });
   });
@@ -366,7 +366,7 @@ describe('FlagService', () => {
           '#FFFFFF',
         );
         await new Promise((r) => setTimeout(r, 1));
-        await flagService.changePixelColor('fourthuser', addedPixel.entityId, '#000000');
+        await flagService.changePixelColor('fourthuser', addedPixel.entityId, '#000000', 'myip', 'myuseragent');
 
         const flag = await flagService.getFlag();
         expect(flag.length).toEqual(3);
@@ -390,7 +390,7 @@ describe('FlagService', () => {
           '#FFFFFF',
         );
         await new Promise((r) => setTimeout(r, 1));
-        await flagService.changePixelColor('fourthuser', addedPixel.entityId, '#000000');
+        await flagService.changePixelColor('fourthuser', addedPixel.entityId, '#000000', 'myip', 'myuseragent');
 
         const flag = await flagService.getFlag();
         expect(flag.length).toEqual(3);
