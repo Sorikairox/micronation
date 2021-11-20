@@ -1,6 +1,6 @@
 {
   "name": "micronation",
-  "version": "3.0.8",
+  "version": "42.42.42",
   "private": true,
   "scripts": {
     "build": "nuxt build",
