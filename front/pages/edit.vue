@@ -7,8 +7,6 @@
       <div
         class="
           flex flex-col
-          md:flex-row
-          max-w-screen-2xl
           h-full
           grid-rows-2
           mx-auto
@@ -20,9 +18,8 @@
         <div
           id="flagContainer"
           class="
-            flex-1 md:self-center
             self-stretch
-            m-2 md:m-4
+            m-2
             h-auto
             cursor-move
           "
@@ -47,7 +44,8 @@
           id="sidePanel"
           class="
             flex flex-col
-            m-2 md:m-4 md:ml-0
+            m-2
+            mb-4
             p-4
             bg-white
             rounded-lg
@@ -133,6 +131,9 @@
         <p>L’objectif de cette expérience est de produire le drapeau d’une micronation virtuelle !
           <a href="https://www.youtube.com/watch?v=ehmyaX0lJew">(Il est vivement recommandé de regarder la vidéo de Dirty Biology avant pour mieux comprendre de quoi il s’agit).</a></p>
         <p>Cette experience est terminée !<br>Bravo à toutes et à tous !</p>
+        <p>
+          Le repo github est <a href="https://github.com/Sorikairox/micronation">ici</a> pour celleux qui veulent créer leur propre micronation ou continuer à host le Dirtybiologistan 😁
+        </p>
       </div></AppAlert
       >
     </div>
@@ -752,15 +753,6 @@ export default {
   border-radius: 0 0 0.25em 0;
 
   pointer-events: none;
-}
-
-#sidePanel {
-  max-width: 100%;
-}
-@screen md {
-  #sidePanel {
-    width: 350px;
-  }
 }
 
 .property-list > div {
