@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { DatabaseEvent } from 'library/database/object/event/DatabaseEvent';
 import { PixelDoesNotExistError } from './errors/PixelDoesNotExistError';
+import { UserHasNoPixelError } from './errors/UserHasNoPixelError';
 import { GetPixelDto } from './pixel/dto/GetPixelDto';
 import { Pixel } from './pixel/Pixel';
 import { PixelRepository } from './pixel/PixelRepository';
@@ -95,6 +96,17 @@ export class FlagService {
     });
     if (!userPixel) {
       userPixel = await this.addPixel(userId);
+    }
+    return this.pixelRepository.getPixelById(userPixel.entityId);
+  }
+
+  async getUserPixel(userId: string) {
+    const userPixel = await this.pixelRepository.findLastByEventId({
+      author: userId,
+      action: 'creation',
+    });
+    if (!userPixel) {
+      throw new UserHasNoPixelError();
     }
     return this.pixelRepository.getPixelById(userPixel.entityId);
   }

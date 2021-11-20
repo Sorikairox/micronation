@@ -1,9 +1,10 @@
-import { HttpStatus, INestApplication } from '@nestjs/common';
+import { INestApplication } from '@nestjs/common';
 import { DatabaseEvent } from 'library/database/object/event/DatabaseEvent';
 import request from 'supertest';
 import { DatabaseClientService } from 'library/database/client/DatabaseClientService';
 import * as DirectusModule from "@directus/sdk";
 import { AuthToken, Directus, PartialItem, QueryOne, TypeOf, UserItem } from "@directus/sdk";
+import { PixelRepository } from '../src/flag/pixel/PixelRepository';
 import { Pixel } from '../src/flag/pixel/Pixel';
 import { bootstrap } from "../src/bootstrap";
 import { AuthBackend } from "../src/user/AuthBackend";
@@ -43,7 +44,6 @@ describe('Flag (e2e)', () => {
         await db.collection('pixel-events').deleteMany({});
         await db.collection('counter').deleteMany({});
         await db.collection('flag-snapshot').deleteMany({});
-
         if (authBackend === AuthBackend.FOULOSCOPIE) {
           authToken = VALID_DIRECTUS_TOKEN;
           userId = USER_ID_SAMPLE;
@@ -67,6 +67,17 @@ describe('Flag (e2e)', () => {
           authToken = res.jwt;
           userId = res.user._id;
         }
+        const pixelRepository = app.get(PixelRepository);
+        createdPixelEvent = await pixelRepository.createAndReturn({
+          eventId: 1,
+          entityId: v4(),
+          data: {
+            hexColor: "#DDDDDD",
+            indexInFlag: 1,
+          },
+          author: userId,
+          action: 'creation',
+        });
       });
 
       afterAll(async () => {
@@ -75,7 +86,7 @@ describe('Flag (e2e)', () => {
 
       describe('/pixel', () => {
         describe('PUT/POST flow', () => {
-          it('PUT PixelDoesNotExist error', async () => {
+          it('PUT returns 404', async () => {
             const res = await request(app.getHttpServer())
               .put('/pixel')
               .set('authorization', authToken)
@@ -83,86 +94,22 @@ describe('Flag (e2e)', () => {
                 pixelId: 'fakePixelId',
                 hexColor: '#DDDDDD',
               });
-            expect(res.status).toEqual(400);
-            expect(res.body.message).toEqual('Pixel does not exist.');
+            expect(res.status).toEqual(404);
           });
 
-          it('POST success', async () => {
+          it('POST returns 404', async () => {
             const res = await request(app.getHttpServer())
               .post('/pixel')
-              .set('authorization', authToken)
-              .send({
-                hexColor: '#FFADAD',
-              });
-            expect(res.status).toEqual(201);
-            createdPixelEvent = res.body;
-          });
-
-          for(const badColor of [
-            'badcolor',
-            '#FFF',
-            '#ZZZZZZ',
-            '#FFFFFFF',
-          ]) {
-            it(`PUT fails with bad color "${badColor}"`, async () => {
-              const res = await request(app.getHttpServer())
-                .put('/pixel')
-                .set('authorization', authToken)
-                .send({
-                  pixelId: createdPixelEvent.entityId,
-                  hexColor: badColor,
-                });
-              expect(res.status).toEqual(400);
-            });
-          }
-
-          it(`PUT fails with empty id`, async () => {
-            const res = await request(app.getHttpServer())
-              .put('/pixel')
-              .set('authorization', authToken)
-              .send({
-                hexColor: "#FFFFFF",
-              });
-            expect(res.status).toEqual(400);
-          });
-
-          it(`PUT fails with null for pixelId`, async () => {
-            const res = await request(app.getHttpServer())
-              .put('/pixel')
-              .set('authorization', authToken)
-              .send({
-                pixelId: null,
-                hexColor: "#FFFFFF",
-              });
-            expect(res.status).toEqual(400);
-          });
-
-          it('PUT success', async () => {
-            const res = await request(app.getHttpServer())
-              .put('/pixel')
               .set('authorization', authToken)
               .send({
                 pixelId: createdPixelEvent.entityId,
                 hexColor: '#DDDDDD',
               });
-            expect(res.status).toEqual(200);
+            expect(res.status).toEqual(404);
           });
         });
 
         describe('GET', () => {
-          if (authBackend === AuthBackend.FOULOSCOPIE) {
-            it('Fails on empty request (BadRequest)', async () => {
-              const res = await request(app.getHttpServer())
-                .get('/pixel');
-              const { error, message } = res.body;
-
-              expect(res.status).toBe(HttpStatus.BAD_REQUEST);
-
-              expect(error).toBe('Missing directus token.');
-              expect(message).toBe('header: Authorization');
-            });
-          }
-
           it('success', async () => {
             const res = await request(app.getHttpServer())
               .get('/pixel')

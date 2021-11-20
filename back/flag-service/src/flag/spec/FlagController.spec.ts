@@ -19,110 +19,6 @@ describe('FlagController', () => {
     jest.clearAllMocks();
   });
 
-  describe('addPixel', () => {
-    describe('success', () => {
-      let addPixelSpy;
-      let res;
-      beforeAll(async () => {
-        addPixelSpy = jest
-          .spyOn(flagService, 'addPixel')
-          .mockReturnValue({ fake: true } as any);
-        res = await flagController.addPixel('ownerId', '#ffffff');
-      });
-      it('call addPixel from service', () => {
-        expect(addPixelSpy).toBeCalledTimes(1);
-      });
-      it('return addPixel return value', () => {
-        expect(res).toEqual({ fake: true });
-      });
-    });
-    describe('failure', () => {
-      let addPixelSpy;
-      let res;
-      beforeAll(async () => {
-        addPixelSpy = jest
-          .spyOn(flagService, 'addPixel')
-          .mockImplementation(() => {
-            throw new UserAlreadyOwnsAPixelError();
-          });
-        res = flagController.addPixel('ownerId', '#ffffff');
-      });
-      it('call addPixel from service', () => {
-        expect(addPixelSpy).toBeCalledTimes(1);
-      });
-      it('throws UserAlreadyOwnsAPixelError from service', async () => {
-        await expect(res).rejects.toThrow(UserAlreadyOwnsAPixelError);
-      });
-    });
-  });
-  describe('changePixelColor', () => {
-    describe('success', () => {
-      let changePixelColorSpy;
-      let res;
-      beforeAll(async () => {
-        const data: ChangePixelColorDto = {
-          hexColor: '#FFFFFF',
-          pixelId: 'pixelId',
-        };
-        changePixelColorSpy = jest
-          .spyOn(flagService, 'changePixelColor')
-          .mockReturnValue({ modified: true } as any);
-        res = await flagController.changePixelColor('ownerId', data, 'myip', { header: () => 'user' } as any);
-      });
-      it('call changePixelColor from service', () => {
-        expect(changePixelColorSpy).toBeCalledTimes(1);
-      })
-      it('returns changePixelColor return value', () => {
-        expect(res).toEqual({ modified: true });
-      })
-    });
-    describe('failure', () => {
-      describe('service.changePixelColor throw CooldownTimerHasNotEndedYet', () => {
-        let changePixelColorSpy;
-        let res;
-        beforeAll(async () => {
-          const data: ChangePixelColorDto = {
-            hexColor: '#FFFFFF',
-            pixelId: 'pixelId',
-          };
-          changePixelColorSpy = jest
-            .spyOn(flagService, 'changePixelColor')
-            .mockImplementation(() => {
-              throw new UserActionIsOnCooldownError(1000);
-            });
-          res = flagController.changePixelColor('ownerId', data, 'myip', { header: () => 'user' } as any);
-        });
-        it('call changePixelColor from service', () => {
-          expect(changePixelColorSpy).toBeCalledTimes(1);
-        });
-        it('throws CooldownTimerHasNotEndedYetError from service', async () => {
-          await expect(res).rejects.toThrow(UserActionIsOnCooldownError);
-        });
-      });
-      describe('service.changePixelColor throw UserHasNoPixel', () => {
-        let changePixelColorSpy;
-        let res;
-        beforeAll(async () => {
-          const data: ChangePixelColorDto = {
-            hexColor: '#FFFFFF',
-            pixelId: 'pixelId',
-          };
-          changePixelColorSpy = jest
-            .spyOn(flagService, 'changePixelColor')
-            .mockImplementation(() => {
-              throw new UserHasNoPixelError();
-            });
-          res = flagController.changePixelColor('ownerId', data, 'myip', { header: () => 'user' } as any);
-        });
-        it('call changePixelColor from service', () => {
-          expect(changePixelColorSpy).toBeCalledTimes(1);
-        });
-        it('throws UserHasNoPixel from service', async () => {
-          await expect(res).rejects.toThrow(UserHasNoPixelError);
-        });
-      });
-    });
-  });
   describe('getFlag', () => {
     describe('success', () => {
       let getFlagSpy;
@@ -201,14 +97,14 @@ describe('FlagController', () => {
       let res;
       beforeAll(async () => {
         getPixelSpy = jest
-          .spyOn(flagService, 'getOrCreateUserPixel')
+          .spyOn(flagService, 'getUserPixel')
           .mockReturnValue({ pixel: true } as any);
         res = await flagController.getUserPixel('ownerId');
       });
-      it('call getOrCreateUserPixel from service', () => {
+      it('call getPixel from service', () => {
         expect(getPixelSpy).toBeCalledTimes(1);
       })
-      it('returns getOrCreateUserPixel return value', () => {
+      it('returns getPixel return value', () => {
         expect(res).toEqual({ pixel: true });
       })
     });

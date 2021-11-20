@@ -20,31 +20,11 @@ export class FlagController {
   constructor(private flagService: FlagService) {
   }
 
-  @Post('pixel')
-  async addPixel(
-    @UserId() ownerId: string,
-    @Body('hexColor') hexColor: string,
-  ) {
-    const event = await this.flagService.addPixel(ownerId, hexColor);
-    return event;
-  }
-
-  @Put('pixel')
-  async changePixelColor(
-      @UserId() currentUserId: string,
-      @Body() changeColorDTO: ChangePixelColorDto,
-      @RealIP() ip: string,
-      @Req() request: Request,
-  ) {
-    const event = await this.flagService.changePixelColor(currentUserId, changeColorDTO.pixelId, changeColorDTO.hexColor, ip, request.header('user-agent'));
-    return event;
-  }
-
   @Get('pixel')
   async getUserPixel(
       @UserId() userId: string,
   ) {
-    return this.flagService.getOrCreateUserPixel(userId);
+    return this.flagService.getUserPixel(userId);
   }
 
   @Get('flag')

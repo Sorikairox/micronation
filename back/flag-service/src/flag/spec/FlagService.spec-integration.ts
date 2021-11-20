@@ -1,6 +1,7 @@
 import { ConfigModule } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
 import { PixelDoesNotExistError } from '../errors/PixelDoesNotExistError';
+import { UserHasNoPixelError } from '../errors/UserHasNoPixelError';
 import { FlagService } from '../FlagService';
 import { Pixel } from '../pixel/Pixel';
 import { DatabaseModule } from 'library/database/DatabaseModule';
@@ -251,7 +252,7 @@ describe('FlagService', () => {
         expect(pixel.entityId).toEqual(myPixel.entityId);
         expect(pixel.hexColor).toEqual('#DDDDDD');
       })
-    })
+    });
     describe('user has several pixel', () => {
       it('return latest pixel', async () => {
         await flagService.addPixel(
@@ -307,7 +308,41 @@ describe('FlagService', () => {
         expect(pixel.hexColor).toEqual('#CCCCCC');
         expect(pixel.indexInFlag).toEqual(12);
       });
-    })
+    });
+  });
+
+  describe('getUserPixel', () => {
+    describe('user does not have pixel', () => {
+      it('throw ' + UserHasNoPixelError.prototype.name, async () => {
+        await expect(flagService.getUserPixel('notOwningPixelId')).rejects.toThrow(UserHasNoPixelError);
+      });
+    });
+    describe('user has pixel', () => {
+      it('return own pixel when user did not modify any other pixel', async () => {
+        await flagService.addPixel(
+          'randomId',
+          '#DDDDDD',
+        );
+        const pixel = await flagService.getUserPixel('randomId');
+        expect(pixel.author).toEqual('randomId');
+        expect(pixel.hexColor).toEqual('#DDDDDD');
+      });
+      it('return own pixel even when user did modify another pixel', async () => {
+        const myPixel = await flagService.addPixel(
+          'currentUserId',
+          '#DDDDDD',
+        );
+        const otherPixel = await flagService.addPixel(
+          'anotherUserId',
+          '#DDDDDD',
+        );
+        await flagService.changePixelColor('currentUserId', otherPixel.entityId, '#FFFFFF', 'myip', 'myuseragent');
+        const pixel = await flagService.getUserPixel('currentUserId');
+        expect(pixel.author).toEqual('currentUserId');
+        expect(pixel.entityId).toEqual(myPixel.entityId);
+        expect(pixel.hexColor).toEqual('#DDDDDD');
+      })
+    });
   });
 
   describe('changePixelColor', () => {
