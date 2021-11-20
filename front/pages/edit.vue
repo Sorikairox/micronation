@@ -63,6 +63,7 @@
               <AppHelpIcon/>
             </button>
 
+            <template v-if="userHasPixel">
             <div class="pr-10 property-list">
               <div><span class="property-name">Voisin de gauche :</span> <span v-if="leftPixel">[{{leftPixel.x + 1}}:{{leftPixel.y + 1}}] {{leftPixel.username}} </span><span v-else>Pas de voisin</span></div>
               <div><span class="property-name">Voisin du haut :</span> <span v-if="topPixel">[{{topPixel.x + 1}}:{{topPixel.y + 1}}] {{topPixel.username}} </span><span v-else>Pas de voisin</span></div>
@@ -80,7 +81,9 @@
             </AppButton>
 
             <hr class="mt-1 border-grey-light">
+            </template>
           </div>
+
           <div class="flex flex-col text-center">
             <h1 class="m-4">
               <div v-if="editedPixel" class="property-list">
@@ -107,51 +110,10 @@
                 @change="setPixelToEditFromCoordinates"
               >
             </div>
-            <chrome-picker style="width: 100%;height: auto" v-model="color" @input="change"></chrome-picker>
-            <AppButton
-                       size="medium"
-                       v-on:click="Finish()"
-                       variant="contained"
-                       class="bg-primary-dark mt-4"
-                       :disabled="requesting || !editedPixel || this.isOnCooldown"
-            >
-              <template v-slot:icon v-if="!requesting && !this.isOnCooldown"><AppDoneIcon/></template>
-              <span v-if="!requesting && !this.isOnCooldown">Modifier la couleur de la zone<span v-if="editedPixel"> [{{editedPixel.x + 1}}:{{editedPixel.y + 1}}]</span></span>
-              <div v-if="requesting" class="loader"></div>
-              <countdown
-                v-if="this.isOnCooldown"
-                :time="this.cooldownTime"
-                :interval="1000"
-                tag="span"
-              >
-                <template slot-scope="props">
-                  Prochaine modification possible dans<br> <span class="font-bold">{{ props.minutes }} : {{ props.seconds }}</span>
-                </template></countdown
-              >
-            </AppButton>
           </div>
         </div>
       </div>
       <AppAlert
-        v-if="this.errorMessage == 'CooldownNotEndedYet'"
-        variant="error"
-        @close="closeCooldownModal"
-        :open="openFailedEditModal"
-        >La date de ta dernière modification d'un pixel est trop récente, merci de patienter !<br />
-        Temps restant :
-        <countdown
-          :time="this.cooldownTime"
-          :interval="1000"
-          tag="span"
-          class="text-2xl font-bold"
-        >
-          <template slot-scope="props"
-            >{{ props.minutes }} : {{ props.seconds }}</template
-          ></countdown
-        ></AppAlert
-      >
-      <AppAlert
-        v-else
         variant="error"
         @close="closeCooldownModal"
         :open="openFailedEditModal"
@@ -168,16 +130,9 @@
         @close="closeHelpModal"
         :open="showHelp"
       ><div>
-        <p>Vous allez prendre part à une expérience de dessin collectif. L’objectif de cette expérience est de produire le drapeau d’une micronation virtuelle !
+        <p>L’objectif de cette expérience est de produire le drapeau d’une micronation virtuelle !
           <a href="https://www.youtube.com/watch?v=ehmyaX0lJew">(Il est vivement recommandé de regarder la vidéo de Dirty Biology avant pour mieux comprendre de quoi il s’agit).</a></p>
-        <p>Voici les règles du jeu : </p>
-        <ol>
-          <li>(1) Chaque participant possède une zone du drapeau. Plus il y a de monde, plus les zones individuelles seront petites ! </li>
-          <li>(2) Cliquez sur le bouton "Où est ma zone ?" pour visualiser la zone qui vous a été attribuée. Elle sera indiquée en surbrillance.</li>
-          <li>(3) Vous pouvez modifier la couleur de n'importe quelle zone comme vous le souhaitez, mais seulement une fois toutes les
-            {{ maxCooldownTime / 60 / 1000 }} minutes.</li>
-          <li><a target="_blank" href="https://discord.gg/ZwS3w5Tg4x">Élabores un plan sur discord avec tes voisins en cliquant ici.</a></li>
-        </ol>
+        <p>Cette experience est terminée !<br>Bravo à toutes et à tous !</p>
       </div></AppAlert
       >
     </div>
@@ -186,7 +141,6 @@
 
 <script>
 import fouloscopie from "fouloscopie";
-import countdown from "@chenfengyuan/vue-countdown";
 import {
   DESIRED_FLAG_RATIO,
   getFlagResolutionFromIndexToCoordinateMap,
@@ -522,9 +476,7 @@ const getStyle = (color) => {
     };
 }
 
-import { Chrome } from 'vue-color';
 import AppAlert from "~/components/organisms/AppAlert";
-import AppDoneIcon from "~/components/atoms/icons/AppDoneIcon";
 import AppHelpIcon from "../components/atoms/icons/AppHelpIcon";
 import AppButton from "../components/atoms/AppButton";
 import AppPlaceIcon from "../components/atoms/icons/AppPlaceIcon";
@@ -540,10 +492,7 @@ export default {
     AppPlaceIcon,
     AppButton,
     AppHelpIcon,
-    AppDoneIcon,
     AppAlert,
-    countdown,
-    'chrome-picker': Chrome,
   },
   data() {
     return {
@@ -571,6 +520,7 @@ export default {
         x: 0,
         y: 0,
       },
+      userHasPixel: false,
       hoveredPixel: null,
       editedPixel: null,
       modifiedPixelX: 1,
@@ -579,21 +529,6 @@ export default {
     };
   },
   computed: {
-    myPixelButtonStyle() {
-      return getStyle(this.color);
-    },
-    topPixelButtonStyle() {
-      return getStyle(this.topPixel?.hexColor);
-    },
-    bottomPixelButtonStyle() {
-      return getStyle(this.bottomPixel?.hexColor);
-    },
-    leftPixelButtonStyle() {
-      return getStyle(this.leftPixel?.hexColor);
-    },
-    rightPixelButtonStyle() {
-      return getStyle(this.rightPixel?.hexColor);
-    },
     cooldownTime() {
       // return in ms
       const remainingTime =
@@ -605,7 +540,7 @@ export default {
   methods: {
     closeHelpModal() {
       this.showHelp = false;
-      localStorage.setItem('showHelp', 'false');
+      localStorage.setItem('showNewHelp', 'false');
     },
     closeCooldownModal() {
       this.openFailedEditModal = false;
@@ -630,62 +565,6 @@ export default {
         drawFlagToBuffer();
         drawWorld();
       }, 3000);
-    },
-    async Refresh(ack = false) {
-      // console.log("REFRESH", ack);
-      // console.log("Fetching the flag size");
-
-      const beforeUpdateTime = new Date();
-      await fetch(`${process.env.apiUrl}/flag/after/${lastUpdate.toISOString()}`, {
-        method: "GET",
-        crossDomain: true,
-        headers: {
-          "Content-Type": "application/json",
-        },
-      })
-        .then((response) => response.json())
-        .then((modifiedPixels) => {
-          lastUpdate = beforeUpdateTime;
-          if (modifiedPixels.length > 0) {
-            for (const modifiedPixel of modifiedPixels) {
-              const localIndex = indexInFlagToLocalIndexMap[modifiedPixel.indexInFlag];
-              if (localIndex == null) {
-                flagPixels.push(modifiedPixel);
-                indexInFlagToLocalIndexMap[modifiedPixel.indexInFlag] = flagPixels.length - 1;
-              } else {
-                flagPixels[localIndex].hexColor = modifiedPixel.hexColor;
-              }
-            }
-
-            const hasChanged = initializeFlagResolution();
-
-            for (const modifiedPixel of modifiedPixels) {
-              const localIndex = indexInFlagToLocalIndexMap[modifiedPixel.indexInFlag];
-              const { x, y } = getCoordinateFromFlagIndex(localIndex);
-              if (!flagPixelMap[x]) {
-                flagPixelMap[x] = [];
-                console.warn(`There was no row on x=${x}`);
-              }
-              if (flagPixelMap[x][y]) {
-                flagPixelMap[x][y].hexColor = modifiedPixel.hexColor;
-              } else {
-                flagPixelMap[x][y] = modifiedPixel;
-              }
-              if (!hasChanged) {
-                drawPixelToBuffer(x, y, modifiedPixel.hexColor);
-              }
-            }
-
-            this.setNeighboursInfo();
-
-            if (hasChanged) {
-              drawFlagToBuffer();
-            }
-
-            drawWorld();
-          }
-        })
-        // .catch((err) => console.log(err));
     },
     async FetchMap() {
       // console.log("Fetching the whole map");
@@ -727,46 +606,6 @@ export default {
       }
       return null;
     },
-    async sendPixel() {
-      if (this.requesting) return;
-      if (!this.editedPixel) return;
-      if (this.isOnCooldown) return;
-
-      //Sending the user pixel with coords, color, timestamp?, userID?
-      this.requesting = true;
-      // console.log("Sending: ", UserPixel);
-      const response = await fetch(`${process.env.apiUrl}/pixel`, {
-        method: "PUT",
-        crossDomain: true,
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: this.token,
-        },
-        body: JSON.stringify({
-          hexColor: canvasPixelColor,
-          pixelId: this.editedPixel.entityId
-        }),
-      });
-      const data = await response.json();
-      if (data.retryAfter) {
-        this.lastSubmittedTime = new Date(Date.now() + data.retryAfter - this.maxCooldownTime);
-        this.openFailedEditModal = true;
-        this.errorMessage = 'CooldownNotEndedYet';
-      } else {
-        this.lastSubmittedTime = new Date();
-        this.openSuccessEditModal = true;
-        this.FetchUserPixelAndMap(false);
-      }
-
-      if (!this.isOnCooldown) {
-        this.isOnCooldown = true;
-        setTimeout(() => {
-          this.isOnCooldown = false;
-        }, this.cooldownTime);
-      }
-
-      this.requesting = false;
-    },
     async FetchUserPixelAndMap(fetchmap = true) {
       // console.log("Fetching user pixel");
       await fetch(`${process.env.apiUrl}/pixel`, {
@@ -783,13 +622,17 @@ export default {
           if (fetchmap) {
             await this.FetchMap();
           }
-          const userPixelCoordinates = getCoordinateFromFlagIndex(indexInFlagToLocalIndexMap[data.indexInFlag]);
-          this.x = userPixelCoordinates.x;
-          this.y = userPixelCoordinates.y;
-          this.color = data.hexColor;
-          setUserPixel(this.x, this.y);
-          changePixelColorByCoordinatesAndRedraw(this.x, this.y, this.color);
-          this.setPixelToEdit(null, { ...userPixelCoordinates, ...data }, false);
+          if (!data.statusCode) {
+            console.log(data);
+            this.userHasPixel = true;
+            const userPixelCoordinates = getCoordinateFromFlagIndex(indexInFlagToLocalIndexMap[data.indexInFlag]);
+            this.x = userPixelCoordinates.x;
+            this.y = userPixelCoordinates.y;
+            this.color = data.hexColor;
+            setUserPixel(this.x, this.y);
+            changePixelColorByCoordinatesAndRedraw(this.x, this.y, this.color);
+            this.setPixelToEdit(null, {...userPixelCoordinates, ...data}, false);
+          }
           // console.log('here');
         })
         // .catch((error) => console.log(error));
@@ -854,7 +697,7 @@ export default {
     },
   },
   async mounted() {
-    this.showHelp = localStorage.getItem('showHelp') !== 'false';
+    this.showHelp = localStorage.getItem('showNewHelp') !== 'false';
     this.fouloscopieSdk = await fouloscopie();
     this.token = this.fouloscopieSdk.userInfo.token;
     this.maxCooldownTime = await this.FetchCooldown();
@@ -862,9 +705,6 @@ export default {
     this.setNeighboursInfo();
     init();
     this.isMounted = true;
-    this.flagRefreshIntervalId = setInterval(async () => {
-      await this.Refresh();
-    }, 30000)
   },
   async middleware({ redirect }) {
     const instance = await fouloscopie();
@@ -877,68 +717,16 @@ export default {
     }
   },
   beforeDestroy() {
-    clearInterval(this.flagRefreshIntervalId);
   },
 };
 </script>
 
 
 <style>
-
-.vc-chrome-saturation-wrap {
-  padding-bottom: 30% !important;
-}
-
-.vc-alpha {
-  display: none;
-}
-
-.vc-chrome-fields:last-child {
-  display: none;
-}
-
-.vc-checkerboard {
-  display: none;
-}
-
-.vc-chrome-active-color, .vc-hue-picker, .vc-hue-pointer {
-  z-index: 0 !important;
-}
-
-.pixelButton {
-  max-width: 200px;
-  height: 100%;
-}
-
-.vc-chrome {
-  box-shadow: none !important;
-  border-radius: 0.25rem !important;
-  overflow: hidden;
-}
-
-.vc-chrome-body {
-  border: 1px solid rgb(220, 222, 228);
-  border-top: 0;
-  border-radius: 0 0 0.25rem 0.25rem;
-}
-.vc-input__label, .vc-input__input {
-  color: #000 !important;
-}
-
 .pixelButton span {
   text-overflow: ellipsis;
   overflow: hidden;
 }
-
-.loader {
-  border: 4px solid #f3f3f3; /* Light grey */
-  border-top: 4px solid #3498db; /* Blue */
-  border-radius: 50%;
-  width: 25px;
-  height: 25px;
-  animation: spin 2s linear infinite;
-}
-
 
 .big-loader {
   border: 13px solid #f3f3f3; /* Light grey */
