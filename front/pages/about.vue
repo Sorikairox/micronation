@@ -17,6 +17,9 @@
           <li>Thomas - Fyndl (back, front) <a target="_blank" href="//twitter.com/NSorikairo"><img src="https://img.icons8.com/color/25/000000/twitter--v1.png"/></a> <a target="_blank" href="https://www.linkedin.com/in/thomascruveilher/"><img src="https://img.icons8.com/color/25/000000/linkedin.png"/></a></li>
           <li>Tif (front) <a target="_blank" href="//www.linkedin.com/in/tifaine-larroque"><img src="https://img.icons8.com/color/25/000000/linkedin.png"/></a></li>
         </ul>
+        <p>
+          Le repo github est <a href="https://github.com/Sorikairox/micronation">ici</a> pour celleux qui veulent créer leur propre micronation 😁
+        </p>
       </div>
     </div>
   </div>
