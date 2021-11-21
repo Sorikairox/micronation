@@ -63,20 +63,20 @@ export class FlagSnapshotService {
   }
 
   public async getPixelsForSnapshot(lastEventId: number): Promise<GetPixelDto[]> {
-    const previousSnapshot = await this.snapshotRepository.findLastByDate({});
+    // const previousSnapshot = await this.snapshotRepository.findLastByDate({});
     let pixelArray;
-    if (!previousSnapshot) {
+    // if (!previousSnapshot) {
       pixelArray = await this.pixelRepository.getPixelsUntilEventId(lastEventId);
-    } else {
-      let lastSnapshotPixel;
-      if (previousSnapshot.pixels) {
-        lastSnapshotPixel = previousSnapshot.pixels;
-      } else {
-        lastSnapshotPixel = await this.snapshotPixelService.getSnapshotPixels(previousSnapshot._id.toHexString());
-      }
-      const arrayPixelNotInSnapshot = await this.pixelRepository.getPixelsBetweenEventIds(previousSnapshot.lastEventId, lastEventId);
-      pixelArray = this.mergeArray(lastSnapshotPixel, arrayPixelNotInSnapshot);
-    }
+    // } else {
+    //   let lastSnapshotPixel;
+    //   if (previousSnapshot.pixels) {
+    //     lastSnapshotPixel = previousSnapshot.pixels;
+    //   } else {
+    //     lastSnapshotPixel = await this.snapshotPixelService.getSnapshotPixels(previousSnapshot._id.toHexString());
+    //   }
+    //   const arrayPixelNotInSnapshot = await this.pixelRepository.getPixelsBetweenEventIds(previousSnapshot.lastEventId, lastEventId);
+    //   pixelArray = this.mergeArray(lastSnapshotPixel, arrayPixelNotInSnapshot);
+    // }
     return pixelArray;
   }
 
