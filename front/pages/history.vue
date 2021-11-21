@@ -1,7 +1,10 @@
 <template>
   <v-app>
     <div v-if="!isMounted" class="min-h-screen w-100 absolute flex items-center top-0 bottom-0 left-0 right-0 bg-white z-50">
-      <div class="big-loader m-auto"></div>
+      <div class="m-auto">
+        <div class="big-loader m-auto"></div>
+        <div>Récuperation de tout l'historique du drapeau (300MO), cela peut prendre du temps.</div>
+      </div>
     </div>
     <div class="min-h-screen bg-grey-light">
       <div
@@ -17,13 +20,53 @@
         "
       >
         <div>
-          <div>
-            <label>Secondes par image (15 fps)</label>
-            <input v-model="secondsPerLoop">
-          </div>
-          <div>
-            <label>Afficher date</label>
-            <input type="checkbox" v-model="showDate">
+          <div class="flex">
+            <div>
+              <div>
+                <label for="secondPerLoop">Temps écoulé par frame en secondes (15 fps) : </label>
+                <input id="secondPerLoop" class="border-2 border-black" v-model="secondsPerLoop">
+              </div>
+              <div>
+                <label for="showBot">Jouer les évenements des bots: </label>
+                <input id="showBot" type="checkbox" v-model="showBot">
+              </div>
+            </div>
+            <div>
+              <div>
+                <label for="fullScreen">Plein écran: </label>
+                <input id="fullScreen" type="checkbox" v-model="fullScreen">
+              </div>
+              <div>
+                Raccourcis clavier : P pour mettre/retirer la pause
+              </div>
+            </div>
+            <AppButton
+              size="medium"
+              v-on:click="playTimelapse()"
+              v-if="!playing"
+              variant="contained"
+              class="bg-primary-dark my-auto ml-auto mr-2"
+            >
+              <span>Lancer le timelapse</span>
+            </AppButton>
+            <AppButton
+              size="medium"
+              v-on:click="paused = true"
+              v-if="playing && !paused"
+              variant="contained"
+              class="bg-primary-dark my-auto ml-auto mr-2"
+            >
+              <span>Mettre en pause</span>
+            </AppButton>
+            <AppButton
+              size="medium"
+              v-on:click="paused = false"
+              v-if="paused"
+              variant="contained"
+              class="bg-primary-dark my-auto ml-auto mr-2"
+            >
+              <span>Continuer</span>
+            </AppButton>
           </div>
         </div>
         <div
@@ -31,23 +74,19 @@
           class="
             flex-1 md:self-center
             self-stretch
-            m-2 md:m-4
+            mb-2 mt-0 md:m-4
             h-auto
             cursor-move
             w-full
           "
         >
+          <div class="bg-black text-white text-center">{{nextDate}}</div>
           <div class="relative rounded-md overflow-hidden bg-white" style="border: 1px solid #ccc">
             <canvas
               id="flagCanva"
               class="w-full border-grey-dark"
               @mousemove="updateHoveredPixel"
             />
-            <div class="overlay" v-if="showDate">
-              <div class="m-2 text-center">
-                {{ this.nextDate }}
-              </div>
-            </div>
           </div>
         </div>
       </div>
@@ -88,7 +127,40 @@ let indexInFlagToLocalIndexMap = {};
 // const pixelNumberInFlag = 117721;
 const pixelNumberInFlag = 131815;
 
+
+async function toggleFullScreen() {
+  if (
+    document.fullscreenElement ||
+    document.webkitFullscreenElement ||
+    document.mozFullScreenElement ||
+    document.msFullscreenElement
+  ) {
+    if (document.exitFullscreen) {
+      document.exitFullscreen();
+    } else if (document.mozCancelFullScreen) {
+      document.mozCancelFullScreen();
+    } else if (document.webkitExitFullscreen) {
+      document.webkitExitFullscreen();
+    } else if (document.msExitFullscreen) {
+      document.msExitFullscreen();
+    }
+  } else {
+    let element = document.querySelector('#flagContainer');
+    if (element.requestFullscreen) {
+      await element.requestFullscreen();
+    } else if (element.mozRequestFullScreen) {
+      element.mozRequestFullScreen();
+    } else if (element.webkitRequestFullscreen) {
+      element.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT);
+    } else if (element.msRequestFullscreen) {
+      element.msRequestFullscreen();
+    }
+  }
+}
+
+
 function initializeFlagResolution() {
+  console.log(pixelNumberInFlag);
   flagIndexToCoordinateCache = mapCoordinatesToTargetRatioRectangleDistribution(pixelNumberInFlag || flagPixels.length, DESIRED_FLAG_RATIO);
 
   const resolution = getFlagResolutionFromIndexToCoordinateMap(flagIndexToCoordinateCache);
@@ -150,8 +222,10 @@ function drawWorld() {
 }
 
 //Initalising the flag canvas
-function initCanvas() {
-  initBufferCanvas();
+function initCanvas(doInit = true) {
+  if (doInit) {
+    initBufferCanvas();
+  }
   canvasContainer = document.getElementById("flagContainer");
   canvas = document.getElementById("flagCanva");
 
@@ -164,7 +238,9 @@ function initCanvas() {
   cameraPositionX = 0;
   cameraPositionY = 0;
 
-  drawFlagToBuffer();
+  if (doInit) {
+    drawFlagToBuffer();
+  }
   drawWorld();
 }
 
@@ -190,9 +266,8 @@ function init() {
   canvas.addEventListener("touchmove", handleTouchMove);
   canvas.addEventListener("touchend", handleTouchEnd);
 }
-
 function onWindowResize() {
-  initCanvas();
+  initCanvas(false);
 }
 
 function onWheel(event) {
@@ -337,8 +412,6 @@ import {
 } from "../js/flag";
 import {
   addOrUpdatePixelInFlag,
-  applyEventToFlagFromIndexUntilDate,
-  applyGivenEventsNumberToFlagFromIndex,
   getAllPixelEvent
 } from "../js/pixelEventService";
 
@@ -367,8 +440,12 @@ export default {
       isMouseOverCanvas: false,
       startingEvent: 0,
       nextDate: new Date(),
-      secondsPerLoop: 10,
+      secondsPerLoop: 1000,
       showDate: true,
+      showBot: false,
+      playing: false,
+      paused: false,
+      fullScreen: false,
     };
   },
   computed: {
@@ -386,22 +463,24 @@ export default {
       this.hoveredPixel = flagPixelMap[this.hoveredPixelPosition.x]?.[this.hoveredPixelPosition.y] || null;
     },
     showTimelapseWithTimeAsTick() {
-      let actualEvent = this.pixelEvents[this.startingEvent];
-      while (this.pixelEvents[this.startingEvent] && isBefore(parseISO(actualEvent.createdAt.$date), this.nextDate)) {
-        actualEvent = this.pixelEvents[this.startingEvent];
-        if (!actualEvent.ignored) {
-          addOrUpdatePixelInFlag(flagPixels, actualEvent.data, indexInFlagToLocalIndexMap);
-          const x = flagIndexToCoordinateCache[indexInFlagToLocalIndexMap[actualEvent.data.indexInFlag]].x;
-          const y = flagIndexToCoordinateCache[indexInFlagToLocalIndexMap[actualEvent.data.indexInFlag]].y;
-          drawPixelToBuffer(x, y, actualEvent.data.hexColor);
+      if (!this.paused) {
+        let actualEvent = this.pixelEvents[this.startingEvent];
+        while (this.pixelEvents[this.startingEvent] && isBefore(parseISO(actualEvent.createdAt.$date), this.nextDate)) {
+          actualEvent = this.pixelEvents[this.startingEvent];
+          if (!actualEvent.ignored || this.showBot) {
+            const x = flagIndexToCoordinateCache[indexInFlagToLocalIndexMap[actualEvent.data.indexInFlag]].x;
+            const y = flagIndexToCoordinateCache[indexInFlagToLocalIndexMap[actualEvent.data.indexInFlag]].y;
+            drawPixelToBuffer(x, y, actualEvent.data.hexColor);
+          }
+          this.startingEvent++;
         }
-        this.startingEvent++;
+        drawWorld();
+        this.nextDate = add(this.nextDate, {
+          seconds: this.secondsPerLoop
+        });
       }
-      drawWorld();
-      this.nextDate = add(this.nextDate, {
-        seconds: this.secondsPerLoop
-      });
       if (this.startingEvent === this.pixelEvents.length) {
+        this.nextDate = 'THE END !';
         clearInterval(this.historyRefreshIntervalId);
       } else {
         this.historyRefreshIntervalId = setTimeout(() => {
@@ -409,43 +488,59 @@ export default {
         }, 66);
       }
     },
-    showTimelapseWithEventAsTick() {
-      applyGivenEventsNumberToFlagFromIndex(flagPixels, indexInFlagToLocalIndexMap, this.pixelEvents, this.startingEvent, this.eventPerLoop);
-      initializeFlagResolution();
-      updateFlagPixelMap(flagPixels);
-      drawFlagToBuffer();
-      drawWorld();
-      this.startingEvent += this.eventPerLoop;
-      console.log(this.startingEvent, this.pixelEvents.length);
-      console.log(flagPixels.length);
-      if (this.startingEvent > this.pixelEvents.length) {
-        clearTimeout(this.historyRefreshIntervalId);
+    async playTimelapse() {
+      try {
+        if (this.fullScreen) {
+          await toggleFullScreen();
+        }
+        clearInterval(this.historyRefreshIntervalId);
+        this.playing = true;
+        this.nextDate = new Date();
+        this.startingEvent = 0;
+        this.nextDate = set(this.nextDate, {
+          year: 2021,
+          month: 10,
+          date: 1,
+          hours: 13
+        });
+        this.showTimelapseWithTimeAsTick();
+      } catch (e) {
+        console.log(e);
+      }
+    },
+    keyPress(e) {
+      if (e.key === 'p') {
+        this.paused = !this.paused;
       }
     }
   },
   async mounted() {
-    this.fouloscopieSdk = await fouloscopie();
-    this.token = this.fouloscopieSdk.userInfo.token;
     this.pixelEvents = await getAllPixelEvent();
     this.pixelEvents = this.pixelEvents.sort((a, b) => {
       return a.eventId - b.eventId
     });
-    console.log(this.pixelEvents.length);
+    initializeFlagResolution();
     flagPixels = [];
-    this.nextDate = new Date();
+    flagPixelMap = [];
+    let i = 0;
+    while (i < this.pixelEvents.length) {
+      const event = this.pixelEvents[i];
+      addOrUpdatePixelInFlag(flagPixels, event.data, indexInFlagToLocalIndexMap);
+      i++;
+    }
+    flagPixels = flagPixels.sort((a, b) => a.indexInFlag - b.indexInFlag);
+    for (let i = 0; i < flagPixels.length; i++) {
+      indexInFlagToLocalIndexMap[flagPixels[i].indexInFlag] = i;
+    }
+    init();
+    flagPixelMap = mapFlagDataToWorldCoordinates(flagPixels, flagIndexToCoordinateCache);
     this.nextDate = set(this.nextDate, {
       year: 2021,
       month: 10,
       date: 1,
       hours: 13
     });
-    this.startingEvent = 0;
-    this.eventPerLoop = 20000;
-    initializeFlagResolution();
-    updateFlagPixelMap(flagPixels);
-    drawFlagToBuffer();
-    this.showTimelapseWithTimeAsTick();
-    init();
+    window.addEventListener('keypress', this.keyPress)
     this.isMounted = true;
   },
   beforeDestroy() {
