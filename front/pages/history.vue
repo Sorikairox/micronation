@@ -7,7 +7,6 @@
       <div
         class="
           flex flex-col
-          md:flex-row
           max-w-screen-2xl
           h-full
           grid-rows-2
@@ -17,6 +16,16 @@
           md:items-stretch
         "
       >
+        <div>
+          <div>
+            <label>Secondes par image (15 fps)</label>
+            <input v-model="secondsPerLoop">
+          </div>
+          <div>
+            <label>Afficher date</label>
+            <input type="checkbox" v-model="showDate">
+          </div>
+        </div>
         <div
           id="flagContainer"
           class="
@@ -25,6 +34,7 @@
             m-2 md:m-4
             h-auto
             cursor-move
+            w-full
           "
         >
           <div class="relative rounded-md overflow-hidden bg-white" style="border: 1px solid #ccc">
@@ -32,12 +42,10 @@
               id="flagCanva"
               class="w-full border-grey-dark"
               @mousemove="updateHoveredPixel"
-              @mouseenter="isMouseOverCanvas = true"
-              @mouseleave="isMouseOverCanvas = false"
             />
-            <div class="overlay" v-if="isMouseOverCanvas">
+            <div class="overlay" v-if="showDate">
               <div class="m-2 text-center">
-                [{{ hoveredPixelPosition.x + 1 }}:{{ hoveredPixelPosition.y + 1 }}]
+                {{ this.nextDate }}
               </div>
             </div>
           </div>
@@ -49,8 +57,7 @@
 
 <script>
 import fouloscopie from "fouloscopie";
-import countdown from "@chenfengyuan/vue-countdown";
-import { set, add } from 'date-fns';
+import {set, add, isBefore, parseISO} from 'date-fns';
 import {
   DESIRED_FLAG_RATIO,
   getFlagResolutionFromIndexToCoordinateMap,
@@ -79,7 +86,7 @@ let lastUpdate = new Date();
 let indexInFlagToLocalIndexMap = {};
 
 // const pixelNumberInFlag = 117721;
-const pixelNumberInFlag = null;
+const pixelNumberInFlag = 131815;
 
 function initializeFlagResolution() {
   flagIndexToCoordinateCache = mapCoordinatesToTargetRatioRectangleDistribution(pixelNumberInFlag || flagPixels.length, DESIRED_FLAG_RATIO);
@@ -329,6 +336,7 @@ import {
   mapFlagDataToWorldCoordinates,
 } from "../js/flag";
 import {
+  addOrUpdatePixelInFlag,
   applyEventToFlagFromIndexUntilDate,
   applyGivenEventsNumberToFlagFromIndex,
   getAllPixelEvent
@@ -357,6 +365,10 @@ export default {
       modifiedPixelX: 1,
       modifiedPixelY: 1,
       isMouseOverCanvas: false,
+      startingEvent: 0,
+      nextDate: new Date(),
+      secondsPerLoop: 10,
+      showDate: true,
     };
   },
   computed: {
@@ -374,16 +386,27 @@ export default {
       this.hoveredPixel = flagPixelMap[this.hoveredPixelPosition.x]?.[this.hoveredPixelPosition.y] || null;
     },
     showTimelapseWithTimeAsTick() {
-      this.startingEvent = applyEventToFlagFromIndexUntilDate(flagPixels, indexInFlagToLocalIndexMap, this.pixelEvents, this.startingEvent, this.nextDate);
-      initializeFlagResolution();
-      updateFlagPixelMap(flagPixels);
-      drawFlagToBuffer();
+      let actualEvent = this.pixelEvents[this.startingEvent];
+      while (this.pixelEvents[this.startingEvent] && isBefore(parseISO(actualEvent.createdAt.$date), this.nextDate)) {
+        actualEvent = this.pixelEvents[this.startingEvent];
+        if (!actualEvent.ignored) {
+          addOrUpdatePixelInFlag(flagPixels, actualEvent.data, indexInFlagToLocalIndexMap);
+          const x = flagIndexToCoordinateCache[indexInFlagToLocalIndexMap[actualEvent.data.indexInFlag]].x;
+          const y = flagIndexToCoordinateCache[indexInFlagToLocalIndexMap[actualEvent.data.indexInFlag]].y;
+          drawPixelToBuffer(x, y, actualEvent.data.hexColor);
+        }
+        this.startingEvent++;
+      }
       drawWorld();
       this.nextDate = add(this.nextDate, {
-        minutes: 10
+        seconds: this.secondsPerLoop
       });
       if (this.startingEvent === this.pixelEvents.length) {
         clearInterval(this.historyRefreshIntervalId);
+      } else {
+        this.historyRefreshIntervalId = setTimeout(() => {
+          this.showTimelapseWithTimeAsTick();
+        }, 66);
       }
     },
     showTimelapseWithEventAsTick() {
@@ -396,7 +419,7 @@ export default {
       console.log(this.startingEvent, this.pixelEvents.length);
       console.log(flagPixels.length);
       if (this.startingEvent > this.pixelEvents.length) {
-        clearInterval(this.historyRefreshIntervalId);
+        clearTimeout(this.historyRefreshIntervalId);
       }
     }
   },
@@ -404,25 +427,29 @@ export default {
     this.fouloscopieSdk = await fouloscopie();
     this.token = this.fouloscopieSdk.userInfo.token;
     this.pixelEvents = await getAllPixelEvent();
+    this.pixelEvents = this.pixelEvents.sort((a, b) => {
+      return a.eventId - b.eventId
+    });
+    console.log(this.pixelEvents.length);
     flagPixels = [];
     this.nextDate = new Date();
     this.nextDate = set(this.nextDate, {
       year: 2021,
       month: 10,
       date: 1,
-      hours: 15
+      hours: 13
     });
     this.startingEvent = 0;
     this.eventPerLoop = 20000;
+    initializeFlagResolution();
+    updateFlagPixelMap(flagPixels);
+    drawFlagToBuffer();
     this.showTimelapseWithTimeAsTick();
-    this.historyRefreshIntervalId = setInterval(() => {
-      this.showTimelapseWithTimeAsTick();
-    }, 1000);
     init();
     this.isMounted = true;
   },
   beforeDestroy() {
-    clearInterval(this.historyRefreshIntervalId);
+    clearTimeout(this.historyRefreshIntervalId);
   },
 };
 </script>
