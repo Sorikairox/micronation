@@ -1,6 +1,6 @@
 {
   "name": "flag-service",
-  "version": "1.1.1",
+  "version": "4.1.1",
   "description": "",
   "author": "",
   "private": true,
@@ -38,6 +38,7 @@
     "jsonwebtoken": "^8.5.1",
     "library": "^0.0.1",
     "mongodb": "^3.6.10",
+    "nestjs-real-ip": "^2.0.0",
     "reflect-metadata": "^0.1.13",
     "rimraf": "^3.0.2",
     "rxjs": "^7.2.0",

@@ -49,7 +49,7 @@ describe('FouloscopieAuthGuard', () => {
     } as ExecutionContext;
   }
 
-  function testDirectusStaticAuth(handler: Function, token: string | undefined, allows: boolean, shouldCallDirectusApi: boolean, shouldPopulateRequestFields: boolean) {
+  function testDirectusStaticAuth(handler: Function, token: string | undefined, allows: boolean, shouldCallDirectusApi: boolean, shouldPopulateRequestFields: boolean, isEmailValid = true) {
     function doesNotPopulateFields(context: ExecutionContext) {
       it('does not add userId field to request', async () => {
         const userId = context.switchToHttp().getRequest().userId;
@@ -79,7 +79,7 @@ describe('FouloscopieAuthGuard', () => {
           me: {
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             async read(query?: QueryOne<UserItem<TypeOf<any, "directus_users">>>): Promise<PartialItem<UserItem<TypeOf<any, "directus_users">>>> {
-              return { id: USER_ID_SAMPLE };
+              return { id: USER_ID_SAMPLE, email_valid: isEmailValid };
             },
           },
         },
@@ -131,6 +131,9 @@ describe('FouloscopieAuthGuard', () => {
     });
     describe('Denies access for invalid Directus static token', () => {
       testDirectusStaticAuth(Test.defaultRoute, INVALID_DIRECTUS_TOKEN, false, true, false);
+    });
+    describe('Denies access for unverified email', () => {
+      testDirectusStaticAuth(Test.defaultRoute, INVALID_DIRECTUS_TOKEN, false, true, false, false);
     });
     describe('Denies access without Directus static token', () => {
       testDirectusStaticAuth(Test.defaultRoute, undefined, false, false, false);

@@ -6,7 +6,7 @@ export class DatabaseClientService implements OnModuleInit, OnApplicationShutdow
   public client: MongoClient;
 
   constructor(@Inject("CONFIG_OPTIONS") private options) {
-    this.client = new MongoClient(options.uri, { useUnifiedTopology: true });
+    this.client = new MongoClient(options.uri, { useUnifiedTopology: true, maxPoolSize: 5 });
   }
 
   async onModuleInit(): Promise<void> {

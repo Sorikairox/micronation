@@ -4,7 +4,7 @@ import request from 'supertest';
 import { DatabaseClientService } from 'library/database/client/DatabaseClientService';
 import * as DirectusModule from "@directus/sdk";
 import { AuthToken, Directus, PartialItem, QueryOne, TypeOf, UserItem } from "@directus/sdk";
-import { Pixel } from '../dist/flag/pixel/Pixel';
+import { Pixel } from '../src/flag/pixel/Pixel';
 import { bootstrap } from "../src/bootstrap";
 import { AuthBackend } from "../src/user/AuthBackend";
 import { registerAndLogin } from "./util/registerAndLogin";
@@ -20,7 +20,6 @@ describe('Flag (e2e)', () => {
 
   let app: INestApplication;
   let createdPixelEvent: DatabaseEvent<Pixel>;
-  let modifiedPixel;
   let authToken: string;
   let userId: string;
 
@@ -58,7 +57,7 @@ describe('Flag (e2e)', () => {
               me: {
                 // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 async read(query?: QueryOne<UserItem<TypeOf<any, "directus_users">>>): Promise<PartialItem<UserItem<TypeOf<any, "directus_users">>>> {
-                  return { id: USER_ID_SAMPLE };
+                  return { id: USER_ID_SAMPLE, email_valid: true };
                 },
               },
             },

@@ -1,14 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { DatabaseEvent } from 'library/database/object/event/DatabaseEvent';
 import { PixelDoesNotExistError } from './errors/PixelDoesNotExistError';
-import { UserHasNoPixelError } from './errors/UserHasNoPixelError';
-import { GetPixelDTO } from './pixel/dto/GetPixelDTO';
+import { GetPixelDto } from './pixel/dto/GetPixelDto';
 import { Pixel } from './pixel/Pixel';
 import { PixelRepository } from './pixel/PixelRepository';
 import { differenceInMilliseconds } from 'date-fns';
 import { UserAlreadyOwnsAPixelError } from "./errors/UserAlreadyOwnsAPixelError";
 import { UserActionIsOnCooldownError } from "./errors/UserActionIsOnCooldownError";
-import { FlagSnapshotService } from './snapshot/SnapshotService';
+import { FlagSnapshotService } from './snapshot/FlagSnapshotService';
 
 @Injectable()
 export class FlagService {
@@ -35,9 +34,9 @@ export class FlagService {
     return createdEvent;
   }
 
-  async changePixelColor(ownerId: string, pixelId: string, hexColor: string) {
+  async changePixelColor(performingUserId: string, pixelId: string, hexColor: string, ip: string, useragent: string) {
     const lastUserAction = await this.pixelRepository.findLastByDate({
-      author: ownerId,
+      author: performingUserId,
     });
     const lastPixelEvent = await this.pixelRepository.findLastByDate({
       entityId: pixelId,
@@ -51,9 +50,11 @@ export class FlagService {
 
     const createdEvent = await this.pixelRepository.createAndReturn({
       action: 'update',
-      author: ownerId,
+      author: performingUserId,
       entityId: lastPixelEvent.entityId,
       data: { ...lastPixelEvent.data, hexColor },
+      ip,
+      useragent,
     });
     this.flagSnapshotService.createSnapshotIfEventIdMeetThreshold(createdEvent.eventId);
     return createdEvent;
@@ -69,7 +70,7 @@ export class FlagService {
     }
   }
 
-  async getFlag(): Promise<GetPixelDTO[]> {
+  async getFlag(): Promise<GetPixelDto[]> {
     const latestSnapshot = await this.flagSnapshotService.getLatestSnapshot();
     if (!latestSnapshot) {
       return this.pixelRepository.getPixels();
@@ -79,11 +80,11 @@ export class FlagService {
     }
   }
 
-  async getFlagAtDate(date: Date): Promise<GetPixelDTO[]> {
+  async getFlagAtDate(date: Date): Promise<GetPixelDto[]> {
     return this.pixelRepository.getPixelsAtDate(date);
   }
 
-  async getFlagAfterDate(from: Date): Promise<GetPixelDTO[]> {
+  async getFlagAfterDate(from: Date): Promise<GetPixelDto[]> {
     return this.pixelRepository.getPixelsAfterDate(from);
   }
 

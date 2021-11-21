@@ -1,18 +1,17 @@
 import {
-  BadRequestException,
   Body,
   Controller,
   Get,
   InternalServerErrorException,
   Param,
   Post,
-  Put,
-  Res
+  Put, Req,
 } from '@nestjs/common';
-import { Response } from 'express';
+import { Request } from 'express';
+import { RealIP } from 'nestjs-real-ip';
 import { Public } from '../user/decorators/Public';
 import { UserId } from '../user/decorators/UserId';
-import { ChangePixelColorDTO } from './dto/ChangePixelColorDto';
+import { ChangePixelColorDto } from './dto/ChangePixelColorDto';
 import { FlagService } from './FlagService';
 import { parseISO } from 'date-fns';
 
@@ -32,10 +31,12 @@ export class FlagController {
 
   @Put('pixel')
   async changePixelColor(
-      @UserId() ownerId: string,
-      @Body() changeColorDTO: ChangePixelColorDTO
+      @UserId() currentUserId: string,
+      @Body() changeColorDTO: ChangePixelColorDto,
+      @RealIP() ip: string,
+      @Req() request: Request,
   ) {
-    const event = await this.flagService.changePixelColor(ownerId, changeColorDTO.pixelId, changeColorDTO.hexColor);
+    const event = await this.flagService.changePixelColor(currentUserId, changeColorDTO.pixelId, changeColorDTO.hexColor, ip, request.header('user-agent'));
     return event;
   }
 

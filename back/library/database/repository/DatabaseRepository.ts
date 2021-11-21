@@ -1,6 +1,6 @@
 import { DatabaseClientService } from "../client/DatabaseClientService";
 import { DatabaseObject } from "../object/DatabaseObject";
-import { FilterQuery } from "mongodb";
+import { FilterQuery, ProjectionOperators, QuerySelector, SchemaMember, SortOptionObject } from 'mongodb';
 
 export class DatabaseRepository<T extends DatabaseObject> {
 
@@ -12,6 +12,15 @@ export class DatabaseRepository<T extends DatabaseObject> {
             data.createdAt = new Date();
             const insertOperation = await this.dbClient.getDb().collection(this.collectionName).insertOne(data);
             return insertOperation.ops[0];
+    }
+
+    async createMany(data: Array<T>) {
+        return this.dbClient.getDb().collection(this.collectionName).insertMany(data);
+    }
+
+    async find(filter: FilterQuery<T>, sort?: SortOptionObject<T>, select?: SchemaMember<T, ProjectionOperators | number | boolean | any>): Promise<Array<T>> {
+        const dataArray = await this.dbClient.getDb().collection(this.collectionName).find(filter, {sort, projection: select}).toArray();
+        return dataArray;
     }
 
     async findOne(filter: FilterQuery<T>): Promise<T> {
@@ -31,6 +40,11 @@ export class DatabaseRepository<T extends DatabaseObject> {
             returnDocument: 'after'
         });
         return updateOperation.value
+    }
+
+    async updateAndReturnMany(filter: Partial<T>, partialUpdateObject: Partial<T>): Promise<number> {
+        const updateOperation = await this.dbClient.getDb().collection(this.collectionName).updateMany(filter, { $set : partialUpdateObject});
+        return updateOperation.modifiedCount;
     }
 
     getCollectionName() {

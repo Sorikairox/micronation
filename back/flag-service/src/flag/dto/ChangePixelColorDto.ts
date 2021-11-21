@@ -1,6 +1,6 @@
 import { IsString, Matches } from 'class-validator';
 
-export class ChangePixelColorDTO {
+export class ChangePixelColorDto {
 
   @IsString()
   @Matches( /^#[0-9a-f]{6}$/i)

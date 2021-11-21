@@ -6,7 +6,7 @@ import { DatabaseModule } from 'library/database/DatabaseModule';
 import { ConfigModule } from '@nestjs/config';
 import { UserModule } from "../user/UserModule";
 import { AuthBackend } from "../user/AuthBackend";
-import { FlagSnapshotModule } from './snapshot/SnapshotModule';
+import { FlagSnapshotModule } from './snapshot/FlagSnapshotModule';
 
 @Module({})
 export class FlagModule {

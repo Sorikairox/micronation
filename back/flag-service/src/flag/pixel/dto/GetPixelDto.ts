@@ -1,4 +1,4 @@
-export class GetPixelDTO {
+export class GetPixelDto {
   entityId: string;
   hexColor: string;
   lastUpdate: Date;

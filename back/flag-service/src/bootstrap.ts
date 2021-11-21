@@ -10,7 +10,7 @@ export async function bootstrap(appListenPort: string | number = '3000') {
   const app = await NestFactory.create(FlagModule.register(process.env.AUTH_BACKEND as AuthBackend));
   app.enableShutdownHooks();
   app.useGlobalPipes(new ValidationPipe());
-  app.enableCors();
+  app.enableCors({ origin: [/\.fouloscopie\.com$/] });
   await app.listen(appListenPort);
   return app;
 }

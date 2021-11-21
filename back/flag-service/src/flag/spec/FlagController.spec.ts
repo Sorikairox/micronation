@@ -1,4 +1,4 @@
-import { ChangePixelColorDTO } from '../dto/ChangePixelColorDto';
+import { ChangePixelColorDto } from '../dto/ChangePixelColorDto';
 import { UserHasNoPixelError } from '../errors/UserHasNoPixelError';
 import { FlagController } from '../FlagController';
 import { FlagService } from '../FlagService';
@@ -60,14 +60,14 @@ describe('FlagController', () => {
       let changePixelColorSpy;
       let res;
       beforeAll(async () => {
-        const data: ChangePixelColorDTO = {
+        const data: ChangePixelColorDto = {
           hexColor: '#FFFFFF',
           pixelId: 'pixelId',
         };
         changePixelColorSpy = jest
           .spyOn(flagService, 'changePixelColor')
           .mockReturnValue({ modified: true } as any);
-        res = await flagController.changePixelColor('ownerId', data);
+        res = await flagController.changePixelColor('ownerId', data, 'myip', { header: () => 'user' } as any);
       });
       it('call changePixelColor from service', () => {
         expect(changePixelColorSpy).toBeCalledTimes(1);
@@ -81,7 +81,7 @@ describe('FlagController', () => {
         let changePixelColorSpy;
         let res;
         beforeAll(async () => {
-          const data: ChangePixelColorDTO = {
+          const data: ChangePixelColorDto = {
             hexColor: '#FFFFFF',
             pixelId: 'pixelId',
           };
@@ -90,7 +90,7 @@ describe('FlagController', () => {
             .mockImplementation(() => {
               throw new UserActionIsOnCooldownError(1000);
             });
-          res = flagController.changePixelColor('ownerId', data);
+          res = flagController.changePixelColor('ownerId', data, 'myip', { header: () => 'user' } as any);
         });
         it('call changePixelColor from service', () => {
           expect(changePixelColorSpy).toBeCalledTimes(1);
@@ -103,7 +103,7 @@ describe('FlagController', () => {
         let changePixelColorSpy;
         let res;
         beforeAll(async () => {
-          const data: ChangePixelColorDTO = {
+          const data: ChangePixelColorDto = {
             hexColor: '#FFFFFF',
             pixelId: 'pixelId',
           };
@@ -112,7 +112,7 @@ describe('FlagController', () => {
             .mockImplementation(() => {
               throw new UserHasNoPixelError();
             });
-          res = flagController.changePixelColor('ownerId', data);
+          res = flagController.changePixelColor('ownerId', data, 'myip', { header: () => 'user' } as any);
         });
         it('call changePixelColor from service', () => {
           expect(changePixelColorSpy).toBeCalledTimes(1);

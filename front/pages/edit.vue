@@ -85,7 +85,7 @@
             <h1 class="m-4">
               <div v-if="editedPixel" class="property-list">
                 <div><span class="property-name">Zone :</span> [{{ editedPixel.x + 1 }}:{{ editedPixel.y + 1 }}]</div>
-                <div><span class="property-name">Propriétaire :</span> {{ editedPixel.authorName || editedPixel.author }}</div>
+                <div><span class="property-name">Propriétaire :</span> {{ editedPixel.username || 'Inconnu' }}</div>
               </div>
               <span v-if="!editedPixel">Pas de zone sélectionnée</span>
             </h1>
@@ -113,11 +113,21 @@
                        v-on:click="Finish()"
                        variant="contained"
                        class="bg-primary-dark mt-4"
-                       :disabled="requesting || !editedPixel"
+                       :disabled="requesting || !editedPixel || this.isOnCooldown"
             >
-              <template v-slot:icon v-if="!requesting"><AppDoneIcon/></template>
-              <span v-if="!requesting">Modifier la couleur de la zone<span v-if="editedPixel"> [{{editedPixel.x + 1}}:{{editedPixel.y + 1}}]</span></span>
+              <template v-slot:icon v-if="!requesting && !this.isOnCooldown"><AppDoneIcon/></template>
+              <span v-if="!requesting && !this.isOnCooldown">Modifier la couleur de la zone<span v-if="editedPixel"> [{{editedPixel.x + 1}}:{{editedPixel.y + 1}}]</span></span>
               <div v-if="requesting" class="loader"></div>
+              <countdown
+                v-if="this.isOnCooldown"
+                :time="this.cooldownTime"
+                :interval="1000"
+                tag="span"
+              >
+                <template slot-scope="props">
+                  Prochaine modification possible dans<br> <span class="font-bold">{{ props.minutes }} : {{ props.seconds }}</span>
+                </template></countdown
+              >
             </AppButton>
           </div>
         </div>
@@ -127,8 +137,7 @@
         variant="error"
         @close="closeCooldownModal"
         :open="openFailedEditModal"
-        >La date de dernière modification de ta zone est trop récente,
-        merci de patienter ! <br />
+        >La date de ta dernière modification d'un pixel est trop récente, merci de patienter !<br />
         Temps restant :
         <countdown
           :time="this.cooldownTime"
@@ -163,11 +172,11 @@
           <a href="https://www.youtube.com/watch?v=ehmyaX0lJew">(Il est vivement recommandé de regarder la vidéo de Dirty Biology avant pour mieux comprendre de quoi il s’agit).</a></p>
         <p>Voici les règles du jeu : </p>
         <ol>
-          <li>(1) Chaque participant contrôle la couleur d’une seule zone du drapeau. Plus il y a de monde, plus les zones individuelles seront petites ! </li>
+          <li>(1) Chaque participant possède une zone du drapeau. Plus il y a de monde, plus les zones individuelles seront petites ! </li>
           <li>(2) Cliquez sur le bouton "Où est ma zone ?" pour visualiser la zone qui vous a été attribuée. Elle sera indiquée en surbrillance.</li>
-          <li>(3) Vous pouvez modifier la couleur de votre zone comme vous le souhaitez, mais seulement une fois toutes les
-            {{ maxCooldownTime }} minutes et uniquement pour votre zone.</li>
-          <li><a target="_blank" href="https://discord.gg/rhz4hW6D">Élabores un plan sur discord avec tes voisins en cliquant ici.</a></li>
+          <li>(3) Vous pouvez modifier la couleur de n'importe quelle zone comme vous le souhaitez, mais seulement une fois toutes les
+            {{ maxCooldownTime / 60 / 1000 }} minutes.</li>
+          <li><a target="_blank" href="https://discord.gg/ZwS3w5Tg4x">Élabores un plan sur discord avec tes voisins en cliquant ici.</a></li>
         </ol>
       </div></AppAlert
       >
@@ -208,7 +217,7 @@ let canvasPixelColor = "#ff0000";
 let userXPixel = 0;
 let userYPixel = 0;
 
-let lastUpdate = new Date();
+let lastUpdate;
 
 let indexInFlagToLocalIndexMap = {};
 
@@ -284,7 +293,6 @@ function drawOverlayToBuffer() {
       }
       }
     }
-  drawWorld();
 }
 
 //Initalising the flag canvas
@@ -329,7 +337,7 @@ function init() {
 }
 
 //Change the color value and draw it to the user pixel
-function changeColor(x, y, newColor) {
+function changePixelColorByCoordinatesAndRedraw(x, y, newColor) {
   // // console.log("Pixel draw informations :", [newColor, userXPixel, userYPixel]);
   canvasPixelColor = newColor;
   flagPixelMap[x][y].hexColor = newColor;
@@ -525,9 +533,6 @@ import {
   mapFlagDataToWorldCoordinates,
   sanitizeFlagData
 } from "../js/flag";
-import {
-  addOrUpdatePixelInFlag
-} from "../js/pixelEventService";
 
 export default {
   name: "edit",
@@ -553,6 +558,7 @@ export default {
       color: "#ff0000",
       maxCooldownTime: 5, // min
       lastSubmittedTime: new Date(),
+      isOnCooldown: false,
       errorMessage: "",
       openSuccessEditModal: false,
       openFailedEditModal: false,
@@ -610,7 +616,7 @@ export default {
     change(newColorObject) {
       this.color = newColorObject.hex;
       if (this.isMounted && this.editedPixel) {
-        changeColor(this.editedPixel.x, this.editedPixel.y, this.color);
+        changePixelColorByCoordinatesAndRedraw(this.editedPixel.x, this.editedPixel.y, this.color);
       }
     },
     Finish() {
@@ -629,6 +635,7 @@ export default {
       // console.log("REFRESH", ack);
       // console.log("Fetching the flag size");
 
+      const beforeUpdateTime = new Date();
       await fetch(`${process.env.apiUrl}/flag/after/${lastUpdate.toISOString()}`, {
         method: "GET",
         crossDomain: true,
@@ -638,9 +645,16 @@ export default {
       })
         .then((response) => response.json())
         .then((modifiedPixels) => {
+          lastUpdate = beforeUpdateTime;
           if (modifiedPixels.length > 0) {
             for (const modifiedPixel of modifiedPixels) {
-              addOrUpdatePixelInFlag(flagPixels, modifiedPixel, indexInFlagToLocalIndexMap);
+              const localIndex = indexInFlagToLocalIndexMap[modifiedPixel.indexInFlag];
+              if (localIndex == null) {
+                flagPixels.push(modifiedPixel);
+                indexInFlagToLocalIndexMap[modifiedPixel.indexInFlag] = flagPixels.length - 1;
+              } else {
+                flagPixels[localIndex].hexColor = modifiedPixel.hexColor;
+              }
             }
 
             const hasChanged = initializeFlagResolution();
@@ -652,13 +666,16 @@ export default {
                 flagPixelMap[x] = [];
                 console.warn(`There was no row on x=${x}`);
               }
-              flagPixelMap[x][y] = modifiedPixel;
+              if (flagPixelMap[x][y]) {
+                flagPixelMap[x][y].hexColor = modifiedPixel.hexColor;
+              } else {
+                flagPixelMap[x][y] = modifiedPixel;
+              }
               if (!hasChanged) {
                 drawPixelToBuffer(x, y, modifiedPixel.hexColor);
               }
             }
 
-            lastUpdate = new Date();
             this.setNeighboursInfo();
 
             if (hasChanged) {
@@ -672,6 +689,7 @@ export default {
     },
     async FetchMap() {
       // console.log("Fetching the whole map");
+      lastUpdate = new Date();
       const response = await fetch(`${process.env.apiUrl}/flag`, {
         method: "GET",
         crossDomain: true,
@@ -712,6 +730,8 @@ export default {
     async sendPixel() {
       if (this.requesting) return;
       if (!this.editedPixel) return;
+      if (this.isOnCooldown) return;
+
       //Sending the user pixel with coords, color, timestamp?, userID?
       this.requesting = true;
       // console.log("Sending: ", UserPixel);
@@ -729,17 +749,25 @@ export default {
       });
       const data = await response.json();
       if (data.retryAfter) {
+        this.lastSubmittedTime = new Date(Date.now() + data.retryAfter - this.maxCooldownTime);
         this.openFailedEditModal = true;
         this.errorMessage = 'CooldownNotEndedYet';
-        this.lastSubmittedTime = new Date();
-        this.maxCooldownTime = data.retryAfter;
       } else {
+        this.lastSubmittedTime = new Date();
         this.openSuccessEditModal = true;
-        this.FetchUserPixelAndMap();
+        this.FetchUserPixelAndMap(false);
       }
+
+      if (!this.isOnCooldown) {
+        this.isOnCooldown = true;
+        setTimeout(() => {
+          this.isOnCooldown = false;
+        }, this.cooldownTime);
+      }
+
       this.requesting = false;
     },
-    async FetchUserPixelAndMap() {
+    async FetchUserPixelAndMap(fetchmap = true) {
       // console.log("Fetching user pixel");
       await fetch(`${process.env.apiUrl}/pixel`, {
         method: "GET",
@@ -752,15 +780,15 @@ export default {
         .then((response) => response.json())
         .then(async (data) => {
           console.debug("User pixel : ", data);
-          await this.FetchMap();
+          if (fetchmap) {
+            await this.FetchMap();
+          }
           const userPixelCoordinates = getCoordinateFromFlagIndex(indexInFlagToLocalIndexMap[data.indexInFlag]);
           this.x = userPixelCoordinates.x;
           this.y = userPixelCoordinates.y;
           this.color = data.hexColor;
-          this.lastSubmittedTime = data.lastUpdate;
-          console.debug("time last updated ", this.lastSubmittedTime);
           setUserPixel(this.x, this.y);
-          changeColor(this.x, this.y, this.color);
+          changePixelColorByCoordinatesAndRedraw(this.x, this.y, this.color);
           this.setPixelToEdit(null, { ...userPixelCoordinates, ...data }, false);
           // console.log('here');
         })
@@ -776,7 +804,9 @@ export default {
         },
       });
       const body = await res.json();
-      return body.cooldown;
+      const cooldownInMinutes = body.cooldown;
+      const cooldownInMilliseconds = cooldownInMinutes * 60 * 1000;
+      return cooldownInMilliseconds;
     },
     updateHoveredPixel(e) {
       let drawWidth = canvas.width / flagWidth;
@@ -801,13 +831,20 @@ export default {
         ...this.hoveredPixel,
       } : null);
     },
-    setPixelToEdit(_, pixel, resetPreviousPixelColor = true) {
+    async setPixelToEdit(_, pixel, resetPreviousPixelColor = true) {
       if (this.editedPixel && resetPreviousPixelColor) {
-        changeColor(this.editedPixel.x, this.editedPixel.y, this.editedPixel.hexColor);
+        changePixelColorByCoordinatesAndRedraw(this.editedPixel.x, this.editedPixel.y, this.editedPixel.hexColor);
       }
 
       if (pixel) {
-        this.editedPixel = { ...pixel };
+        let pixelOwnerName = null;
+        try {
+          pixelOwnerName = (await this.fouloscopieSdk.getUser(flagPixelMap[pixel.x][pixel.y].author)).last_name;
+        } catch (e) {
+          console.warn('Error while fetching pixel author', e);
+        }
+
+        this.editedPixel = { ...pixel, username: pixelOwnerName };
         this.color = this.editedPixel.hexColor;
         this.modifiedPixelX = this.editedPixel.x + 1;
         this.modifiedPixelY = this.editedPixel.y + 1;
@@ -835,6 +872,8 @@ export default {
     // // console.log("DEBUG - userToken : ", token);
     if (!token) {
       redirect({ name: "index" });
+    } else if (!instance.userInfo.email_valid) {
+      redirect({ name: "invalid_email" });
     }
   },
   beforeDestroy() {

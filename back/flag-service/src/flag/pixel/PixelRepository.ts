@@ -1,5 +1,5 @@
 import { DatabaseRepository } from 'library/database/repository/DatabaseRepository';
-import { GetPixelDTO } from './dto/GetPixelDTO';
+import { GetPixelDto } from './dto/GetPixelDto';
 import { Pixel } from './Pixel';
 import { Inject, Injectable } from '@nestjs/common';
 import { DatabaseClientService } from 'library/database/client/DatabaseClientService';
@@ -15,7 +15,7 @@ export class PixelRepository extends DatabaseRepository<DatabaseEvent<Pixel>> {
     return this.getCollection().aggregate(this.getPixelAggregation()).toArray();
   }
 
-  async createAndReturn(data: DatabaseEvent<Pixel>) {
+  async createAndReturn(data: DatabaseEvent<Pixel>): Promise<DatabaseEvent<Pixel>> {
     if (data.action === 'creation') {
       data.data.indexInFlag = (await this.dbClient.getDb().collection('counter').findOneAndUpdate({ name: 'pixelCounter' }, { $inc: { counter: 1 } }, {
         upsert: true,
@@ -61,7 +61,7 @@ export class PixelRepository extends DatabaseRepository<DatabaseEvent<Pixel>> {
     return this.getCollection().aggregate(aggregation).toArray();
   }
 
-  async getPixelsBetweenEventIds(from: number, to: number): Promise<GetPixelDTO[]> {
+  async getPixelsBetweenEventIds(from: number, to: number): Promise<GetPixelDto[]> {
     const aggregation = this.getPixelAggregation();
     aggregation.unshift({
       $match: { eventId: { $lte: to, $gt : from },
@@ -102,6 +102,13 @@ export class PixelRepository extends DatabaseRepository<DatabaseEvent<Pixel>> {
 
   private getPixelAggregation(): Array<any> {
     return [
+      {
+        $match: {
+          ignored: {
+            $ne: true,
+          },
+        },
+      },
       {
         $sort: { eventId: 1 },
       },
