@@ -468,9 +468,11 @@ export default {
         while (this.pixelEvents[this.startingEvent] && isBefore(parseISO(actualEvent.createdAt.$date), this.nextDate)) {
           actualEvent = this.pixelEvents[this.startingEvent];
           if (!actualEvent.ignored || this.showBot) {
-            const x = flagIndexToCoordinateCache[indexInFlagToLocalIndexMap[actualEvent.data.indexInFlag]].x;
-            const y = flagIndexToCoordinateCache[indexInFlagToLocalIndexMap[actualEvent.data.indexInFlag]].y;
-            drawPixelToBuffer(x, y, actualEvent.data.hexColor);
+            const x = flagIndexToCoordinateCache[indexInFlagToLocalIndexMap[actualEvent.data.indexInFlag]]?.x;
+            const y = flagIndexToCoordinateCache[indexInFlagToLocalIndexMap[actualEvent.data.indexInFlag]]?.y;
+            if (x != null && y != null) {
+              drawPixelToBuffer(x, y, actualEvent.data.hexColor);
+            }
           }
           this.startingEvent++;
         }
@@ -479,7 +481,7 @@ export default {
           seconds: this.secondsPerLoop
         });
       }
-      if (this.startingEvent === this.pixelEvents.length) {
+      if (this.startingEvent >= this.pixelEvents.length - 1) {
         this.nextDate = 'THE END !';
         clearInterval(this.historyRefreshIntervalId);
       } else {
