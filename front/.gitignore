@@ -7,6 +7,8 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+./static/pixel-events.json
+
 # Runtime data
 pids
 *.pid
