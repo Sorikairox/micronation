@@ -90,3 +90,4 @@ sw.*
 
 # Vim swap files
 *.swp
+/static/pixel-events.json
