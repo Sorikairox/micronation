@@ -1,6 +1,7 @@
 import { DynamicModule, Module } from '@nestjs/common';
 import { FlagController } from './FlagController';
 import { FlagService } from './FlagService';
+import { ImageService } from './image/ImageService';
 import { PixelModule } from './pixel/PixelModule';
 import { DatabaseModule } from 'library/database/DatabaseModule';
 import { ConfigModule } from '@nestjs/config';
@@ -24,7 +25,7 @@ export class FlagModule {
         UserModule.register(authBackend),
       ],
       controllers: [FlagController],
-      providers: [FlagService],
+      providers: [FlagService, ImageService],
     };
   }
 }
