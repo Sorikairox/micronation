@@ -14,7 +14,7 @@ export class ImageService {
   async generateFlagImage() {
     let actualDate = new Date();
     actualDate = set(actualDate, { year: 2021, date: 21, hours: 12 });
-    while (isAfter(actualDate, new Date(2021, 10, 13))) {
+    while (isAfter(actualDate, new Date(2021, 10, 1))) {
       const pixels = await this.flagService.getFlagAtDate(actualDate);
       const image = await this.generateImageFromPixelArray(pixels, 131815, 1/2);
       const filename = 'flag-' + format(actualDate, 'yyyy-MM-dd') + '.png';
