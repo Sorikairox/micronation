@@ -8,6 +8,7 @@ import { ConfigModule } from '@nestjs/config';
 import { UserModule } from "../user/UserModule";
 import { AuthBackend } from "../user/AuthBackend";
 import { FlagSnapshotModule } from './snapshot/FlagSnapshotModule';
+import { FlagStatModule } from './stat/FlagStatModule';
 
 @Module({})
 export class FlagModule {
@@ -22,6 +23,7 @@ export class FlagModule {
         }),
         PixelModule,
         FlagSnapshotModule,
+        FlagStatModule,
         UserModule.register(authBackend),
       ],
       controllers: [FlagController],

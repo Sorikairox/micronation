@@ -11,7 +11,7 @@ export class PixelRepository extends DatabaseRepository<DatabaseEvent<Pixel>> {
     super(dbClient, 'pixel-events');
   }
 
-  async getPixels() {
+  async getPixels(): Promise<Array<GetPixelDto>> {
     return this.getCollection().aggregate(this.getPixelAggregation()).toArray();
   }
 
@@ -98,6 +98,90 @@ export class PixelRepository extends DatabaseRepository<DatabaseEvent<Pixel>> {
       },
     });
     return this.getCollection().aggregate(aggregation).toArray();
+  }
+
+  async getDayRankedByUpdateNumber() {
+    return this.executeRankingQuery({
+      '$match': {
+        'action': 'update',
+        'ignored': {
+          '$ne': true,
+        },
+      },
+    },{
+      '$substrBytes': [
+        '$createdAt', 0, 11,
+      ],
+    })
+  }
+
+  async getDayRankedByCreationNumber() {
+    return this.executeRankingQuery({
+      '$match': {
+        'action': 'creation',
+        'ignored': {
+          '$ne': true,
+        },
+      },
+    },{
+      '$substrBytes': [
+        '$createdAt', 0, 11,
+      ],
+    })
+  }
+
+  async getColorRanking() {
+    return this.executeRankingQuery({
+      '$match': {
+        'action': 'update',
+        'ignored': {
+          '$ne': true,
+        },
+      },
+    },{
+      '$toLower': "$data.hexColor",
+    })
+  }
+
+  async getUserRanking() {
+    return this.executeRankingQuery({
+      '$match': {
+        'action': 'update',
+        'ignored': {
+          '$ne': true,
+        },
+      },
+    },"$author")
+  }
+
+
+  async getPixelRanking() {
+    return this.executeRankingQuery({
+      '$match': {
+        'action': 'update',
+        'ignored': {
+          '$ne': true,
+        },
+      },
+    },"$entityId")
+  }
+
+  private  executeRankingQuery(eventMatchQuery: any, groupByObject: any) {
+    return this.getCollection().aggregate([
+      eventMatchQuery,
+      {
+        '$group': {
+          '_id': groupByObject,
+          'eventNumber': {
+            '$sum': 1,
+          },
+        },
+      }, {
+        '$sort': {
+          'eventNumber': -1,
+        },
+      },
+    ]).toArray();
   }
 
   private getPixelAggregation(): Array<any> {

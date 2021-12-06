@@ -3,12 +3,15 @@ import { format, isAfter, set, sub } from 'date-fns';
 import Jimp from 'jimp';
 import { FlagService } from '../FlagService';
 import { GetPixelDto } from '../pixel/dto/GetPixelDto';
-import { mapCoordinatesToTargetRatioRectangleDistribution } from '../utils';
+import { PixelRankingDTO } from '../stat/dto/PixelRankingDTO';
+import { RankingDTO } from '../stat/dto/RankingDTO';
+import { FlagStatService } from '../stat/FlagStatService';
+import { heatMapColorforValue, mapCoordinatesToTargetRatioRectangleDistribution } from '../utils';
 
 @Injectable()
 export class ImageService {
 
-  constructor(private flagService: FlagService) {
+  constructor(private flagService: FlagService, private statService: FlagStatService) {
   }
 
   async generateFlagImage() {
@@ -22,6 +25,19 @@ export class ImageService {
       console.log('generated ' + filename);
       actualDate = sub(actualDate, { hours: 24 });
     }
+  }
+
+  async generateFlagHeatmap() {
+    const pixelRanking = await this.statService.getPixelRanking();
+    const numberOfPixelThatHaveMoreThanOneChange = pixelRanking.reduce<number>((acc, pixel) => {
+      if (pixel.eventNumber > 1) {
+        acc = acc + 1
+      }
+      return acc;
+    }, 0)
+    const image = this.generateHeatmapImageFromRanking(pixelRanking, numberOfPixelThatHaveMoreThanOneChange);
+    await image.writeAsync('./heatmap.png');
+    console.log('generated-heatmap');
   }
 
   generateImageFromPixelArray(pixelArray: Array<GetPixelDto>, flagTotalPixelCount: number, ratio: number, scaleFactor = 8) {
@@ -53,6 +69,29 @@ export class ImageService {
         xScale++;
       }
       i++;
+    }
+    return image;
+  }
+
+  generateHeatmapImageFromRanking(ranking: PixelRankingDTO[], maxValue: number) {
+    const localIndexToPixelCoordinateMap = mapCoordinatesToTargetRatioRectangleDistribution(ranking.length, 1/2);
+    const width = localIndexToPixelCoordinateMap.reduce<number>((max: number, actualCoordinate) => {
+      if (max < actualCoordinate.x) {
+        max = actualCoordinate.x;
+      }
+      return max;
+    }, 0) + 1;
+    const height = localIndexToPixelCoordinateMap.reduce<number>((max: number, actualCoordinate) => {
+      if (max < actualCoordinate.y) {
+        max = actualCoordinate.y;
+      }
+      return max;
+    }, 0) + 1;
+    const image = new Jimp(width, height);
+    let i = 0;
+    for (const pixel of ranking) {
+      const color = heatMapColorforValue((maxValue - i++) / maxValue);
+      image.setPixelColor(Jimp.cssColorToHex(color), pixel.x, pixel.y);
     }
     return image;
   }

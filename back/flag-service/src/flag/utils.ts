@@ -38,3 +38,10 @@ export function mapCoordinatesToTargetRatioRectangleDistribution(
 
   return map;
 }
+
+export function heatMapColorforValue(value: number){
+  let h = (1.0 - value) * 240;
+  if (h < 0)
+    h = 0;
+  return "hsl(" + h + ", 100%, 50%)";
+}
