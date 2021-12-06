@@ -4,6 +4,7 @@ WORKDIR /app
 ARG API_URL
 ENV API_URL=${API_URL}
 COPY package*.json ./
+COPY yarn.lock ./
 RUN yarn
 COPY . .
 RUN yarn build
