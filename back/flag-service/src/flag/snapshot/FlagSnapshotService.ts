@@ -55,7 +55,7 @@ export class FlagSnapshotService {
     const createdSnapshot = await this.createNewEmptySnapshot(snapshotLastEventId);
     const pixels = await this.snapshotPixelService.saveSnapshotPixels(createdSnapshot._id.toHexString(), pixelArray);
     await this.snapshotRepository.updateAndReturnOne({ _id: createdSnapshot._id }, { complete: true });
-    return pixels;
+    return { ...createdSnapshot, pixels };
   }
 
   public async createNewEmptySnapshot(lastEventId: number): Promise<FlagSnapshot> {

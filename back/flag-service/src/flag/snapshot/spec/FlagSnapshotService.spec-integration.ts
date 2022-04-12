@@ -181,35 +181,18 @@ describe('FlagSnapshotService', () => {
         expect(snapshot.pixels).toEqual(createdPixels.slice(0, 15).map(p => ({ author: p.author, hexColor: p.hexColor, entityId: p.entityId, indexInFlag: p.indexInFlag })));
       });
       it ('get newer snapshot when there is a newer', async () => {
-        const snapshot = await flagSnapshotRepository.createAndReturn({
-          lastEventId: 40,
-          complete: true,
-        });
-        await Promise.all(createdPixels.map(async p => {
-          await flagSnapshotPixelRepository.createAndReturn({ author: p.author, hexColor: p.hexColor, entityId: p.entityId, indexInFlag: p.indexInFlag, snapshotId: snapshot._id.toHexString() })
-        }) as any);
-
+        await flagSnapshotService.createSnapshot(40);
         const latestSnapshot = await flagSnapshotService.getLatestSnapshot();
         expect(latestSnapshot.lastEventId).toEqual(40);
         expect(latestSnapshot.pixels).toEqual(createdPixels.map(p => ({ author: p.author, hexColor: p.hexColor, entityId: p.entityId, indexInFlag: p.indexInFlag })));
       });
 
-      it ('get second last snapshot when last is not complete', async () => {
-        const completeSnapshot = await flagSnapshotRepository.createAndReturn({
-          lastEventId: 35,
-          complete: true,
-        });
-        await Promise.all(createdPixels.slice(0, 35).map(async p => {
-          await flagSnapshotPixelRepository.createAndReturn({ author: p.author, hexColor: p.hexColor, entityId: p.entityId, indexInFlag: p.indexInFlag, snapshotId: completeSnapshot._id.toHexString() })
-        }) as any);
-
-        const incompleteSnapshot = await flagSnapshotRepository.createAndReturn({
+      it ('get second to last snapshot when last is not complete', async () => {
+        await flagSnapshotService.createSnapshot(35);
+        await flagSnapshotRepository.createAndReturn({
           lastEventId: 40,
           complete: false,
         });
-        await Promise.all(createdPixels.map(async p => {
-          await flagSnapshotPixelRepository.createAndReturn({ author: p.author, hexColor: p.hexColor, entityId: p.entityId, indexInFlag: p.indexInFlag, snapshotId: incompleteSnapshot._id.toHexString() })
-        }) as any);
 
         const latestSnapshot = await flagSnapshotService.getLatestSnapshot();
         expect(latestSnapshot.lastEventId).toEqual(35);

@@ -15,7 +15,7 @@ import { FlagSnapshotModule } from '../snapshot/FlagSnapshotModule';
 import { FlagSnapshotRepository } from '../snapshot/FlagSnapshotRepository';
 import { FlagSnapshotService } from '../snapshot/FlagSnapshotService';
 
-describe('FlagService', () => {
+describe(FlagService.name, () => {
   let flagService: FlagService;
   let dbClientService: DatabaseClientService;
   let pixelRepository: PixelRepository;
@@ -158,7 +158,7 @@ describe('FlagService', () => {
       .collection('counter')
       .deleteMany({});
   });
-  describe('addPixel', () => {
+  describe(FlagService.prototype.addPixel.name, () => {
     it('add creation event in db', async () => {
       const addedPixelEvent = await flagService.addPixel(
         'secondownerid',
